@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Jawz Custom Grillz Level 2 generator",
+  "description": "Custom Moissanite, Lab Diamond, and Solid Gold Grillz. Premium quality, custom fit, made to shine.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
