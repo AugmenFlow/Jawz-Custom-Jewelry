@@ -5,17 +5,17 @@ import {
   Sparkles, MapPin, Phone, Award, ExternalLink, MessageSquare, 
   CheckCircle2, ShieldCheck, Heart 
 } from 'lucide-react';
-import silverMoissanite from './assets/images/silver_moissanite_1779848576581.png';
-import goldPlain from './assets/images/gold_plain_1779848593610.png';
-import silverPlain from './assets/images/silver_plain_1779848608539.png';
-import jawzOfficialLogo from './assets/images/jawz_official_logo_1792013736169.jpg';
+import silverMoissanite from './silver_moissanite_1779848576581.png';
+import goldPlain from './gold_plain_1779848593610.png';
+import silverPlain from './silver_plain_1779848608539.png';
+import jawzOfficialLogo from './assets/images/jawz-custom-jewelry-logo.png';
 
 import Configurator from './Configurator';
 import AILab from './AILab';
 import PastWork from './PastWork';
 import GoogleReviews from './GoogleReviews';
 import BookingModal, { BookingData } from './BookingModal';
-import { PAST_WORKS, GOOGLE_REVIEWS_DATA, PastWorkItem } from './data/pastWorkData';
+import { PAST_WORKS, GOOGLE_REVIEWS_DATA, PastWorkItem } from './pastWorkData';
 
 const PricingRow = ({ label, price }: { label: string, price: string }) => (
   <div className="flex justify-between items-center py-3 border-b border-white/5 last:border-0 hover:bg-white/5 px-2 transition-colors">
@@ -808,7 +808,7 @@ export default function App() {
                 <img 
                   src={jawzOfficialLogo} 
                   alt="Jawz Jewelry Logo" 
-                  className="w-12 h-12 sm:w-13 sm:h-13 object-cover rounded-full border border-[#D4AF37]/50 group-hover:scale-105 group-hover:border-[#D4AF37] transition-all shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+                  className="w-12 h-12 sm:w-13 sm:h-13 object-contain group-hover:scale-105 transition-transform"
                 />
                 <div>
                   <div className="font-heading font-black text-lg sm:text-xl tracking-wider text-white uppercase group-hover:text-[#D4AF37] transition-colors leading-none">
@@ -978,8 +978,8 @@ export default function App() {
           <div className="flex items-center gap-3">
             <img 
               src={jawzOfficialLogo} 
-              alt="Jawz Logo" 
-              className="w-10 h-10 rounded-full border border-[#D4AF37]/40 object-cover"
+              alt="Jawz Custom Jewelry Logo" 
+              className="w-10 h-10 object-contain"
             />
             <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-bold flex flex-col gap-0.5">
               <span className="text-zinc-300">&copy; {new Date().getFullYear()} JAWZ JEWELRY • EST. 2023</span>

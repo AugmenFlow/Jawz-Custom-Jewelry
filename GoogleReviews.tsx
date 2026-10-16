@@ -4,7 +4,7 @@ import {
   ThumbsUp, ShieldCheck, Filter, Award, ChevronDown, X,
   Camera, Heart, Flame, Sparkles, Phone, Calendar
 } from 'lucide-react';
-import { GOOGLE_REVIEWS_DATA, GoogleReview } from './data/pastWorkData';
+import { GOOGLE_REVIEWS_DATA, GoogleReview } from './pastWorkData';
 
 interface GoogleReviewsProps {
   onOpenBooking?: () => void;
