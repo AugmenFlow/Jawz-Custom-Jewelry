@@ -1,6 +1,6 @@
-import goldPlain from '../assets/images/gold_plain_1779848593610.png';
-import silverMoissanite from '../assets/images/silver_moissanite_1779848576581.png';
-import silverPlain from '../assets/images/silver_plain_1779848608539.png';
+import goldPlain from './gold_plain_1779848593610.png';
+import silverMoissanite from './silver_moissanite_1779848576581.png';
+import silverPlain from './silver_plain_1779848608539.png';
 
 export interface PastWorkItem {
   id: string;

@@ -3,7 +3,7 @@ import {
   Sparkles, Star, ArrowRight, ShieldCheck, MapPin, Clock, 
   Check, Filter, ZoomIn, Calendar, Heart, Award, ChevronRight, X
 } from 'lucide-react';
-import { PAST_WORKS, PastWorkItem } from './data/pastWorkData';
+import { PAST_WORKS, PastWorkItem } from './pastWorkData';
 
 interface PastWorkProps {
   onBookItem: (item: PastWorkItem) => void;
