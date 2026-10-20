@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Menu, User, ChevronDown, Check, Star, ArrowRight, 
   Instagram, Facebook, X, Calendar, 
@@ -18,7 +18,8 @@ import PastWork from './PastWork';
 import GoogleReviews from './GoogleReviews';
 import { InstagramPostCard, instagramPostUrl } from './InstagramGallery';
 import { BEST_SELLER_POSTS, InstagramPost } from './data/instagramPosts';
-import BookingModal, { BookingData } from './BookingModal';
+import BookingModal, { BookingData, BookingPreset } from './BookingModal';
+import { StudioDesign, loadSavedDesign, saveDesign, readSharedDesign, designPrompt } from './design/designModel';
 import { GOOGLE_REVIEWS_DATA } from './data/pastWorkData';
 
 const PricingRow = ({ label, price }: { label: string, price: string }) => (
@@ -31,29 +32,33 @@ const PricingRow = ({ label, price }: { label: string, price: string }) => (
 export default function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<'home' | 'pastwork' | 'reviews' | 'configurator' | 'ailab'>('home');
-  const [aiLabIdea, setAiLabIdea] = useState<string | undefined>(undefined);
+  // The customer's design follows them between the Design Studio, AI Preview and booking
+  const [sharedDesign] = useState<StudioDesign | null>(() => readSharedDesign());
+  const [studioDesign, setStudioDesign] = useState<StudioDesign>(() => sharedDesign || loadSavedDesign());
+  const [aiFromStudio, setAiFromStudio] = useState(false);
+
+  useEffect(() => {
+    saveDesign(studioDesign);
+  }, [studioDesign]);
+
+  // Opening a shared design link lands on the Design Studio
+  useEffect(() => {
+    if (sharedDesign) {
+      setCurrentPage('configurator');
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+  }, [sharedDesign]);
+
+  const goTo = (page: typeof currentPage) => {
+    setCurrentPage(page);
+    window.scrollTo(0, 0);
+  };
 
   // Booking Modal State
   const [isBookingOpen, setIsBookingOpen] = useState(false);
-  const [bookingPreset, setBookingPreset] = useState<{
-    teeth?: { top: number[]; bottom: number[] };
-    material?: string;
-    cuts?: string[];
-    notes?: string;
-    serviceType?: 'in-person' | 'mail-order' | 'jewelry' | 'adjustment';
-    attachedMockupImage?: string;
-    geminiShareLink?: string;
-  } | undefined>(undefined);
+  const [bookingPreset, setBookingPreset] = useState<BookingPreset | undefined>(undefined);
 
-  const openBookingWithPreset = (preset?: {
-    teeth?: { top: number[]; bottom: number[] };
-    material?: string;
-    cuts?: string[];
-    notes?: string;
-    serviceType?: 'in-person' | 'mail-order' | 'jewelry' | 'adjustment';
-    attachedMockupImage?: string;
-    geminiShareLink?: string;
-  }) => {
+  const openBookingWithPreset = (preset?: BookingPreset) => {
     setBookingPreset(preset);
     setIsBookingOpen(true);
   };
@@ -89,12 +94,13 @@ export default function App() {
     if (currentPage === 'configurator') {
       return (
         <Configurator 
-          onBack={() => setCurrentPage('home')} 
-          onBookAppointment={(data) => openBookingWithPreset(data)}
-          onOpenAILab={(idea) => {
-            setAiLabIdea(idea);
-            setCurrentPage('ailab');
-            window.scrollTo(0, 0);
+          design={studioDesign}
+          onChange={setStudioDesign}
+          onBack={() => goTo('home')} 
+          onBook={() => openBookingWithPreset({ design: studioDesign })}
+          onOpenAIPreview={() => {
+            setAiFromStudio(true);
+            goTo('ailab');
           }}
         />
       );
@@ -103,9 +109,9 @@ export default function App() {
     if (currentPage === 'ailab') {
       return (
         <AILab 
-          onBack={() => setCurrentPage('home')} 
-          initialIdea={aiLabIdea}
-          onOpenToothLab={() => { setCurrentPage('configurator'); window.scrollTo(0, 0); }}
+          onBack={() => goTo('home')} 
+          initialIdea={aiFromStudio ? designPrompt(studioDesign) : undefined}
+          onOpenToothLab={() => goTo('configurator')}
           onBookConsultation={(data) => {
             openBookingWithPreset({
               notes: data.notes,
@@ -115,6 +121,7 @@ export default function App() {
               cuts: data.cuts,
               attachedMockupImage: data.attachedMockupImage,
               geminiShareLink: data.geminiShareLink,
+              design: aiFromStudio ? studioDesign : undefined,
             });
           }}
         />
@@ -190,12 +197,12 @@ export default function App() {
             {/* Direct Gemini AI Mockup Callout */}
             <div className="mt-8">
               <button 
-                onClick={() => setCurrentPage('ailab')}
+                onClick={() => goTo('configurator')}
                 className="group inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 border border-[#D4D4D8]/40 hover:border-[#D4D4D8] text-xs text-zinc-300 hover:text-white transition-all shadow-md"
               >
                 <span className="w-2 h-2 rounded-full bg-[#D4D4D8] animate-pulse"></span>
                 <span className="text-[#D4D4D8] font-bold">Have an idea?</span>
-                <span>Mock it up in Google Gemini & submit your design here</span>
+                <span>Design it in the Design Studio, then see it realistic with AI Preview</span>
                 <ArrowRight className="w-3.5 h-3.5 text-[#D4D4D8] group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
@@ -822,7 +829,7 @@ export default function App() {
                   currentPage === 'configurator' ? 'text-white border-b-2 border-[#D4D4D8] pb-1 font-bold' : 'text-zinc-300 hover:text-[#D4D4D8]'
                 }`}
               >
-                Tooth Lab
+                Design Studio
               </button>
 
               <button 
@@ -832,7 +839,7 @@ export default function App() {
                 }`}
               >
                 <Sparkles className="w-3.5 h-3.5 text-[#D4D4D8]" />
-                <span>AI Lab (Gemini)</span>
+                <span>AI Preview</span>
               </button>
 
               <a 
@@ -904,14 +911,14 @@ export default function App() {
             onClick={() => { setIsMobileMenuOpen(false); setCurrentPage('configurator'); }} 
             className="p-4 border-b border-white/5 text-left font-bold text-white flex items-center gap-2"
           >
-            <span>Tooth Lab (Grillz Configurator)</span>
+            <span>Design Studio (Grillz & Jewelry)</span>
           </button>
           <button 
             onClick={() => { setIsMobileMenuOpen(false); setCurrentPage('ailab'); }} 
             className="p-4 border-b border-white/5 text-[#D4D4D8] text-left font-bold flex items-center gap-2"
           >
             <Sparkles className="w-4 h-4 text-[#D4D4D8]" />
-            <span>AI Design Lab (Mock Up on Gemini)</span>
+            <span>AI Preview (Realistic Pictures)</span>
           </button>
           <button 
             onClick={() => { setIsMobileMenuOpen(false); setCurrentPage('reviews'); }} 
@@ -953,6 +960,10 @@ export default function App() {
         isOpen={isBookingOpen}
         onClose={() => setIsBookingOpen(false)}
         initialPreset={bookingPreset}
+        onEditDesign={() => {
+          setIsBookingOpen(false);
+          goTo('configurator');
+        }}
       />
 
       {/* Footer */}

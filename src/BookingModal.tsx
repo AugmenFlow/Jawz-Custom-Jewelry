@@ -4,6 +4,14 @@ import {
   Mail, MessageSquare, ChevronRight, User, ShieldCheck, ArrowRight,
   Printer, Share2, Gem, Layers, HelpCircle
 } from 'lucide-react';
+import {
+  StudioDesign, GrillzDesign, FreeStyle, AddOn, FREE_STYLES,
+  presetTeeth, grillzBasePrice, addonsPrice, grillzEstimate, designSummary, designShareUrl,
+  materialName, styleName, addonName, toothDesignList, toothDesignName,
+  jewelryDetails, jewelryMetalName, jewelryStoneName,
+} from './design/designModel';
+import { MouthPreview, JewelryPreview } from './design/DesignPreviews';
+import FlowSteps from './design/FlowSteps';
 
 export interface BookingData {
   id: string;
@@ -25,20 +33,73 @@ export interface BookingData {
   status: 'confirmed' | 'pending';
   attachedMockupImage?: string;
   geminiShareLink?: string;
+  designSummary?: string;
+  designLink?: string;
+  /** Whether the booking reached the studio's inbox */
+  deliveredToStudio?: boolean;
+}
+
+export const BOOKING_STEPS = ['Design', 'Date & Contact', 'Confirmed'];
+
+const FORM_ENDPOINT = '/__forms.html';
+const MAX_ATTACHMENT_BYTES = 6 * 1024 * 1024;
+
+/** Sends the booking to the studio through Netlify Forms (dashboard + email notifications). */
+async function sendBookingToStudio(booking: BookingData) {
+  const body = new FormData();
+  const fields: Record<string, string> = {
+    'form-name': 'booking',
+    subject: `New appointment: ${booking.clientName} on ${booking.appointmentDate} at ${booking.appointmentTime}`,
+    'booking-id': booking.id,
+    service: booking.serviceType,
+    name: booking.clientName,
+    phone: booking.phone,
+    email: booking.email,
+    instagram: booking.instagram || '',
+    'contact-method': booking.contactMethod,
+    date: booking.appointmentDate,
+    time: booking.appointmentTime,
+    'top-teeth': booking.selectedTopTeeth.join(', '),
+    'bottom-teeth': booking.selectedBottomTeeth.join(', '),
+    material: booking.material,
+    cuts: booking.cuts.join(', '),
+    design: booking.designSummary || '',
+    'design-link': booking.designLink || '',
+    notes: booking.customNotes,
+    estimate: booking.estimatedPrice,
+    'gemini-link': booking.geminiShareLink || '',
+  };
+  Object.entries(fields).forEach(([key, value]) => body.append(key, value));
+
+  if (booking.attachedMockupImage?.startsWith('data:')) {
+    const blob = await (await fetch(booking.attachedMockupImage)).blob();
+    if (blob.size <= MAX_ATTACHMENT_BYTES) {
+      body.append('design-image', blob, `${booking.id}-design.${blob.type.split('/')[1] || 'png'}`);
+    }
+  }
+
+  const response = await fetch(FORM_ENDPOINT, { method: 'POST', body });
+  return response.ok;
+}
+
+export interface BookingPreset {
+  teeth?: { top: number[]; bottom: number[] };
+  material?: string;
+  cuts?: string[];
+  notes?: string;
+  serviceType?: 'in-person' | 'mail-order' | 'jewelry' | 'adjustment';
+  attachedMockupImage?: string;
+  geminiShareLink?: string;
+  /** A design made in the Design Studio. The form opens on a review of it instead of asking again. */
+  design?: StudioDesign;
 }
 
 interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialPreset?: {
-    teeth?: { top: number[]; bottom: number[] };
-    material?: string;
-    cuts?: string[];
-    notes?: string;
-    serviceType?: 'in-person' | 'mail-order' | 'jewelry' | 'adjustment';
-    attachedMockupImage?: string;
-    geminiShareLink?: string;
-  };
+  initialPreset?: BookingPreset;
+  /** Takes the customer back to the Design Studio with their design. */
+  onEditDesign?: () => void;
 }
 
 const MATERIAL_OPTIONS = [
@@ -62,6 +123,7 @@ const CUT_OPTIONS = [
   { id: 'rose-cuts', name: 'Rose Cuts (+$7/tooth)' },
   { id: 'starburst-cuts', name: 'Starburst Cuts (+$7/tooth)' },
   { id: 'speciality-cut', name: 'Speciality Open Face (+$20/tooth)' },
+  { id: 'laser-design', name: 'Laser Design (+$25/tooth)' },
   { id: '3d-design', name: '3D Sculpted Design (+$85/tooth)' },
 ];
 
@@ -69,12 +131,14 @@ const TIME_SLOTS = [
   '10:30 AM', '11:45 AM', '1:00 PM', '2:15 PM', '3:30 PM', '4:45 PM', '6:00 PM', '7:15 PM'
 ];
 
-export default function BookingModal({ isOpen, onClose, initialPreset }: BookingModalProps) {
-  const [step, setStep] = useState<1 | 2 | 3>(1); // 1: Customization & Teeth, 2: Date & Contact, 3: Confirmed
+export default function BookingModal({ isOpen, onClose, initialPreset, onEditDesign }: BookingModalProps) {
+  const [step, setStep] = useState<1 | 2 | 3>(1); // 1: Design, 2: Date & Contact, 3: Confirmed
+  const [design, setDesign] = useState<StudioDesign | null>(null);
+  const [isSending, setIsSending] = useState(false);
   
   // Customization state
   const [serviceType, setServiceType] = useState<'in-person' | 'mail-order' | 'jewelry' | 'adjustment'>('in-person');
-  const [selectedTopTeeth, setSelectedTopTeeth] = useState<Set<number>>(new Set([4, 5, 6, 7, 8, 9]));
+  const [selectedTopTeeth, setSelectedTopTeeth] = useState<Set<number>>(new Set(presetTeeth(6)));
   const [selectedBottomTeeth, setSelectedBottomTeeth] = useState<Set<number>>(new Set());
   const [material, setMaterial] = useState<string>('10k-gold');
   const [selectedCuts, setSelectedCuts] = useState<string[]>(['perm-cut']);
@@ -99,32 +163,38 @@ export default function BookingModal({ isOpen, onClose, initialPreset }: Booking
   const [confirmedBooking, setConfirmedBooking] = useState<BookingData | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Apply initial preset when passed
+  // Start each visit from the preset (or a blank form)
   useEffect(() => {
-    if (initialPreset) {
-      if (initialPreset.teeth) {
-        setSelectedTopTeeth(new Set(initialPreset.teeth.top));
-        setSelectedBottomTeeth(new Set(initialPreset.teeth.bottom));
-      }
-      if (initialPreset.material) {
-        setMaterial(initialPreset.material);
-      }
-      if (initialPreset.cuts) {
-        setSelectedCuts(initialPreset.cuts);
-      }
-      if (initialPreset.notes) {
-        setCustomNotes(initialPreset.notes);
-      }
-      if (initialPreset.serviceType) {
-        setServiceType(initialPreset.serviceType);
-      }
-      if (initialPreset.attachedMockupImage) {
-        setAttachedMockupImage(initialPreset.attachedMockupImage);
-      }
-      if (initialPreset.geminiShareLink) {
-        setGeminiShareLink(initialPreset.geminiShareLink);
-      }
+    if (!isOpen) return;
+    const preset: BookingPreset = initialPreset || {};
+    const fromStudio = preset.design || null;
+    setStep(1);
+    setFormError(null);
+    setDesign(fromStudio);
+
+    if (fromStudio?.mode === 'grillz') {
+      const g = fromStudio.grillz;
+      setServiceType(preset.serviceType === 'mail-order' ? 'mail-order' : 'in-person');
+      setSelectedTopTeeth(new Set(g.top));
+      setSelectedBottomTeeth(new Set(g.bottom));
+      setMaterial(g.material);
+      setSelectedCuts([g.baseStyle, ...g.addons]);
+    } else if (fromStudio?.mode === 'jewelry') {
+      setServiceType('jewelry');
+      setSelectedTopTeeth(new Set());
+      setSelectedBottomTeeth(new Set());
+      setMaterial('jewelry-only');
+      setSelectedCuts([]);
+    } else {
+      setServiceType(preset.serviceType || 'in-person');
+      setSelectedTopTeeth(new Set(preset.teeth ? preset.teeth.top : presetTeeth(6)));
+      setSelectedBottomTeeth(new Set(preset.teeth ? preset.teeth.bottom : []));
+      setMaterial(preset.material || '10k-gold');
+      setSelectedCuts(preset.cuts || ['perm-cut']);
     }
+    setCustomNotes(preset.notes || '');
+    setAttachedMockupImage(preset.attachedMockupImage || null);
+    setGeminiShareLink(preset.geminiShareLink || '');
   }, [initialPreset, isOpen]);
 
   if (!isOpen) return null;
@@ -146,26 +216,29 @@ export default function BookingModal({ isOpen, onClose, initialPreset }: Booking
   };
 
   const setPresetTeeth = (type: 'top-6' | 'top-8' | 'bottom-6' | 'bottom-8' | 'full-8-8' | 'clear') => {
-    if (type === 'top-6') {
-      setSelectedTopTeeth(new Set([4, 5, 6, 7, 8, 9]));
-      setSelectedBottomTeeth(new Set());
-    } else if (type === 'top-8') {
-      setSelectedTopTeeth(new Set([3, 4, 5, 6, 7, 8, 9, 10]));
-      setSelectedBottomTeeth(new Set());
-    } else if (type === 'bottom-6') {
-      setSelectedTopTeeth(new Set());
-      setSelectedBottomTeeth(new Set([4, 5, 6, 7, 8, 9]));
-    } else if (type === 'bottom-8') {
-      setSelectedTopTeeth(new Set());
-      setSelectedBottomTeeth(new Set([3, 4, 5, 6, 7, 8, 9, 10]));
-    } else if (type === 'full-8-8') {
-      setSelectedTopTeeth(new Set([3, 4, 5, 6, 7, 8, 9, 10]));
-      setSelectedBottomTeeth(new Set([3, 4, 5, 6, 7, 8, 9, 10]));
-    } else if (type === 'clear') {
-      setSelectedTopTeeth(new Set());
-      setSelectedBottomTeeth(new Set());
-    }
+    const six = new Set(presetTeeth(6));
+    const eight = new Set(presetTeeth(8));
+    if (type === 'top-6') { setSelectedTopTeeth(six); setSelectedBottomTeeth(new Set()); }
+    else if (type === 'top-8') { setSelectedTopTeeth(eight); setSelectedBottomTeeth(new Set()); }
+    else if (type === 'bottom-6') { setSelectedTopTeeth(new Set()); setSelectedBottomTeeth(six); }
+    else if (type === 'bottom-8') { setSelectedTopTeeth(new Set()); setSelectedBottomTeeth(eight); }
+    else if (type === 'full-8-8') { setSelectedTopTeeth(eight); setSelectedBottomTeeth(new Set(eight)); }
+    else { setSelectedTopTeeth(new Set()); setSelectedBottomTeeth(new Set()); }
   };
+
+  // The booking form's own choices, drawn with the same mouth as the Design Studio
+  const formGrillz: GrillzDesign = {
+    material: material as GrillzDesign['material'],
+    baseStyle: (selectedCuts.find(c => FREE_STYLES.some(f => f.id === c)) || 'solid') as FreeStyle,
+    addons: selectedCuts.filter(c => !FREE_STYLES.some(f => f.id === c)) as AddOn[],
+    top: Array.from(selectedTopTeeth),
+    bottom: Array.from(selectedBottomTeeth),
+    topDesigns: {},
+    bottomDesigns: {},
+    notes: '',
+  };
+
+  const handleFormToothClick = (n: number, isTop: boolean) => (isTop ? toggleTopTooth(n) : toggleBottomTooth(n));
 
   const toggleCut = (cutId: string) => {
     if (selectedCuts.includes(cutId)) {
@@ -175,44 +248,36 @@ export default function BookingModal({ isOpen, onClose, initialPreset }: Booking
     }
   };
 
-  // Estimate calculation
+  // Estimate calculation (same prices as the Design Studio)
   const calculateEstimate = () => {
+    if (design?.mode === 'grillz') return `$${grillzEstimate(design.grillz).total.toLocaleString()}`;
     if (serviceType === 'jewelry') return 'Custom Jewelry Quote upon Consultation';
     if (serviceType === 'adjustment') return '$50 - $120 (Fit depending)';
     if (totalTeethCount === 0) return 'Select teeth above';
-
-    if (material === '10k-gold') {
-      if (totalTeethCount <= 2) return '$275';
-      if (totalTeethCount <= 4) return '$420';
-      return `$${totalTeethCount * 95} ($95/tooth)`;
-    }
-    if (material === '14k-gold' || material === '14k-white-gold') {
-      if (totalTeethCount <= 2) return '$350';
-      if (totalTeethCount <= 4) return '$520';
-      return `$${totalTeethCount * 115} ($115/tooth)`;
-    }
-    if (material === 'silver-moissanite') {
-      if (totalTeethCount === 12) return '$1,175';
-      if (totalTeethCount === 16) return '$1,550';
-      if (totalTeethCount === 20) return '$1,900';
-      return `$${totalTeethCount * 98} est.`;
-    }
-    if (material === 'silver-lab-diamond') {
-      if (totalTeethCount === 12) return '$1,900';
-      if (totalTeethCount === 16) return '$2,550';
-      if (totalTeethCount === 20) return '$3,180';
-      return `$${totalTeethCount * 159} est.`;
-    }
-    if (material === 'silver-plain') {
-      if (totalTeethCount <= 2) return '$225';
-      if (totalTeethCount <= 4) return `$${totalTeethCount * 45}`;
-      return `$${totalTeethCount * 40} ($40/tooth)`;
-    }
-    return 'Custom Quoted on Confirmation';
+    const base = grillzBasePrice(material, totalTeethCount);
+    if (base === null) return 'Custom Quoted on Confirmation';
+    return `$${(base + addonsPrice(selectedCuts, totalTeethCount)).toLocaleString()}`;
   };
 
-  const handleConfirmBooking = (e: React.FormEvent) => {
+  const designRows: [string, string][] = !design ? [] : design.mode === 'grillz'
+    ? [
+        ['Teeth', [design.grillz.top.length && `${design.grillz.top.length} top`, design.grillz.bottom.length && `${design.grillz.bottom.length} bottom`].filter(Boolean).join(' + ') || 'None'],
+        ['Metal', materialName(design.grillz.material)],
+        ['Style', styleName(design.grillz.baseStyle)],
+        ['Add-ons', design.grillz.addons.map(addonName).join(', ') || 'None'],
+        ['Jewels & cutouts', toothDesignList(design.grillz).map(({ arch, n, d }) => `${toothDesignName(d)} (${arch.toLowerCase()} #${n})`).join(', ') || 'None'],
+        ...(design.grillz.notes ? [['Notes', design.grillz.notes] as [string, string]] : []),
+      ]
+    : [
+        ['Piece', jewelryDetails(design.jewelry)],
+        ['Metal', jewelryMetalName(design.jewelry)],
+        ['Stones', jewelryStoneName(design.jewelry)],
+        ...(design.jewelry.notes ? [['Notes', design.jewelry.notes] as [string, string]] : []),
+      ];
+
+  const handleConfirmBooking = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSending) return;
     if (!clientName.trim() || !phone.trim()) {
       setFormError('Please provide your full name and phone number so we can confirm your appointment.');
       return;
@@ -239,8 +304,20 @@ export default function BookingModal({ isOpen, onClose, initialPreset }: Booking
       createdAt: new Date().toISOString(),
       status: 'confirmed',
       attachedMockupImage: attachedMockupImage || undefined,
-      geminiShareLink: geminiShareLink || undefined
+      geminiShareLink: geminiShareLink || undefined,
+      designSummary: design ? designSummary(design) : undefined,
+      designLink: design ? designShareUrl(design) : undefined,
     };
+
+    setIsSending(true);
+    try {
+      newBooking.deliveredToStudio = await sendBookingToStudio(newBooking);
+    } catch (err) {
+      console.error(err);
+      newBooking.deliveredToStudio = false;
+    } finally {
+      setIsSending(false);
+    }
 
     // Save to localStorage
     try {
@@ -268,7 +345,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset }: Booking
   // SMS draft for quick texting owner
   const getSmsDraft = (booking: BookingData) => {
     const text = encodeURIComponent(
-      `Hi Jeremy! I just booked an appointment on your site (Ref ${booking.id}). Name: ${booking.clientName}, Date: ${booking.appointmentDate} at ${booking.appointmentTime}. Looking for: ${booking.selectedTopTeeth.length} top / ${booking.selectedBottomTeeth.length} bottom teeth in ${booking.material}. Notes: ${booking.customNotes || 'None'}.`
+      `Hi Jeremy! I just booked an appointment on your site (Ref ${booking.id}). Name: ${booking.clientName}, Date: ${booking.appointmentDate} at ${booking.appointmentTime}. Looking for: ${booking.selectedTopTeeth.length} top / ${booking.selectedBottomTeeth.length} bottom teeth in ${booking.material}. Notes: ${booking.customNotes || 'None'}.${booking.designLink ? ` My design: ${booking.designLink}` : ''}`
     );
     return `sms:+14694875734?body=${text}`;
   };
@@ -307,28 +384,11 @@ export default function BookingModal({ isOpen, onClose, initialPreset }: Booking
 
         {/* Step Indicator */}
         <div className="bg-[#121212] px-6 py-3 border-b border-white/5 flex items-center justify-between text-xs uppercase tracking-widest shrink-0">
-          <div className="flex items-center gap-4 sm:gap-8">
-            <button 
-              onClick={() => step !== 3 && setStep(1)}
-              className={`flex items-center gap-2 font-bold ${step === 1 ? 'text-[#D4D4D8]' : 'text-zinc-500'}`}
-            >
-              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step === 1 ? 'bg-[#D4D4D8] text-black' : 'bg-zinc-800 text-zinc-400'}`}>1</span>
-              <span>Teeth & Design</span>
-            </button>
-            <ChevronRight className="w-4 h-4 text-zinc-700" />
-            <button 
-              onClick={() => step !== 3 && setStep(2)}
-              className={`flex items-center gap-2 font-bold ${step === 2 ? 'text-[#D4D4D8]' : 'text-zinc-500'}`}
-            >
-              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step === 2 ? 'bg-[#D4D4D8] text-black' : 'bg-zinc-800 text-zinc-400'}`}>2</span>
-              <span>Date & Contact</span>
-            </button>
-            <ChevronRight className="w-4 h-4 text-zinc-700" />
-            <div className={`flex items-center gap-2 font-bold ${step === 3 ? 'text-[#D4D4D8]' : 'text-zinc-600'}`}>
-              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step === 3 ? 'bg-[#D4D4D8] text-black' : 'bg-zinc-800 text-zinc-500'}`}>3</span>
-              <span>Confirmation</span>
-            </div>
-          </div>
+          <FlowSteps
+            steps={BOOKING_STEPS}
+            active={step - 1}
+            onStepClick={step === 3 ? undefined : (i) => setStep((i + 1) as 1 | 2)}
+          />
           
           <div className="hidden md:flex items-center gap-2 text-[11px] text-[#D4D4D8]">
             <ShieldCheck className="w-4 h-4" />
@@ -339,8 +399,91 @@ export default function BookingModal({ isOpen, onClose, initialPreset }: Booking
         {/* Modal Scrollable Body */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
 
-          {/* STEP 1: Customization & Interactive Tooth Selection */}
-          {step === 1 && (
+          {/* STEP 1 (from the Design Studio): review the design instead of asking again */}
+          {step === 1 && design && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                <div className="md:col-span-3 bg-gradient-to-b from-zinc-900 to-black border border-white/10 rounded-lg p-4">
+                  <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-400 block mb-3">Your Design</span>
+                  {design.mode === 'grillz'
+                    ? <MouthPreview design={design.grillz} />
+                    : <div className="flex justify-center"><JewelryPreview design={design.jewelry} /></div>}
+                  {attachedMockupImage && (
+                    <div className="mt-4 flex items-center gap-3 bg-black/60 border border-[#D4D4D8]/30 rounded-sm p-2.5">
+                      <img src={attachedMockupImage} alt="AI Preview picture of your design" className="w-16 h-16 object-cover rounded border border-[#D4D4D8]/50 shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-[#D4D4D8] flex items-center gap-1"><Sparkles className="w-3 h-3" /> AI Preview picture attached</span>
+                        <p className="text-[11px] text-zinc-400">Jeremy gets this picture with your booking.</p>
+                      </div>
+                      <button type="button" onClick={() => setAttachedMockupImage(null)} className="text-[11px] text-zinc-500 hover:text-red-400 shrink-0">Remove</button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="md:col-span-2 flex flex-col gap-4">
+                  <dl className="space-y-2 text-xs">
+                    {designRows.map(([label, value]) => (
+                      <div key={label} className="flex justify-between gap-4 border-b border-white/5 pb-2">
+                        <dt className="text-zinc-500 uppercase tracking-wider font-semibold shrink-0">{label}</dt>
+                        <dd className="text-white font-bold text-right">{value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+
+                  <div className="flex justify-between items-end">
+                    <span className="text-[10px] uppercase tracking-widest text-zinc-400">Estimate</span>
+                    <span className="text-2xl font-black text-[#D4D4D8] font-heading">{calculateEstimate()}</span>
+                  </div>
+
+                  {design.mode === 'grillz' && (
+                    <div>
+                      <span className="block text-[10px] uppercase tracking-widest font-bold text-gray-300 mb-2">How should we take your mold?</span>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { id: 'in-person' as const, title: 'At the Studio', desc: 'Arlington, TX' },
+                          { id: 'mail-order' as const, title: 'Mail Me a Kit', desc: 'Free shipping' },
+                        ].map(opt => (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => setServiceType(opt.id)}
+                            aria-pressed={serviceType === opt.id}
+                            className={`p-2.5 text-left rounded-sm border transition-all ${serviceType === opt.id ? 'border-[#D4D4D8] bg-[#D4D4D8]/10' : 'border-white/10 bg-[#121212] hover:border-zinc-700'}`}
+                          >
+                            <span className="block text-xs font-bold text-white uppercase">{opt.title}</span>
+                            <span className="text-[10px] text-zinc-400">{opt.desc}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-white/10">
+                {onEditDesign ? (
+                  <button
+                    type="button"
+                    onClick={onEditDesign}
+                    className="px-6 py-3 border border-zinc-700 text-zinc-300 text-xs font-bold uppercase tracking-widest hover:border-white hover:text-white rounded-sm"
+                  >
+                    Edit Design
+                  </button>
+                ) : <span />}
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  className="px-8 py-3 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffffff] transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(212,212,216,0.3)] rounded-sm"
+                >
+                  <span>Looks Good, Pick a Date</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 1 (from scratch): Customization & Interactive Tooth Selection */}
+          {step === 1 && !design && (
             <div className="space-y-6">
 
               {/* Attached Gemini / AI Design Banner */}
@@ -355,9 +498,8 @@ export default function BookingModal({ isOpen, onClose, initialPreset }: Booking
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="px-2 py-0.5 bg-[#D4D4D8] text-black text-[10px] font-black uppercase tracking-wider rounded-sm flex items-center gap-1">
-                          <Sparkles className="w-3 h-3" /> Gemini AI Design Attached
+                          <Sparkles className="w-3 h-3" /> AI Preview Picture Attached
                         </span>
-                        <span className="text-[10px] text-zinc-400 font-mono">Custom 3D Concept</span>
                       </div>
                       <p className="text-xs text-white font-semibold mt-1">
                         Your custom design mockup is attached to this appointment.
@@ -502,87 +644,14 @@ export default function BookingModal({ isOpen, onClose, initialPreset }: Booking
                     </div>
                   </div>
 
-                  {/* Upper Teeth Arch */}
-                  <div className="bg-black/60 p-4 rounded border border-white/5">
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#D4D4D8]">
-                        Upper Arch (Top Teeth)
-                      </span>
-                      <span className="text-[10px] text-zinc-500 uppercase tracking-widest">
-                        {selectedTopTeeth.size} Selected
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-7 sm:grid-cols-14 gap-1 sm:gap-1.5 justify-center">
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((toothNum) => {
-                        const isSelected = selectedTopTeeth.has(toothNum);
-                        const isCanine = toothNum === 4 || toothNum === 11;
-                        const isCenter = toothNum === 7 || toothNum === 8;
-                        return (
-                          <button
-                            key={`top-${toothNum}`}
-                            type="button"
-                            onClick={() => toggleTopTooth(toothNum)}
-                            className={`flex flex-col items-center justify-between p-1.5 h-16 sm:h-20 rounded border transition-all ${
-                              isSelected
-                                ? 'bg-[#D4D4D8] text-black border-[#ffffff] shadow-[0_0_12px_rgba(212,212,216,0.5)] scale-105 z-10'
-                                : 'bg-zinc-900/80 text-zinc-400 border-white/10 hover:border-zinc-500 hover:bg-zinc-800'
-                            }`}
-                            title={`Top Tooth #${toothNum}`}
-                          >
-                            <span className="text-[9px] font-mono font-bold">{toothNum}</span>
-                            <div className="w-full flex items-center justify-center my-auto">
-                              <div className={`w-3 sm:w-4 h-6 sm:h-8 rounded-t-sm ${isSelected ? 'bg-black/20' : 'bg-white/10'} border ${isSelected ? 'border-black/30' : 'border-white/20'}`}></div>
-                            </div>
-                            <span className="text-[8px] tracking-tighter truncate w-full text-center font-semibold">
-                              {isCenter ? 'Center' : isCanine ? 'Canine' : toothNum <= 3 || toothNum >= 12 ? 'Molar' : 'Premolar'}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Lower Teeth Arch */}
-                  <div className="bg-black/60 p-4 rounded border border-white/5">
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#D4D4D8]">
-                        Lower Arch (Bottom Teeth)
-                      </span>
-                      <span className="text-[10px] text-zinc-500 uppercase tracking-widest">
-                        {selectedBottomTeeth.size} Selected
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-7 sm:grid-cols-14 gap-1 sm:gap-1.5 justify-center">
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((toothNum) => {
-                        const isSelected = selectedBottomTeeth.has(toothNum);
-                        const isCanine = toothNum === 4 || toothNum === 11;
-                        const isCenter = toothNum === 7 || toothNum === 8;
-                        return (
-                          <button
-                            key={`bottom-${toothNum}`}
-                            type="button"
-                            onClick={() => toggleBottomTooth(toothNum)}
-                            className={`flex flex-col items-center justify-between p-1.5 h-16 sm:h-20 rounded border transition-all ${
-                              isSelected
-                                ? 'bg-[#D4D4D8] text-black border-[#ffffff] shadow-[0_0_12px_rgba(212,212,216,0.5)] scale-105 z-10'
-                                : 'bg-zinc-900/80 text-zinc-400 border-white/10 hover:border-zinc-500 hover:bg-zinc-800'
-                            }`}
-                            title={`Bottom Tooth #${toothNum}`}
-                          >
-                            <span className="text-[8px] tracking-tighter truncate w-full text-center font-semibold">
-                              {isCenter ? 'Center' : isCanine ? 'Canine' : toothNum <= 3 || toothNum >= 12 ? 'Molar' : 'Premolar'}
-                            </span>
-                            <div className="w-full flex items-center justify-center my-auto">
-                              <div className={`w-3 sm:w-4 h-6 sm:h-8 rounded-b-sm ${isSelected ? 'bg-black/20' : 'bg-white/10'} border ${isSelected ? 'border-black/30' : 'border-white/20'}`}></div>
-                            </div>
-                            <span className="text-[9px] font-mono font-bold">{toothNum}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
+                  <MouthPreview design={formGrillz} onToothClick={handleFormToothClick} />
+                  <p className="text-[11px] text-zinc-500">
+                    Tap teeth to add or remove them.{onEditDesign && (
+                      <> Want jewels, cutouts or a chain?{' '}
+                        <button type="button" onClick={onEditDesign} className="text-[#D4D4D8] underline underline-offset-2 hover:text-white">Open the Design Studio</button>
+                      </>
+                    )}
+                  </p>
                 </div>
               )}
 
@@ -874,15 +943,16 @@ export default function BookingModal({ isOpen, onClose, initialPreset }: Booking
                   onClick={() => setStep(1)}
                   className="px-6 py-3 border border-zinc-700 text-zinc-300 text-xs font-bold uppercase tracking-widest hover:border-white hover:text-white rounded-sm"
                 >
-                  Back to Teeth
+                  Back to Design
                 </button>
 
                 <button
                   type="submit"
-                  className="px-8 py-3 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffffff] transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(212,212,216,0.4)] rounded-sm"
+                  disabled={isSending}
+                  className="px-8 py-3 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffffff] transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(212,212,216,0.4)] rounded-sm disabled:opacity-60 disabled:cursor-wait"
                 >
                   <Check className="w-4 h-4" />
-                  <span>Confirm & Lock Appointment</span>
+                  <span>{isSending ? 'Sending to the Studio...' : 'Confirm & Lock Appointment'}</span>
                 </button>
               </div>
 
@@ -910,6 +980,22 @@ export default function BookingModal({ isOpen, onClose, initialPreset }: Booking
                   <strong className="text-[#D4D4D8]">{confirmedBooking.appointmentTime}</strong>.
                 </p>
               </div>
+
+              {confirmedBooking.deliveredToStudio ? (
+                <p role="status" className="max-w-xl mx-auto text-xs text-emerald-300 bg-emerald-950/40 border border-emerald-500/30 rounded-sm p-3">
+                  Your booking{design ? ' and design were' : ' was'} sent to Jeremy. He'll reach out by your preferred contact method to confirm.
+                </p>
+              ) : (
+                <p role="alert" className="max-w-xl mx-auto text-xs text-amber-200 bg-amber-950/40 border border-amber-500/40 rounded-sm p-3">
+                  We couldn't reach the studio automatically. Please tap "Text Details to Owner" below so Jeremy gets your booking.
+                </p>
+              )}
+
+              {design && (
+                <div className="max-w-md mx-auto bg-gradient-to-b from-zinc-900 to-black border border-white/10 rounded-lg p-3">
+                  {design.mode === 'grillz' ? <MouthPreview design={design.grillz} /> : <div className="flex justify-center"><JewelryPreview design={design.jewelry} className="w-full max-w-xs" /></div>}
+                </div>
+              )}
 
               {/* Booking Summary Box */}
               <div className="max-w-xl mx-auto bg-[#111] border border-white/10 rounded-sm p-6 text-left space-y-3">
@@ -942,7 +1028,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset }: Booking
                       />
                       <div className="text-left">
                         <span className="text-[11px] font-bold text-[#D4D4D8] uppercase tracking-wider flex items-center gap-1">
-                          <Sparkles className="w-3 h-3" /> Gemini 3D Concept Attached
+                          <Sparkles className="w-3 h-3" /> AI Preview Picture Attached
                         </span>
                         <p className="text-[10px] text-zinc-400 mt-0.5">
                           Saved with appointment #{confirmedBooking.id}. Jeremy will reference this during your fitting.
@@ -959,6 +1045,12 @@ export default function BookingModal({ isOpen, onClose, initialPreset }: Booking
                         )}
                       </div>
                     </div>
+                  </div>
+                )}
+                {confirmedBooking.designSummary && (
+                  <div className="border-b border-white/5 pb-2 text-xs">
+                    <span className="text-zinc-500 uppercase tracking-wider font-semibold block mb-1">Your Design:</span>
+                    <p className="text-zinc-300 bg-black/50 p-2 rounded text-[11px] whitespace-pre-line">{confirmedBooking.designSummary}</p>
                   </div>
                 )}
                 {confirmedBooking.customNotes && (

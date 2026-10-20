@@ -4,6 +4,7 @@ import {
   ExternalLink, Copy, Check, Share2, HelpCircle, Layers, CheckCircle2, 
   Trash2, RefreshCw, Gem, ShieldCheck, ChevronRight, AlertCircle, Info, X
 } from 'lucide-react';
+import FlowSteps from './design/FlowSteps';
 
 interface AILabProps {
   onBack: () => void;
@@ -98,12 +99,12 @@ export default function AILab({ onBack, onBookConsultation, initialIdea, onOpenT
   const [inAppGeneratedUrl, setInAppGeneratedUrl] = useState<string | null>(null);
   const inAppFileInputRef = useRef<HTMLInputElement>(null);
 
-  // A design sent over from the Tooth Lab fills in both generators
+  // A design sent over from the Design Studio fills in both generators
   useEffect(() => {
     if (initialIdea) {
       setCustomPromptIdea(initialIdea);
       setInAppDescription(`A photorealistic studio photo of ${initialIdea}. Dark background, luxury jewelry lighting.`);
-      setSubmissionNotes(`Designed in the Tooth Lab: ${initialIdea}`);
+      setSubmissionNotes(`Designed in the Design Studio: ${initialIdea}`);
     }
   }, [initialIdea]);
 
@@ -314,7 +315,7 @@ export default function AILab({ onBack, onBookConsultation, initialIdea, onOpenT
                 <span className="hidden sm:inline text-xs text-zinc-500 font-mono">• Est. 2023 Arlington TX</span>
               </div>
               <h1 className="text-2xl sm:text-4xl font-heading font-black uppercase tracking-tight text-white mt-1">
-                AI Design Lab & Gemini Studio
+                AI Preview
               </h1>
             </div>
           </div>
@@ -326,7 +327,7 @@ export default function AILab({ onBack, onBookConsultation, initialIdea, onOpenT
                 onClick={onOpenToothLab}
                 className="px-3.5 py-1.5 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-wider hover:bg-white rounded-sm transition-colors"
               >
-                Design in the Tooth Lab
+                Open the Design Studio
               </button>
             )}
             <a 
@@ -383,16 +384,35 @@ export default function AILab({ onBack, onBookConsultation, initialIdea, onOpenT
         </div>
 
         {initialIdea && (
-          <div className="mb-8 p-4 bg-[#D4D4D8]/10 border border-[#D4D4D8]/50 rounded-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <span className="text-[10px] uppercase tracking-widest font-black text-[#D4D4D8] block">Your Tooth Lab design is loaded</span>
-              <p className="text-xs text-zinc-300 mt-1">{initialIdea}</p>
+          <div className="mb-8 p-4 sm:p-5 bg-[#D4D4D8]/10 border border-[#D4D4D8]/50 rounded-sm space-y-4">
+            <FlowSteps steps={['Design', 'AI Preview (optional)', 'Book']} active={1} onStepClick={onOpenToothLab ? () => onOpenToothLab() : undefined} />
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div>
+                <span className="text-[10px] uppercase tracking-widest font-black text-[#D4D4D8] block">Your Design Studio design is loaded</span>
+                <p className="text-xs text-zinc-300 mt-1">{initialIdea}</p>
+                <p className="text-[11px] text-zinc-500 mt-1">Make a realistic picture below (optional), then book. Your design and picture go with your booking.</p>
+              </div>
+              <div className="flex flex-wrap gap-2 shrink-0">
+                {onOpenToothLab && (
+                  <button onClick={onOpenToothLab} className="px-4 py-2.5 border border-white/20 text-xs font-bold uppercase tracking-wider text-white hover:border-[#D4D4D8] rounded-sm">
+                    Edit Design
+                  </button>
+                )}
+                {onBookConsultation && (
+                  <button
+                    onClick={() => onBookConsultation({
+                      notes: '',
+                      serviceType: 'in-person',
+                      attachedMockupImage: inAppGeneratedUrl || geminiImage || undefined,
+                      geminiShareLink: geminiShareUrl.trim() || undefined,
+                    })}
+                    className="px-4 py-2.5 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-wider hover:bg-white rounded-sm flex items-center gap-2"
+                  >
+                    <Calendar className="w-3.5 h-3.5" /> Book With This Design
+                  </button>
+                )}
+              </div>
             </div>
-            {onOpenToothLab && (
-              <button onClick={onOpenToothLab} className="px-4 py-2 border border-white/20 text-xs font-bold uppercase tracking-wider text-white hover:border-[#D4D4D8] rounded-sm shrink-0">
-                Edit in Tooth Lab
-              </button>
-            )}
           </div>
         )}
 
