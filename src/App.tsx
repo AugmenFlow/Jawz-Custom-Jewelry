@@ -8,25 +8,30 @@ import {
 import silverMoissanite from './assets/images/silver_moissanite_1779848576581.png';
 import goldPlain from './assets/images/gold_plain_1779848593610.png';
 import silverPlain from './assets/images/silver_plain_1779848608539.png';
-import jawzOfficialLogo from './assets/images/jawz_official_logo_1792013736169.jpg';
+import jawzPendantHero from './assets/images/jawz_pendant_hero.jpg';
+import jawzLogo from './assets/images/jawz-custom-jewelry-logo.png';
+import ownerHelpingClient from './assets/images/owner-helping-client.jpg';
 
 import Configurator from './Configurator';
 import AILab from './AILab';
 import PastWork from './PastWork';
 import GoogleReviews from './GoogleReviews';
+import { InstagramPostCard, instagramPostUrl } from './InstagramGallery';
+import { BEST_SELLER_POSTS, InstagramPost } from './data/instagramPosts';
 import BookingModal, { BookingData } from './BookingModal';
-import { PAST_WORKS, GOOGLE_REVIEWS_DATA, PastWorkItem } from './data/pastWorkData';
+import { GOOGLE_REVIEWS_DATA } from './data/pastWorkData';
 
 const PricingRow = ({ label, price }: { label: string, price: string }) => (
   <div className="flex justify-between items-center py-3 border-b border-white/5 last:border-0 hover:bg-white/5 px-2 transition-colors">
     <span className="text-sm uppercase tracking-widest font-bold text-gray-300">{label}</span>
-    <span className="text-sm font-bold text-[#D4AF37]">{price}</span>
+    <span className="text-sm font-bold text-[#D4D4D8]">{price}</span>
   </div>
 );
 
 export default function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<'home' | 'pastwork' | 'reviews' | 'configurator' | 'ailab'>('home');
+  const [aiLabIdea, setAiLabIdea] = useState<string | undefined>(undefined);
 
   // Booking Modal State
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -53,31 +58,19 @@ export default function App() {
     setIsBookingOpen(true);
   };
 
-  const handleBookPastWorkItem = (item: PastWorkItem) => {
-    let matId = '10k-gold';
-    const metalLower = item.metal.toLowerCase();
-    if (metalLower.includes('moissanite')) matId = 'silver-moissanite';
-    else if (metalLower.includes('lab diamond')) matId = 'silver-lab-diamond';
-    else if (metalLower.includes('14k white')) matId = '14k-white-gold';
-    else if (metalLower.includes('14k')) matId = '14k-gold';
-    else if (metalLower.includes('silver')) matId = 'silver-plain';
-    else if (metalLower.includes('jewelry') || metalLower.includes('chain') || metalLower.includes('watch') || metalLower.includes('ring')) matId = 'jewelry-only';
-
+  const handleBookInstagramPost = (post: InstagramPost) => {
     openBookingWithPreset({
-      teeth: item.presetTeeth,
-      material: matId,
-      notes: `Referencing past work: "${item.title}". ${item.suggestedNotes}`,
-      serviceType: item.teethPosition === 'jewelry' ? 'jewelry' : 'in-person'
+      notes: `I'd like a piece like "${post.title}" from your Instagram: ${instagramPostUrl(post)}`
     });
   };
 
-  const bestSellers = PAST_WORKS.filter(i => i.isBestSeller).slice(0, 4);
+  const bestSellers = BEST_SELLER_POSTS;
 
   const renderContent = () => {
     if (currentPage === 'pastwork') {
       return (
         <PastWork 
-          onBookItem={handleBookPastWorkItem} 
+          onBookPost={handleBookInstagramPost} 
           onOpenBooking={() => openBookingWithPreset()}
           onBackToHome={() => setCurrentPage('home')}
         />
@@ -97,14 +90,11 @@ export default function App() {
       return (
         <Configurator 
           onBack={() => setCurrentPage('home')} 
-          onBookAppointment={(data) => {
-            openBookingWithPreset({
-              teeth: data.teeth,
-              material: data.material,
-              cuts: data.cuts,
-              notes: data.notes,
-              serviceType: 'in-person'
-            });
+          onBookAppointment={(data) => openBookingWithPreset(data)}
+          onOpenAILab={(idea) => {
+            setAiLabIdea(idea);
+            setCurrentPage('ailab');
+            window.scrollTo(0, 0);
           }}
         />
       );
@@ -114,6 +104,8 @@ export default function App() {
       return (
         <AILab 
           onBack={() => setCurrentPage('home')} 
+          initialIdea={aiLabIdea}
+          onOpenToothLab={() => { setCurrentPage('configurator'); window.scrollTo(0, 0); }}
           onBookConsultation={(data) => {
             openBookingWithPreset({
               notes: data.notes,
@@ -136,11 +128,10 @@ export default function App() {
         {/* Hero Section */}
         <section className="relative overflow-hidden bg-[#050505]">
           <div className="absolute inset-0 z-0">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(212,175,55,0.18)_0%,_transparent_70%)] z-10"></div>
             <img 
-              src={silverMoissanite} 
-              alt="Hero Background" 
-              className="w-full h-full object-cover opacity-10 object-center filter grayscale contrast-125 mix-blend-luminosity"
+              src={jawzPendantHero} 
+              alt="Jawz Custom Jewelry iced-out pendant on a silver rope chain" 
+              className="w-full h-full object-cover opacity-60 object-top"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent z-10"></div>
           </div>
@@ -148,13 +139,13 @@ export default function App() {
           <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 flex flex-col items-center justify-center min-h-[62vh] text-center">
             
             {/* Top Quality Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] text-[11px] uppercase tracking-[0.25em] font-bold mb-6 rounded-full shadow-[0_0_15px_rgba(212,175,55,0.15)]">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#D4D4D8]/10 border border-[#D4D4D8]/30 text-[#D4D4D8] text-[11px] uppercase tracking-[0.25em] font-bold mb-6 rounded-full shadow-[0_0_15px_rgba(212,212,216,0.15)]">
               <Award className="w-3.5 h-3.5" />
               <span>Arlington, TX • Strictly By Appointment Only • Est. 2023</span>
             </div>
 
             <h1 className="text-4xl sm:text-6xl md:text-8xl font-black tracking-tight text-white mb-4 uppercase drop-shadow-2xl font-heading">
-              Made to <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37] to-[#fcebb6]">Shine</span>
+              Made to <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4D4D8] to-[#ffffff]">Shine</span>
             </h1>
             
             <p className="text-zinc-300 uppercase tracking-[0.3em] text-xs sm:text-sm font-semibold mb-3 max-w-2xl mx-auto">
@@ -169,7 +160,7 @@ export default function App() {
               {/* PRIMARY BOOKING CTA */}
               <button 
                 onClick={() => openBookingWithPreset()} 
-                className="px-8 py-4 bg-[#D4AF37] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffe175] transition-all shadow-[0_0_25px_rgba(212,175,55,0.4)] flex items-center justify-center gap-2 rounded-sm"
+                className="px-8 py-4 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffffff] transition-all shadow-[0_0_25px_rgba(212,212,216,0.4)] flex items-center justify-center gap-2 rounded-sm"
               >
                 <Calendar className="w-4 h-4" />
                 <span>Book Custom Appointment</span>
@@ -178,9 +169,9 @@ export default function App() {
               {/* PAST WORK & BEST SELLERS CTA */}
               <button 
                 onClick={() => setCurrentPage('pastwork')} 
-                className="px-8 py-4 border border-[#D4AF37]/50 text-white text-xs font-bold uppercase tracking-widest bg-black/60 hover:bg-[#D4AF37]/15 transition-all backdrop-blur-sm flex items-center justify-center gap-2 rounded-sm"
+                className="px-8 py-4 border border-[#D4D4D8]/50 text-white text-xs font-bold uppercase tracking-widest bg-black/60 hover:bg-[#D4D4D8]/15 transition-all backdrop-blur-sm flex items-center justify-center gap-2 rounded-sm"
               >
-                <Sparkles className="w-4 h-4 text-[#D4AF37]" />
+                <Sparkles className="w-4 h-4 text-[#D4D4D8]" />
                 <span>Explore Past Work</span>
               </button>
 
@@ -189,8 +180,8 @@ export default function App() {
                 onClick={() => setCurrentPage('reviews')} 
                 className="px-6 py-4 border border-white/10 text-zinc-300 text-xs font-bold uppercase tracking-widest bg-zinc-900/60 hover:border-zinc-500 hover:text-white transition-all backdrop-blur-sm flex items-center justify-center gap-2 rounded-sm"
               >
-                <div className="flex text-[#D4AF37]">
-                  <Star className="w-3.5 h-3.5 fill-[#D4AF37]" />
+                <div className="flex text-[#D4D4D8]">
+                  <Star className="w-3.5 h-3.5 fill-[#D4D4D8]" />
                 </div>
                 <span>4.9★ Reviews</span>
               </button>
@@ -200,25 +191,25 @@ export default function App() {
             <div className="mt-8">
               <button 
                 onClick={() => setCurrentPage('ailab')}
-                className="group inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 border border-[#D4AF37]/40 hover:border-[#D4AF37] text-xs text-zinc-300 hover:text-white transition-all shadow-md"
+                className="group inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 border border-[#D4D4D8]/40 hover:border-[#D4D4D8] text-xs text-zinc-300 hover:text-white transition-all shadow-md"
               >
-                <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse"></span>
-                <span className="text-[#D4AF37] font-bold">Have an idea?</span>
+                <span className="w-2 h-2 rounded-full bg-[#D4D4D8] animate-pulse"></span>
+                <span className="text-[#D4D4D8] font-bold">Have an idea?</span>
                 <span>Mock it up in Google Gemini & submit your design here</span>
-                <ArrowRight className="w-3.5 h-3.5 text-[#D4AF37] group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-3.5 h-3.5 text-[#D4D4D8] group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
 
             {/* Quick Micro Info */}
             <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-[11px] uppercase tracking-widest text-zinc-400">
               <span className="flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5 text-[#D4AF37]" /> Guaranteed Snug Fit
+                <Check className="w-3.5 h-3.5 text-[#D4D4D8]" /> Guaranteed Snug Fit
               </span>
               <span className="flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5 text-[#D4AF37]" /> 10K, 14K, 18K Solid Gold
+                <Check className="w-3.5 h-3.5 text-[#D4D4D8]" /> 10K, 14K, 18K Solid Gold
               </span>
               <span className="flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5 text-[#D4AF37]" /> Moissanite Passes Diamond Tester
+                <Check className="w-3.5 h-3.5 text-[#D4D4D8]" /> Moissanite Passes Diamond Tester
               </span>
             </div>
 
@@ -231,7 +222,7 @@ export default function App() {
             
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
               <div>
-                <div className="flex items-center gap-2 text-[#D4AF37] text-xs uppercase font-bold tracking-[0.3em] mb-2">
+                <div className="flex items-center gap-2 text-[#D4D4D8] text-xs uppercase font-bold tracking-[0.3em] mb-2">
                   <Sparkles className="w-4 h-4" />
                   <span>Most Requested Custom Work</span>
                 </div>
@@ -239,14 +230,14 @@ export default function App() {
                   Best Sellers Amongst Past Work
                 </h2>
                 <p className="text-xs sm:text-sm text-zinc-400 max-w-xl mt-2 font-light">
-                  Our top client favorites crafted since 2023. Click any piece to book with that exact teeth configuration, metal, and custom cuts.
+                  Our top client favorites crafted since 2023. Tap a piece to see it on Instagram, or book a session for a style like it.
                 </p>
               </div>
 
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setCurrentPage('pastwork')}
-                  className="px-6 py-3 border border-[#D4AF37] text-[#D4AF37] text-xs font-bold uppercase tracking-widest hover:bg-[#D4AF37] hover:text-black transition-all rounded-sm flex items-center gap-2"
+                  className="px-6 py-3 border border-[#D4D4D8] text-[#D4D4D8] text-xs font-bold uppercase tracking-widest hover:bg-[#D4D4D8] hover:text-black transition-all rounded-sm flex items-center gap-2"
                 >
                   <span>View All Past Work</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -255,57 +246,9 @@ export default function App() {
             </div>
 
             {/* Best Sellers Grid Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {bestSellers.map((item) => (
-                <div 
-                  key={item.id}
-                  className="bg-[#111] border border-white/10 rounded-sm overflow-hidden flex flex-col group hover:border-[#D4AF37] transition-all duration-300 shadow-lg hover:shadow-[0_0_20px_rgba(212,175,55,0.15)]"
-                >
-                  {/* Card Image */}
-                  <div className="relative h-56 bg-black overflow-hidden flex items-center justify-center p-4 border-b border-white/10">
-                    <img 
-                      src={item.image} 
-                      alt={item.title} 
-                      className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute top-2.5 left-2.5 bg-[#D4AF37] text-black font-black uppercase text-[9px] tracking-wider px-2 py-0.5 rounded-sm flex items-center gap-1 shadow">
-                      <Star className="w-2.5 h-2.5 fill-black" />
-                      <span>{item.badge || `#${item.bestSellerRank} Best Seller`}</span>
-                    </div>
-                    <div className="absolute top-2.5 right-2.5 bg-black/80 text-zinc-400 text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-sm border border-white/10">
-                      {item.clientLocation}
-                    </div>
-                  </div>
-
-                  {/* Card Details */}
-                  <div className="p-5 flex-1 flex flex-col">
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-[#D4AF37] mb-1">
-                      {item.metal}
-                    </div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-2 font-heading group-hover:text-[#D4AF37] transition-colors leading-snug">
-                      {item.title}
-                    </h3>
-                    <p className="text-xs text-zinc-400 font-light leading-relaxed mb-4 line-clamp-2">
-                      {item.description}
-                    </p>
-
-                    <div className="mt-auto space-y-3 pt-3 border-t border-white/5">
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-zinc-500 uppercase text-[10px]">Estimate:</span>
-                        <span className="text-[#D4AF37] font-bold font-heading">{item.priceEstimate}</span>
-                      </div>
-
-                      {/* Direct Booking CTA with teeth preloaded! */}
-                      <button
-                        onClick={() => handleBookPastWorkItem(item)}
-                        className="w-full py-2.5 bg-[#D4AF37] text-black text-xs font-black uppercase tracking-wider hover:bg-[#ffe175] transition-all rounded-sm flex items-center justify-center gap-2 shadow-[0_0_12px_rgba(212,175,55,0.2)]"
-                      >
-                        <Calendar className="w-3.5 h-3.5" />
-                        <span>Book This Style</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {bestSellers.map((post, idx) => (
+                <InstagramPostCard key={post.id} post={post} rank={idx + 1} onBook={handleBookInstagramPost} />
               ))}
             </div>
 
@@ -382,7 +325,7 @@ export default function App() {
 
                 <button
                   onClick={() => setCurrentPage('reviews')}
-                  className="px-5 py-2.5 border border-[#D4AF37] text-[#D4AF37] text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-[#D4AF37] hover:text-black transition-all"
+                  className="px-5 py-2.5 border border-[#D4D4D8] text-[#D4D4D8] text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-[#D4D4D8] hover:text-black transition-all"
                 >
                   Read Verified Reviews
                 </button>
@@ -403,9 +346,9 @@ export default function App() {
                         <div className="text-[10px] text-zinc-500">{rev.location}</div>
                       </div>
                     </div>
-                    <div className="flex text-[#D4AF37]">
+                    <div className="flex text-[#D4D4D8]">
                       {[...Array(rev.rating)].map((_, i) => (
-                        <Star key={i} className="w-3.5 h-3.5 fill-[#D4AF37]" />
+                        <Star key={i} className="w-3.5 h-3.5 fill-[#D4D4D8]" />
                       ))}
                     </div>
                   </div>
@@ -414,7 +357,7 @@ export default function App() {
                     "{rev.text}"
                   </p>
 
-                  <div className="pt-2 text-[10px] text-[#D4AF37] font-semibold uppercase tracking-wider">
+                  <div className="pt-2 text-[10px] text-[#D4D4D8] font-semibold uppercase tracking-wider">
                     {rev.service}
                   </div>
                 </div>
@@ -432,7 +375,7 @@ export default function App() {
               <h2 className="text-4xl sm:text-5xl font-black text-white uppercase tracking-tighter drop-shadow-lg font-heading">
                 New Price List
               </h2>
-              <div className="w-16 h-1 bg-[#D4AF37] mx-auto mt-6 mb-4"></div>
+              <div className="w-16 h-1 bg-[#D4D4D8] mx-auto mt-6 mb-4"></div>
               <p className="text-xs text-zinc-400 uppercase tracking-widest font-light">
                 Transparent dental casting prices • Free cuts on standard orders
               </p>
@@ -440,7 +383,7 @@ export default function App() {
 
             {/* Diamond Tier */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div className="bg-[#111] border border-white/10 rounded-sm p-8 hover:border-[#D4AF37]/50 transition-colors">
+              <div className="bg-[#111] border border-white/10 rounded-sm p-8 hover:border-[#D4D4D8]/50 transition-colors">
                 <h3 className="text-2xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Silver Moissanite Grillz</h3>
                 <div className="flex justify-center mb-6 h-32 opacity-80">
                   <img src={silverMoissanite} alt="Silver Moissanite" className="h-full object-contain mix-blend-screen" />
@@ -452,7 +395,7 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="bg-[#111] border border-white/10 rounded-sm p-8 hover:border-[#D4AF37]/50 transition-colors">
+              <div className="bg-[#111] border border-white/10 rounded-sm p-8 hover:border-[#D4D4D8]/50 transition-colors">
                 <h3 className="text-2xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Silver Lab Diamond Grillz</h3>
                 <div className="flex justify-center mb-6 h-32 opacity-80 filter contrast-125 brightness-110">
                   <img src={silverMoissanite} alt="Silver Lab Diamond" className="h-full object-contain mix-blend-screen" />
@@ -468,7 +411,7 @@ export default function App() {
             {/* Plain Metal Tier */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               
-              <div className="bg-[#111] border border-white/10 rounded-sm p-6 hover:border-[#D4AF37]/50 transition-colors">
+              <div className="bg-[#111] border border-white/10 rounded-sm p-6 hover:border-[#D4D4D8]/50 transition-colors">
                 <h3 className="text-xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Silver Plain Grillz</h3>
                 <div className="flex justify-center mb-6 h-24 opacity-90">
                   <img src={silverPlain} alt="Silver Plain" className="h-full object-contain mix-blend-screen" />
@@ -480,9 +423,9 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="bg-[#111] border border-[#D4AF37]/30 rounded-sm p-6 hover:border-[#D4AF37] transition-colors relative">
-                <div className="absolute top-0 right-0 py-1 px-3 bg-[#D4AF37] text-black text-[9px] font-bold uppercase tracking-widest">Popular</div>
-                <h3 className="text-xl font-bold text-[#D4AF37] uppercase tracking-wider mb-6 text-center border-b border-[#D4AF37]/10 pb-4">10K Gold Plain Grillz</h3>
+              <div className="bg-[#111] border border-[#D4D4D8]/30 rounded-sm p-6 hover:border-[#D4D4D8] transition-colors relative">
+                <div className="absolute top-0 right-0 py-1 px-3 bg-[#D4D4D8] text-black text-[9px] font-bold uppercase tracking-widest">Popular</div>
+                <h3 className="text-xl font-bold text-[#D4D4D8] uppercase tracking-wider mb-6 text-center border-b border-[#D4D4D8]/10 pb-4">10K Gold Plain Grillz</h3>
                 <div className="flex justify-center mb-6 h-24 opacity-90">
                   <img src={goldPlain} alt="10K Gold Plain" className="h-full object-contain mix-blend-screen" />
                 </div>
@@ -493,7 +436,7 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="bg-[#111] border border-[#D4AF37]/30 border-opacity-50 rounded-sm p-6 hover:border-[#D4AF37] transition-colors">
+              <div className="bg-[#111] border border-[#D4D4D8]/30 border-opacity-50 rounded-sm p-6 hover:border-[#D4D4D8] transition-colors">
                 <h3 className="text-xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">14K Gold Plain Grillz</h3>
                 <div className="flex justify-center mb-6 h-24 opacity-90 brightness-110">
                   <img src={goldPlain} alt="14K Gold Plain" className="h-full object-contain mix-blend-screen" />
@@ -511,7 +454,7 @@ export default function App() {
             <div className="mt-12 text-center">
               <button
                 onClick={() => openBookingWithPreset()}
-                className="px-10 py-4 bg-[#D4AF37] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffe175] transition-all rounded-sm shadow-[0_0_20px_rgba(212,175,55,0.3)] inline-flex items-center gap-2"
+                className="px-10 py-4 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffffff] transition-all rounded-sm shadow-[0_0_20px_rgba(212,212,216,0.3)] inline-flex items-center gap-2"
               >
                 <Calendar className="w-4 h-4" />
                 <span>Book With Price Lock</span>
@@ -528,35 +471,76 @@ export default function App() {
               <h2 className="text-4xl sm:text-5xl font-black text-white uppercase tracking-tighter drop-shadow-lg font-heading">
                 How It Works
               </h2>
-              <div className="w-16 h-1 bg-[#D4AF37] mx-auto mt-6 mb-6"></div>
+              <div className="w-16 h-1 bg-[#D4D4D8] mx-auto mt-6 mb-6"></div>
               <p className="text-zinc-400 max-w-2xl mx-auto uppercase tracking-widest text-xs leading-relaxed">
                 Whether you visit our private studio in Arlington, TX by appointment or order nationwide via mail, we deliver an immaculate custom fit.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="bg-[#111] border border-white/10 p-8 text-center relative hover:border-[#D4AF37]/50 transition-colors">
-                <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-[#D4AF37] text-black font-black flex items-center justify-center text-xl shadow-[0_0_15px_rgba(212,175,55,0.4)]">1</div>
+              <div className="bg-[#111] border border-white/10 p-8 text-center relative hover:border-[#D4D4D8]/50 transition-colors">
+                <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-[#D4D4D8] text-black font-black flex items-center justify-center text-xl shadow-[0_0_15px_rgba(212,212,216,0.4)]">1</div>
                 <h3 className="text-xl font-bold text-white uppercase tracking-wider mt-6 mb-4">Book Or Order Kit</h3>
                 <p className="text-sm text-zinc-400 leading-relaxed font-light">
                   Book an in-person mold session at our Arlington studio (1201 N Watson Rd) or select mail-order to receive an impression mold kit with video guidance.
                 </p>
               </div>
               
-              <div className="bg-[#111] border border-white/10 p-8 text-center relative hover:border-[#D4AF37]/50 transition-colors">
-                <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-[#D4AF37] text-black font-black flex items-center justify-center text-xl shadow-[0_0_15px_rgba(212,175,55,0.4)]">2</div>
+              <div className="bg-[#111] border border-white/10 p-8 text-center relative hover:border-[#D4D4D8]/50 transition-colors">
+                <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-[#D4D4D8] text-black font-black flex items-center justify-center text-xl shadow-[0_0_15px_rgba(212,212,216,0.4)]">2</div>
                 <h3 className="text-xl font-bold text-white uppercase tracking-wider mt-6 mb-4">Mold Review & Deposit</h3>
                 <p className="text-sm text-zinc-400 leading-relaxed font-light">
                   Our jewelers inspect your impression to guarantee accurate dental margins. Once approved and 60% deposit is secured, dental casting commences.
                 </p>
               </div>
 
-              <div className="bg-[#111] border border-[#D4AF37]/30 p-8 text-center relative hover:border-[#D4AF37] transition-colors">
+              <div className="bg-[#111] border border-[#D4D4D8]/30 p-8 text-center relative hover:border-[#D4D4D8] transition-colors">
                 <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-white text-black font-black flex items-center justify-center text-xl shadow-[0_0_15px_rgba(255,255,255,0.4)]">3</div>
-                <h3 className="text-xl font-bold text-[#D4AF37] uppercase tracking-wider mt-6 mb-4">Hand Finish & Shine</h3>
+                <h3 className="text-xl font-bold text-[#D4D4D8] uppercase tracking-wider mt-6 mb-4">Hand Finish & Shine</h3>
                 <p className="text-sm text-zinc-400 leading-relaxed font-light">
                   Hand polished to a mirror gleam with laser cuts, stone pave, and deep perm lines. Pick up in studio or receive insured express delivery to your door.
                 </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Meet the Owner */}
+        <section id="meet-the-owner" aria-labelledby="owner-heading" className="py-20 sm:py-24 bg-[#111] border-t border-white/5 relative z-20">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-20 items-center">
+              <figure className="w-full max-w-md mx-auto border border-[#D4D4D8]/30 rounded-sm overflow-hidden">
+                <img
+                  src={ownerHelpingClient}
+                  alt="Jeremy King, owner of Jawz Custom Jewelry, helping a client try on a necklace in the studio"
+                  width={816}
+                  height={1278}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-auto block"
+                />
+                <figcaption className="px-6 py-4 bg-[#0a0a0a] text-[#D4D4D8] text-xs font-bold uppercase tracking-widest text-center">
+                  Custom jewelry. Personal attention.
+                </figcaption>
+              </figure>
+              <div>
+                <p className="text-[#D4D4D8] text-xs font-bold uppercase tracking-[0.25em] mb-4">Meet the Owner</p>
+                <h2 id="owner-heading" className="text-4xl sm:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter font-heading mb-4">Jeremy King</h2>
+                <p className="text-sm text-zinc-300 uppercase tracking-widest mb-6">The person behind Jawz Custom Jewelry</p>
+                <div className="w-12 h-1 bg-[#D4D4D8] mb-8"></div>
+                <p className="text-base text-zinc-300 font-light leading-relaxed mb-5">
+                  Jeremy is from the same community he serves. For him, Jawz Custom Jewelry is a way to bring personal service and custom pieces to the people who call this area home.
+                </p>
+                <p className="text-sm text-zinc-400 font-light leading-relaxed mb-8">
+                  From your first idea to the final fit, Jeremy helps you explore the details that make a piece yours. Whether you’re looking for custom grillz, a ring, or a chain, it starts with a conversation at the Arlington studio.
+                </p>
+                <button
+                  onClick={() => openBookingWithPreset({ serviceType: 'in-person' })}
+                  className="px-8 py-4 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffffff] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D4D4D8] transition-colors rounded-sm inline-flex items-center justify-center gap-3"
+                >
+                  <span>Book a Consultation</span>
+                  <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                </button>
               </div>
             </div>
           </div>
@@ -572,7 +556,7 @@ export default function App() {
                 <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-4 font-heading">
                   Custom Jewelry & Sourcing
                 </h2>
-                <div className="w-12 h-1 bg-[#D4AF37] mb-8"></div>
+                <div className="w-12 h-1 bg-[#D4D4D8] mb-8"></div>
                 <p className="text-sm text-zinc-400 font-light leading-relaxed mb-8">
                   Beyond premium grillz, Jeremy acts as your personal jeweler. Sourcing certified GIA/IGI diamonds, crafting custom engagement rings, iced-out watches, and Miami Cuban link chains.
                 </p>
@@ -580,7 +564,7 @@ export default function App() {
                 <div className="space-y-4">
                   <div className="flex items-center gap-4 bg-[#111] p-4 border border-white/5">
                     <div className="w-12 h-12 bg-black flex items-center justify-center border border-white/10 shrink-0">
-                      <Star className="w-5 h-5 text-[#D4AF37]" />
+                      <Star className="w-5 h-5 text-[#D4D4D8]" />
                     </div>
                     <div>
                       <h4 className="font-bold text-white uppercase tracking-wider text-sm mb-1">Custom Diamond Rings</h4>
@@ -590,7 +574,7 @@ export default function App() {
                   
                   <div className="flex items-center gap-4 bg-[#111] p-4 border border-white/5">
                      <div className="w-12 h-12 bg-black flex items-center justify-center border border-white/10 shrink-0">
-                      <Star className="w-5 h-5 text-[#D4AF37]" />
+                      <Star className="w-5 h-5 text-[#D4D4D8]" />
                     </div>
                     <div>
                       <h4 className="font-bold text-white uppercase tracking-wider text-sm mb-1">Bespoke Watches & Chains</h4>
@@ -602,7 +586,7 @@ export default function App() {
                 <div className="flex flex-wrap gap-4 mt-8">
                   <button 
                     onClick={() => openBookingWithPreset({ serviceType: 'jewelry', notes: 'Interested in custom jewelry: diamond ring / watch / chain consultation.' })} 
-                    className="px-8 py-3 bg-[#D4AF37] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffe175] transition-colors rounded-sm"
+                    className="px-8 py-3 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffffff] transition-colors rounded-sm"
                   >
                     Book Jewelry Consultation
                   </button>
@@ -611,7 +595,7 @@ export default function App() {
                     href="https://www.instagram.com/jawz_grillzz?igsh=ZDNlZDc0MzIxNw==" 
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    className="px-8 py-3 border border-white/20 text-xs font-bold uppercase tracking-widest text-white hover:border-[#D4AF37] hover:text-[#D4AF37] transition-colors rounded-sm inline-flex items-center gap-2"
+                    className="px-8 py-3 border border-white/20 text-xs font-bold uppercase tracking-widest text-white hover:border-[#D4D4D8] hover:text-[#D4D4D8] transition-colors rounded-sm inline-flex items-center gap-2"
                   >
                     <Instagram className="w-3.5 h-3.5" />
                     <span>DM Inspiration</span>
@@ -620,9 +604,9 @@ export default function App() {
               </div>
 
               {/* In-Person Appointments */}
-              <div className="bg-[#111] border border-[#D4AF37]/30 p-10 flex flex-col justify-center items-center text-center relative overflow-hidden rounded-sm">
-                 <div className="absolute -right-10 -top-10 w-40 h-40 bg-[#D4AF37] opacity-5 blur-3xl rounded-full"></div>
-                 <User className="w-12 h-12 text-[#D4AF37] mb-6" strokeWidth={1} />
+              <div className="bg-[#111] border border-[#D4D4D8]/30 p-10 flex flex-col justify-center items-center text-center relative overflow-hidden rounded-sm">
+                 <div className="absolute -right-10 -top-10 w-40 h-40 bg-[#D4D4D8] opacity-5 blur-3xl rounded-full"></div>
+                 <User className="w-12 h-12 text-[#D4D4D8] mb-6" strokeWidth={1} />
                  <h3 className="text-2xl font-black text-white uppercase tracking-widest mb-4 font-heading">
                    Arlington Private Studio
                  </h3>
@@ -634,7 +618,7 @@ export default function App() {
                  </div>
                  <button 
                    onClick={() => openBookingWithPreset({ serviceType: 'in-person' })} 
-                   className="px-10 py-4 bg-[#D4AF37] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffe175] transition-colors w-full flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(212,175,55,0.2)] rounded-sm"
+                   className="px-10 py-4 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffffff] transition-colors w-full flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(212,212,216,0.2)] rounded-sm"
                  >
                    <Calendar className="w-4 h-4" />
                    <span>Book Studio Fitting</span>
@@ -652,56 +636,56 @@ export default function App() {
               <h2 className="text-4xl sm:text-5xl font-black text-white uppercase tracking-tighter drop-shadow-lg font-heading">
                 Add Ons & Policies
               </h2>
-              <div className="w-16 h-1 bg-[#D4AF37] mx-auto mt-6"></div>
+              <div className="w-16 h-1 bg-[#D4D4D8] mx-auto mt-6"></div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
               
               {/* ADD ONS */}
               <div>
-                <h3 className="text-2xl font-bold uppercase tracking-widest text-[#D4AF37] mb-8 flex items-center font-heading">
-                  <span className="w-8 h-px bg-[#D4AF37] mr-4"></span> Add Ons <span className="w-8 h-px bg-[#D4AF37] ml-4"></span>
+                <h3 className="text-2xl font-bold uppercase tracking-widest text-[#D4D4D8] mb-8 flex items-center font-heading">
+                  <span className="w-8 h-px bg-[#D4D4D8] mr-4"></span> Add Ons <span className="w-8 h-px bg-[#D4D4D8] ml-4"></span>
                 </h3>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 mb-8">
                   <div className="flex flex-col gap-2">
-                     <div className="flex justify-between items-center bg-[#111] p-3 border border-white/5"><span className="text-sm font-bold uppercase tracking-wider">Open Face</span><span className="text-sm font-bold text-[#D4AF37]">FREE</span></div>
-                     <div className="flex justify-between items-center bg-[#111] p-3 border border-white/5"><span className="text-sm font-bold uppercase tracking-wider">Perm Cut</span><span className="text-sm font-bold text-[#D4AF37]">FREE</span></div>
-                     <div className="flex justify-between items-center bg-[#111] p-3 border border-white/5"><span className="text-sm font-bold uppercase tracking-wider">Diamond Cuts</span><span className="text-sm font-bold text-[#D4AF37]">FREE</span></div>
-                     <div className="flex justify-between items-center bg-[#111] p-3 border border-white/5"><span className="text-sm font-bold uppercase tracking-wider">Nugget Cut</span><span className="text-sm font-bold text-[#D4AF37]">FREE</span></div>
-                     <div className="flex justify-between items-center bg-[#111] p-3 border border-white/5"><span className="text-sm font-bold uppercase tracking-wider">Rose Cuts</span><span className="text-sm font-bold text-[#D4AF37]">$7/Tooth</span></div>
+                     <div className="flex justify-between items-center bg-[#111] p-3 border border-white/5"><span className="text-sm font-bold uppercase tracking-wider">Open Face</span><span className="text-sm font-bold text-[#D4D4D8]">FREE</span></div>
+                     <div className="flex justify-between items-center bg-[#111] p-3 border border-white/5"><span className="text-sm font-bold uppercase tracking-wider">Perm Cut</span><span className="text-sm font-bold text-[#D4D4D8]">FREE</span></div>
+                     <div className="flex justify-between items-center bg-[#111] p-3 border border-white/5"><span className="text-sm font-bold uppercase tracking-wider">Diamond Cuts</span><span className="text-sm font-bold text-[#D4D4D8]">FREE</span></div>
+                     <div className="flex justify-between items-center bg-[#111] p-3 border border-white/5"><span className="text-sm font-bold uppercase tracking-wider">Nugget Cut</span><span className="text-sm font-bold text-[#D4D4D8]">FREE</span></div>
+                     <div className="flex justify-between items-center bg-[#111] p-3 border border-white/5"><span className="text-sm font-bold uppercase tracking-wider">Rose Cuts</span><span className="text-sm font-bold text-[#D4D4D8]">$7/Tooth</span></div>
                   </div>
                   <div className="flex flex-col gap-2">
-                     <div className="flex justify-between items-center bg-[#111] p-3 border border-white/5"><span className="text-sm font-bold uppercase tracking-wider text-xs sm:text-sm">Starburst Cuts</span><span className="text-sm font-bold text-[#D4AF37]">$7/Tooth</span></div>
-                     <div className="flex justify-between items-center bg-[#111] p-3 border border-white/5"><span className="text-sm font-bold uppercase tracking-wider text-[10px] sm:text-xs">Speciality Cut Open Face</span><span className="text-sm font-bold text-[#D4AF37]">$20/Tooth</span></div>
-                     <div className="flex justify-between items-center bg-[#111] p-3 border border-white/5"><span className="text-sm font-bold uppercase tracking-wider text-xs sm:text-sm">Laser Design</span><span className="text-sm font-bold text-[#D4AF37]">$25/Tooth</span></div>
-                     <div className="flex justify-between items-center bg-[#111] p-3 border border-white/5"><span className="text-sm font-bold uppercase tracking-wider text-xs sm:text-sm">Diamond Dust</span><span className="text-sm font-bold text-[#D4AF37]">$5/Tooth</span></div>
-                     <div className="flex justify-between items-center bg-[#111]/80 border border-[#D4AF37]/50 p-3 mt-auto"><span className="text-lg font-bold uppercase tracking-wider text-[#D4AF37]">3D Design</span><span className="text-sm font-bold text-[#D4AF37]">$85/Tooth<br/><span className="text-[10px]">AND UP</span></span></div>
+                     <div className="flex justify-between items-center bg-[#111] p-3 border border-white/5"><span className="text-sm font-bold uppercase tracking-wider text-xs sm:text-sm">Starburst Cuts</span><span className="text-sm font-bold text-[#D4D4D8]">$7/Tooth</span></div>
+                     <div className="flex justify-between items-center bg-[#111] p-3 border border-white/5"><span className="text-sm font-bold uppercase tracking-wider text-[10px] sm:text-xs">Speciality Cut Open Face</span><span className="text-sm font-bold text-[#D4D4D8]">$20/Tooth</span></div>
+                     <div className="flex justify-between items-center bg-[#111] p-3 border border-white/5"><span className="text-sm font-bold uppercase tracking-wider text-xs sm:text-sm">Laser Design</span><span className="text-sm font-bold text-[#D4D4D8]">$25/Tooth</span></div>
+                     <div className="flex justify-between items-center bg-[#111] p-3 border border-white/5"><span className="text-sm font-bold uppercase tracking-wider text-xs sm:text-sm">Diamond Dust</span><span className="text-sm font-bold text-[#D4D4D8]">$5/Tooth</span></div>
+                     <div className="flex justify-between items-center bg-[#111]/80 border border-[#D4D4D8]/50 p-3 mt-auto"><span className="text-lg font-bold uppercase tracking-wider text-[#D4D4D8]">3D Design</span><span className="text-sm font-bold text-[#D4D4D8]">$85/Tooth<br/><span className="text-[10px]">AND UP</span></span></div>
                   </div>
                 </div>
                 
-                <div className="text-center p-6 border border-[#D4AF37]/30 bg-[#111] text-xs leading-relaxed uppercase tracking-widest text-[#D4AF37]">
+                <div className="text-center p-6 border border-[#D4D4D8]/30 bg-[#111] text-xs leading-relaxed uppercase tracking-widest text-[#D4D4D8]">
                   For 18K Grillz, Natural Diamonds, and other custom inquiries<br/><span className="text-white font-bold inline-block mt-2">Book an appointment or DM us with your project details</span>
                 </div>
               </div>
 
               {/* POLICIES */}
               <div className="flex flex-col">
-                <h3 className="text-2xl font-bold uppercase tracking-widest text-[#D4AF37] mb-8 flex items-center font-heading">
-                  <span className="w-8 h-px bg-[#D4AF37] mr-4"></span> Policies <span className="w-8 h-px bg-[#D4AF37] ml-4"></span>
+                <h3 className="text-2xl font-bold uppercase tracking-widest text-[#D4D4D8] mb-8 flex items-center font-heading">
+                  <span className="w-8 h-px bg-[#D4D4D8] mr-4"></span> Policies <span className="w-8 h-px bg-[#D4D4D8] ml-4"></span>
                 </h3>
 
                 <div className="bg-[#111] border border-white/5 p-8 flex-1 flex flex-col gap-6">
                    <div className="flex gap-4 items-start">
-                      <div className="w-2 h-2 rounded-full bg-[#D4AF37] mt-1.5 shrink-0"></div>
+                      <div className="w-2 h-2 rounded-full bg-[#D4D4D8] mt-1.5 shrink-0"></div>
                       <p className="text-sm font-bold uppercase tracking-wider text-white">Open by appointment only</p>
                    </div>
                    <div className="flex gap-4 items-start">
-                      <div className="w-2 h-2 rounded-full bg-[#D4AF37] mt-1.5 shrink-0"></div>
+                      <div className="w-2 h-2 rounded-full bg-[#D4D4D8] mt-1.5 shrink-0"></div>
                       <p className="text-sm font-bold uppercase tracking-wider text-white leading-relaxed">60% deposit required. Deposits are non-refundable.</p>
                    </div>
                    <div className="flex gap-4 items-start">
-                      <div className="w-2 h-2 rounded-full bg-[#D4AF37] mt-1.5 shrink-0"></div>
+                      <div className="w-2 h-2 rounded-full bg-[#D4D4D8] mt-1.5 shrink-0"></div>
                       <p className="text-sm font-bold uppercase tracking-wider text-white leading-relaxed">Balance due within 21 days of completion/invoice. $5/day holding fee incurs after first 7 days.</p>
                    </div>
                    <div className="mt-8 pt-8 border-t border-white/10 text-xs text-gray-400 font-light leading-relaxed uppercase tracking-widest">
@@ -709,7 +693,7 @@ export default function App() {
                    </div>
                    
                    <div className="mt-auto flex justify-center py-4">
-                       <svg className="w-16 h-16 text-[#D4AF37] opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                       <svg className="w-16 h-16 text-[#D4D4D8] opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                        </svg>
                    </div>
@@ -727,7 +711,7 @@ export default function App() {
               <h2 className="text-4xl font-black text-white uppercase tracking-tighter font-heading text-center">
                 Frequently Asked Questions
               </h2>
-              <div className="w-12 h-1 bg-[#D4AF37] mx-auto mt-6"></div>
+              <div className="w-12 h-1 bg-[#D4D4D8] mx-auto mt-6"></div>
             </div>
 
             <div className="space-y-6">
@@ -737,9 +721,9 @@ export default function App() {
                 { q: "Do you ship mold kits nationwide?", a: "Yes! Our direct mail-order mold kits are shipped directly to customers anywhere within the United States with full instructions and video support." },
                 { q: "What materials do you cast?", a: "We cast exclusively using dental-grade silver, 10k, 14k, and 18k solid gold. Our iced-out pieces feature hand-set lab diamonds, flawless moissanite, or natural conflict-free diamonds based on your preference." }
               ].map((faq, idx) => (
-                <div key={idx} className="bg-[#111] border border-white/5 p-6 hover:border-[#D4AF37]/30 transition-colors">
+                <div key={idx} className="bg-[#111] border border-white/5 p-6 hover:border-[#D4D4D8]/30 transition-colors">
                   <h3 className="text-lg font-bold text-white uppercase tracking-wider mb-2 flex items-start gap-3">
-                    <span className="text-[#D4AF37] font-black shrink-0">Q.</span>
+                    <span className="text-[#D4D4D8] font-black shrink-0">Q.</span>
                     {faq.q}
                   </h3>
                   <p className="text-sm text-zinc-400 leading-relaxed font-light pl-6">
@@ -753,7 +737,7 @@ export default function App() {
                <p className="text-xs uppercase tracking-widest text-zinc-500 mb-6">Ready to start?</p>
                <button 
                  onClick={() => openBookingWithPreset()}
-                 className="inline-flex items-center justify-center px-10 py-4 bg-[#D4AF37] text-black font-black uppercase tracking-widest text-xs hover:bg-[#ffe175] transition-colors rounded-sm shadow-[0_0_15px_rgba(212,175,55,0.3)]"
+                 className="inline-flex items-center justify-center px-10 py-4 bg-[#D4D4D8] text-black font-black uppercase tracking-widest text-xs hover:bg-[#ffffff] transition-colors rounded-sm shadow-[0_0_15px_rgba(212,212,216,0.3)]"
                >
                  Book Appointment Now
                </button>
@@ -769,25 +753,25 @@ export default function App() {
     <div className="min-h-screen flex flex-col font-sans bg-[#050505] text-gray-200 border-x-8 border-[#111]">
       
       {/* Announcement Bar */}
-      <div className="bg-black border-b border-[#D4AF37]/20 text-center py-2 relative z-50">
+      <div className="bg-black border-b border-[#D4D4D8]/20 text-center py-2 relative z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center text-[10px] uppercase tracking-widest font-medium text-gray-400 gap-1.5 sm:gap-0">
           <div className="flex items-center gap-2">
-            <MapPin className="w-3 h-3 text-[#D4AF37]" />
+            <MapPin className="w-3 h-3 text-[#D4D4D8]" />
             <span>1201 N Watson Rd, Arlington, TX 76006</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="text-[#D4AF37] font-bold tracking-[0.2em]">Private Studio • By Appointment Only</span>
+            <span className="text-[#D4D4D8] font-bold tracking-[0.2em]">Private Studio • By Appointment Only</span>
           </div>
           <div className="flex items-center gap-1.5 text-zinc-300">
-            <Phone className="w-3 h-3 text-[#D4AF37]" />
-            <a href="tel:4694875734" className="hover:text-[#D4AF37] transition-colors">(469) 487-5734</a>
+            <Phone className="w-3 h-3 text-[#D4D4D8]" />
+            <a href="tel:4694875734" className="hover:text-[#D4D4D8] transition-colors">(469) 487-5734</a>
           </div>
         </div>
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 bg-[#0a0a0a]/95 backdrop-blur-md border-b border-[#D4AF37]/20 z-40">
+      <header className="sticky top-0 bg-[#0a0a0a]/95 backdrop-blur-md border-b border-[#D4D4D8]/20 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             
@@ -795,7 +779,7 @@ export default function App() {
             <div className="lg:hidden flex items-center">
               <button 
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
-                className="p-2 -ml-2 text-[#D4AF37] hover:text-white transition-colors"
+                className="p-2 -ml-2 text-[#D4D4D8] hover:text-white transition-colors"
                 aria-label="Toggle menu"
               >
                 {isMobileMenuOpen ? <X strokeWidth={1.5} className="w-6 h-6" /> : <Menu strokeWidth={1.5} className="w-6 h-6" />}
@@ -806,15 +790,15 @@ export default function App() {
             <div className="flex-shrink-0 flex items-center">
               <button onClick={() => setCurrentPage('home')} className="flex items-center gap-3 group text-left">
                 <img 
-                  src={jawzOfficialLogo} 
-                  alt="Jawz Jewelry Logo" 
-                  className="w-12 h-12 sm:w-13 sm:h-13 object-cover rounded-full border border-[#D4AF37]/50 group-hover:scale-105 group-hover:border-[#D4AF37] transition-all shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+                  src={jawzLogo} 
+                  alt="Jawz Custom Jewelry Logo" 
+                  className="w-12 h-12 sm:w-13 sm:h-13 object-contain group-hover:scale-105 transition-transform"
                 />
                 <div>
-                  <div className="font-heading font-black text-lg sm:text-xl tracking-wider text-white uppercase group-hover:text-[#D4AF37] transition-colors leading-none">
+                  <div className="font-heading font-black text-lg sm:text-xl tracking-wider text-white uppercase group-hover:text-[#D4D4D8] transition-colors leading-none">
                     Jawz
                   </div>
-                  <div className="text-[8px] sm:text-[9px] uppercase tracking-[0.28em] text-[#D4AF37] font-semibold mt-1">
+                  <div className="text-[8px] sm:text-[9px] uppercase tracking-[0.28em] text-[#D4D4D8] font-semibold mt-1">
                     Jewelry & Custom Grillz
                   </div>
                 </div>
@@ -826,7 +810,7 @@ export default function App() {
               <button 
                 onClick={() => setCurrentPage('pastwork')} 
                 className={`uppercase text-[11px] tracking-[0.2em] font-semibold transition-colors ${
-                  currentPage === 'pastwork' ? 'text-white border-b-2 border-[#D4AF37] pb-1 font-bold' : 'text-zinc-300 hover:text-[#D4AF37]'
+                  currentPage === 'pastwork' ? 'text-white border-b-2 border-[#D4D4D8] pb-1 font-bold' : 'text-zinc-300 hover:text-[#D4D4D8]'
                 }`}
               >
                 Past Work
@@ -835,7 +819,7 @@ export default function App() {
               <button 
                 onClick={() => setCurrentPage('configurator')} 
                 className={`uppercase text-[11px] tracking-[0.2em] font-semibold transition-colors ${
-                  currentPage === 'configurator' ? 'text-white border-b-2 border-[#D4AF37] pb-1 font-bold' : 'text-zinc-300 hover:text-[#D4AF37]'
+                  currentPage === 'configurator' ? 'text-white border-b-2 border-[#D4D4D8] pb-1 font-bold' : 'text-zinc-300 hover:text-[#D4D4D8]'
                 }`}
               >
                 Tooth Lab
@@ -844,10 +828,10 @@ export default function App() {
               <button 
                 onClick={() => setCurrentPage('ailab')} 
                 className={`uppercase text-[11px] tracking-[0.2em] font-semibold transition-colors flex items-center gap-1.5 ${
-                  currentPage === 'ailab' ? 'text-white border-b-2 border-[#D4AF37] pb-1 font-bold' : 'text-zinc-300 hover:text-[#D4AF37]'
+                  currentPage === 'ailab' ? 'text-white border-b-2 border-[#D4D4D8] pb-1 font-bold' : 'text-zinc-300 hover:text-[#D4D4D8]'
                 }`}
               >
-                <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+                <Sparkles className="w-3.5 h-3.5 text-[#D4D4D8]" />
                 <span>AI Lab (Gemini)</span>
               </button>
 
@@ -861,7 +845,7 @@ export default function App() {
                     }, 100);
                   }
                 }} 
-                className="uppercase text-[11px] tracking-[0.2em] font-semibold text-zinc-300 hover:text-[#D4AF37] transition-colors"
+                className="uppercase text-[11px] tracking-[0.2em] font-semibold text-zinc-300 hover:text-[#D4D4D8] transition-colors"
               >
                 Pricing
               </a>
@@ -869,10 +853,10 @@ export default function App() {
               <button 
                 onClick={() => setCurrentPage('reviews')} 
                 className={`uppercase text-[11px] tracking-[0.2em] font-semibold transition-colors flex items-center gap-1.5 ${
-                  currentPage === 'reviews' ? 'text-white border-b-2 border-[#D4AF37] pb-1 font-bold' : 'text-[#D4AF37] hover:text-white'
+                  currentPage === 'reviews' ? 'text-white border-b-2 border-[#D4D4D8] pb-1 font-bold' : 'text-[#D4D4D8] hover:text-white'
                 }`}
               >
-                <Star className="w-3.5 h-3.5 fill-[#D4AF37] text-[#D4AF37]" />
+                <Star className="w-3.5 h-3.5 fill-[#D4D4D8] text-[#D4D4D8]" />
                 <span>Reviews (4.9★)</span>
               </button>
             </nav>
@@ -881,15 +865,15 @@ export default function App() {
             <div className="flex items-center space-x-3 sm:space-x-4">
               <a 
                 href="tel:4694875734" 
-                className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-white/10 text-[10px] uppercase tracking-wider text-zinc-300 hover:border-[#D4AF37] hover:text-[#D4AF37] transition-colors"
+                className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-white/10 text-[10px] uppercase tracking-wider text-zinc-300 hover:border-[#D4D4D8] hover:text-[#D4D4D8] transition-colors"
               >
-                <Phone className="w-3 h-3 text-[#D4AF37]" />
+                <Phone className="w-3 h-3 text-[#D4D4D8]" />
                 <span>(469) 487-5734</span>
               </a>
 
               <button 
                 onClick={() => openBookingWithPreset()} 
-                className="px-4 sm:px-5 py-2.5 bg-[#D4AF37] text-black text-[10px] sm:text-[11px] uppercase tracking-widest font-black rounded-sm flex items-center gap-2 hover:bg-[#ffe175] transition-all shadow-[0_0_15px_rgba(212,175,55,0.3)] hover:scale-[1.02]"
+                className="px-4 sm:px-5 py-2.5 bg-[#D4D4D8] text-black text-[10px] sm:text-[11px] uppercase tracking-widest font-black rounded-sm flex items-center gap-2 hover:bg-[#ffffff] transition-all shadow-[0_0_15px_rgba(212,212,216,0.3)] hover:scale-[1.02]"
               >
                 <Calendar className="w-3.5 h-3.5" />
                 <span>Book Appointment</span>
@@ -902,10 +886,10 @@ export default function App() {
 
       {/* Mobile Menu Dropdown */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden sticky top-[80px] bg-[#111] border-b border-[#D4AF37]/30 z-40 flex flex-col uppercase text-[11px] tracking-[0.2em] font-medium text-[#D4AF37]">
+        <div className="lg:hidden sticky top-[80px] bg-[#111] border-b border-[#D4D4D8]/30 z-40 flex flex-col uppercase text-[11px] tracking-[0.2em] font-medium text-[#D4D4D8]">
           <button 
             onClick={() => { setIsMobileMenuOpen(false); openBookingWithPreset(); }} 
-            className="p-4 bg-[#D4AF37] text-black text-left font-black flex items-center gap-2"
+            className="p-4 bg-[#D4D4D8] text-black text-left font-black flex items-center gap-2"
           >
             <Calendar className="w-4 h-4" />
             <span>Book Appointment (In-Person / Mail-Order)</span>
@@ -924,16 +908,16 @@ export default function App() {
           </button>
           <button 
             onClick={() => { setIsMobileMenuOpen(false); setCurrentPage('ailab'); }} 
-            className="p-4 border-b border-white/5 text-[#D4AF37] text-left font-bold flex items-center gap-2"
+            className="p-4 border-b border-white/5 text-[#D4D4D8] text-left font-bold flex items-center gap-2"
           >
-            <Sparkles className="w-4 h-4 text-[#D4AF37]" />
+            <Sparkles className="w-4 h-4 text-[#D4D4D8]" />
             <span>AI Design Lab (Mock Up on Gemini)</span>
           </button>
           <button 
             onClick={() => { setIsMobileMenuOpen(false); setCurrentPage('reviews'); }} 
             className="p-4 border-b border-white/5 text-left font-bold text-white flex items-center gap-2"
           >
-            <Star className="w-4 h-4 text-[#D4AF37] fill-[#D4AF37]" />
+            <Star className="w-4 h-4 text-[#D4D4D8] fill-[#D4D4D8]" />
             <span>Google Reviews (4.9★ • 14 Reviews)</span>
           </button>
           <a 
@@ -953,7 +937,7 @@ export default function App() {
             href="tel:4694875734" 
             className="p-4 text-zinc-300 text-left font-semibold flex items-center gap-2"
           >
-            <Phone className="w-4 h-4 text-[#D4AF37]" />
+            <Phone className="w-4 h-4 text-[#D4D4D8]" />
             <span>Call (469) 487-5734</span>
           </a>
         </div>
@@ -977,9 +961,9 @@ export default function App() {
           
           <div className="flex items-center gap-3">
             <img 
-              src={jawzOfficialLogo} 
-              alt="Jawz Logo" 
-              className="w-10 h-10 rounded-full border border-[#D4AF37]/40 object-cover"
+              src={jawzLogo} 
+              alt="Jawz Custom Jewelry Logo" 
+              className="w-10 h-10 object-contain"
             />
             <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-bold flex flex-col gap-0.5">
               <span className="text-zinc-300">&copy; {new Date().getFullYear()} JAWZ JEWELRY • EST. 2023</span>
@@ -990,19 +974,19 @@ export default function App() {
           <div className="flex flex-wrap items-center justify-center gap-6 text-[10px] uppercase tracking-[0.2em] font-bold text-gray-500">
             <button 
               onClick={() => openBookingWithPreset()} 
-              className="text-[#D4AF37] hover:text-white transition-colors"
+              className="text-[#D4D4D8] hover:text-white transition-colors"
             >
               Book Appointment
             </button>
             <button 
               onClick={() => setCurrentPage('pastwork')} 
-              className="hover:text-[#D4AF37] transition-colors"
+              className="hover:text-[#D4D4D8] transition-colors"
             >
               Past Work
             </button>
             <button 
               onClick={() => setCurrentPage('reviews')} 
-              className="hover:text-[#D4AF37] transition-colors"
+              className="hover:text-[#D4D4D8] transition-colors"
             >
               Google Reviews
             </button>
