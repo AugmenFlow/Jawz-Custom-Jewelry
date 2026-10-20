@@ -5,12 +5,17 @@ import {
   Sparkles, MapPin, Phone, Award, ExternalLink, MessageSquare, 
   CheckCircle2, ShieldCheck, Heart 
 } from 'lucide-react';
-import silverMoissanite from './assets/images/silver_moissanite_1779848576581.png';
-import goldPlain from './assets/images/gold_plain_1779848593610.png';
-import silverPlain from './assets/images/silver_plain_1779848608539.png';
+import tierMoissanite from './assets/images/instagram/DZdz5mZtB3c.jpg';
+import tierLabDiamond from './assets/images/instagram/DN_en5XEq8m.jpg';
+import tierSilverPlain from './assets/images/instagram/DCmk4CHvrHd.jpg';
+import tier10kGold from './assets/images/instagram/C_yYcLjvNOY.jpg';
+import tier14kGold from './assets/images/instagram/C8SptlIRW_I.jpg';
 import jawzPendantHero from './assets/images/jawz_pendant_hero.jpg';
 import jawzLogo from './assets/images/jawz-custom-jewelry-logo.png';
 import ownerHelpingClient from './assets/images/owner-helping-client.jpg';
+import studioLogoWall from './assets/images/studio-logo-wall.jpg';
+import studioMarbleFloor from './assets/images/studio-marble-floor.jpg';
+import { MouthPreview, JewelryPreview } from './design/DesignPreviews';
 
 import Configurator from './Configurator';
 import AILab from './AILab';
@@ -29,9 +34,52 @@ const PricingRow = ({ label, price }: { label: string, price: string }) => (
   </div>
 );
 
+type Page = 'home' | 'pastwork' | 'reviews' | 'configurator' | 'ailab' | 'info';
+
+// Every page has its own address so links, the back button and Google all work
+const PAGE_PATHS: Record<Page, string> = {
+  home: '/',
+  pastwork: '/past-work',
+  reviews: '/reviews',
+  configurator: '/design-studio',
+  ailab: '/ai-preview',
+  info: '/info',
+};
+
+const PAGE_TITLES: Record<Page, string> = {
+  home: 'Jawz Jewelry | Arlington, TX | Custom Grillz, Engagement Rings & Fine Jewelry',
+  pastwork: 'Past Work | Jawz Custom Jewelry',
+  reviews: 'Google Reviews | Jawz Custom Jewelry',
+  configurator: 'Design Studio | Design Your Grillz or Jewelry | Jawz',
+  ailab: 'AI Preview | See Your Design Realistic | Jawz',
+  info: 'Add-Ons, Policies & How It Works | Jawz Custom Jewelry',
+};
+
+const pageFromPath = (path: string): Page => {
+  const clean = path.replace(/\/+$/, '') || '/';
+  return (Object.keys(PAGE_PATHS) as Page[]).find(page => PAGE_PATHS[page] === clean) || 'home';
+};
+
 export default function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState<'home' | 'pastwork' | 'reviews' | 'configurator' | 'ailab'>('home');
+  const [currentPage, setPageState] = useState<Page>(() => pageFromPath(window.location.pathname));
+
+  const setCurrentPage = (page: Page) => {
+    if (PAGE_PATHS[page] !== window.location.pathname) window.history.pushState(null, '', PAGE_PATHS[page]);
+    setPageState(page);
+    window.scrollTo(0, 0);
+  };
+
+  // Browser back/forward buttons
+  useEffect(() => {
+    const onPopState = () => setPageState(pageFromPath(window.location.pathname));
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  useEffect(() => {
+    document.title = PAGE_TITLES[currentPage];
+  }, [currentPage]);
   // The customer's design follows them between the Design Studio, AI Preview and booking
   const [sharedDesign] = useState<StudioDesign | null>(() => readSharedDesign());
   const [studioDesign, setStudioDesign] = useState<StudioDesign>(() => sharedDesign || loadSavedDesign());
@@ -44,15 +92,12 @@ export default function App() {
   // Opening a shared design link lands on the Design Studio
   useEffect(() => {
     if (sharedDesign) {
-      setCurrentPage('configurator');
-      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      setPageState('configurator');
+      window.history.replaceState(null, '', PAGE_PATHS.configurator);
     }
   }, [sharedDesign]);
 
-  const goTo = (page: typeof currentPage) => {
-    setCurrentPage(page);
-    window.scrollTo(0, 0);
-  };
+  const goTo = setCurrentPage;
 
   // Booking Modal State
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -128,348 +173,18 @@ export default function App() {
       );
     }
 
-    // HOME PAGE
-    return (
-      <div className="flex-1 w-full flex flex-col">
-        
-        {/* Hero Section */}
-        <section className="relative overflow-hidden bg-[#050505]">
-          <div className="absolute inset-0 z-0">
-            <img 
-              src={jawzPendantHero} 
-              alt="Jawz Custom Jewelry iced-out pendant on a silver rope chain" 
-              className="w-full h-full object-cover opacity-60 object-top"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent z-10"></div>
-          </div>
-          
-          <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 flex flex-col items-center justify-center min-h-[62vh] text-center">
-            
-            {/* Top Quality Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#D4D4D8]/10 border border-[#D4D4D8]/30 text-[#D4D4D8] text-[11px] uppercase tracking-[0.25em] font-bold mb-6 rounded-full shadow-[0_0_15px_rgba(212,212,216,0.15)]">
-              <Award className="w-3.5 h-3.5" />
-              <span>Arlington, TX • Strictly By Appointment Only • Est. 2023</span>
-            </div>
-
-            <h1 className="text-4xl sm:text-6xl md:text-8xl font-black tracking-tight text-white mb-4 uppercase drop-shadow-2xl font-heading">
-              Made to <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4D4D8] to-[#ffffff]">Shine</span>
-            </h1>
-            
-            <p className="text-zinc-300 uppercase tracking-[0.3em] text-xs sm:text-sm font-semibold mb-3 max-w-2xl mx-auto">
-              Custom Dental Grillz & Fine Jewelry Studio
-            </p>
-
-            <p className="text-zinc-400 text-xs sm:text-sm font-light mb-10 max-w-xl mx-auto leading-relaxed">
-              Private 1-on-1 in-person impressions at our Arlington, TX studio (1201 N Watson Rd) & direct express mail-order mold kits shipped nationwide. Solid gold, flawless moissanite, and certified lab diamonds.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center w-full max-w-2xl">
-              {/* PRIMARY BOOKING CTA */}
-              <button 
-                onClick={() => openBookingWithPreset()} 
-                className="px-8 py-4 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffffff] transition-all shadow-[0_0_25px_rgba(212,212,216,0.4)] flex items-center justify-center gap-2 rounded-sm"
-              >
-                <Calendar className="w-4 h-4" />
-                <span>Book Custom Appointment</span>
+    if (currentPage === 'info') {
+      return (
+        <div className="flex-1 w-full flex flex-col">
+          <section className="py-14 sm:py-20 bg-gradient-to-b from-black via-zinc-950 to-[#050505] border-b border-white/5 text-center">
+            <div className="max-w-4xl mx-auto px-4">
+              <button onClick={() => goTo('home')} className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-[#D4D4D8] hover:text-white transition-colors mb-6 font-semibold">
+                ← Back to Home
               </button>
-
-              {/* PAST WORK & BEST SELLERS CTA */}
-              <button 
-                onClick={() => setCurrentPage('pastwork')} 
-                className="px-8 py-4 border border-[#D4D4D8]/50 text-white text-xs font-bold uppercase tracking-widest bg-black/60 hover:bg-[#D4D4D8]/15 transition-all backdrop-blur-sm flex items-center justify-center gap-2 rounded-sm"
-              >
-                <Sparkles className="w-4 h-4 text-[#D4D4D8]" />
-                <span>Explore Past Work</span>
-              </button>
-
-              {/* REVIEWS SHORTCUT */}
-              <button 
-                onClick={() => setCurrentPage('reviews')} 
-                className="px-6 py-4 border border-white/10 text-zinc-300 text-xs font-bold uppercase tracking-widest bg-zinc-900/60 hover:border-zinc-500 hover:text-white transition-all backdrop-blur-sm flex items-center justify-center gap-2 rounded-sm"
-              >
-                <div className="flex text-[#D4D4D8]">
-                  <Star className="w-3.5 h-3.5 fill-[#D4D4D8]" />
-                </div>
-                <span>4.9★ Reviews</span>
-              </button>
+              <h1 className="text-4xl sm:text-6xl font-black uppercase tracking-tight text-white font-heading">How It Works & Policies</h1>
+              <p className="text-sm text-zinc-400 mt-4 font-light">Mold kits and studio fittings, custom jewelry, add-on prices, deposits and turnaround.</p>
             </div>
-
-            {/* Direct Gemini AI Mockup Callout */}
-            <div className="mt-8">
-              <button 
-                onClick={() => goTo('configurator')}
-                className="group inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 border border-[#D4D4D8]/40 hover:border-[#D4D4D8] text-xs text-zinc-300 hover:text-white transition-all shadow-md"
-              >
-                <span className="w-2 h-2 rounded-full bg-[#D4D4D8] animate-pulse"></span>
-                <span className="text-[#D4D4D8] font-bold">Have an idea?</span>
-                <span>Design it in the Design Studio, then see it realistic with AI Preview</span>
-                <ArrowRight className="w-3.5 h-3.5 text-[#D4D4D8] group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-
-            {/* Quick Micro Info */}
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-[11px] uppercase tracking-widest text-zinc-400">
-              <span className="flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5 text-[#D4D4D8]" /> Guaranteed Snug Fit
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5 text-[#D4D4D8]" /> 10K, 14K, 18K Solid Gold
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5 text-[#D4D4D8]" /> Moissanite Passes Diamond Tester
-              </span>
-            </div>
-
-          </div>
-        </section>
-
-        {/* SECTION: BEST SELLERS AMONGST PAST WORK */}
-        <section id="best-sellers" className="py-20 bg-[#080808] border-t border-b border-white/5 relative z-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
-              <div>
-                <div className="flex items-center gap-2 text-[#D4D4D8] text-xs uppercase font-bold tracking-[0.3em] mb-2">
-                  <Sparkles className="w-4 h-4" />
-                  <span>Most Requested Custom Work</span>
-                </div>
-                <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white font-heading">
-                  Best Sellers Amongst Past Work
-                </h2>
-                <p className="text-xs sm:text-sm text-zinc-400 max-w-xl mt-2 font-light">
-                  Our top client favorites crafted since 2023. Tap a piece to see it on Instagram, or book a session for a style like it.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setCurrentPage('pastwork')}
-                  className="px-6 py-3 border border-[#D4D4D8] text-[#D4D4D8] text-xs font-bold uppercase tracking-widest hover:bg-[#D4D4D8] hover:text-black transition-all rounded-sm flex items-center gap-2"
-                >
-                  <span>View All Past Work</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Best Sellers Grid Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {bestSellers.map((post, idx) => (
-                <InstagramPostCard key={post.id} post={post} rank={idx + 1} onBook={handleBookInstagramPost} />
-              ))}
-            </div>
-
-            {/* Quick Consultation Banner */}
-            <div className="mt-12 p-6 bg-gradient-to-r from-zinc-950 via-[#111] to-zinc-950 border border-white/10 rounded-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div>
-                <h4 className="text-base font-bold uppercase text-white font-heading">
-                  Want To Mix & Match Cuts Or Add Diamond Dust?
-                </h4>
-                <p className="text-xs text-zinc-400 font-light mt-0.5">
-                  In our booking system, you can select your exact teeth on the interactive arch and write specific custom notes.
-                </p>
-              </div>
-
-              <button
-                onClick={() => openBookingWithPreset()}
-                className="px-6 py-3 bg-white text-black hover:bg-zinc-200 text-xs font-bold uppercase tracking-widest transition-colors rounded-sm shrink-0"
-              >
-                Custom Tooth Selection
-              </button>
-            </div>
-
-          </div>
-        </section>
-
-        {/* SECTION: GOOGLE REVIEWS & SOCIAL PROOF RIBBON */}
-        <section className="py-16 bg-[#050505] border-b border-white/5 relative z-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 mb-10 pb-8 border-b border-white/10">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-white/5 border border-white/15 flex items-center justify-center shrink-0">
-                  <svg className="w-8 h-8" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
-                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
-                    <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
-                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-                  </svg>
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl font-black text-white font-heading">4.9</span>
-                    <div className="flex text-[#FBBC05]">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-[#FBBC05] text-[#FBBC05]" />
-                      ))}
-                    </div>
-                    <span className="text-xs uppercase font-bold text-zinc-300 tracking-wider">
-                      (14 Google Reviews)
-                    </span>
-                  </div>
-                  <p className="text-xs text-zinc-400 mt-1 font-light">
-                    Verified client feedback for <strong className="text-white font-semibold">Jawz Jewelry</strong> • 1201 N Watson Rd, Arlington, TX 76006
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-3">
-                <a
-                  href="https://share.google/GXB7WauH8A7ATM5wM"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-5 py-2.5 bg-white text-black text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-zinc-200 transition-colors flex items-center gap-1.5 shadow-sm"
-                >
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
-                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
-                    <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
-                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-                  </svg>
-                  <span>Google Reviews</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-
-                <button
-                  onClick={() => setCurrentPage('reviews')}
-                  className="px-5 py-2.5 border border-[#D4D4D8] text-[#D4D4D8] text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-[#D4D4D8] hover:text-black transition-all"
-                >
-                  Read Verified Reviews
-                </button>
-              </div>
-            </div>
-
-            {/* Testimonials Preview Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {GOOGLE_REVIEWS_DATA.slice(0, 3).map((rev) => (
-                <div key={rev.id} className="bg-[#111] border border-white/5 p-6 rounded-sm space-y-3">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-zinc-800 text-white font-bold flex items-center justify-center text-xs">
-                        {rev.author.charAt(0)}
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold text-white uppercase">{rev.author}</div>
-                        <div className="text-[10px] text-zinc-500">{rev.location}</div>
-                      </div>
-                    </div>
-                    <div className="flex text-[#D4D4D8]">
-                      {[...Array(rev.rating)].map((_, i) => (
-                        <Star key={i} className="w-3.5 h-3.5 fill-[#D4D4D8]" />
-                      ))}
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-zinc-300 font-light leading-relaxed">
-                    "{rev.text}"
-                  </p>
-
-                  <div className="pt-2 text-[10px] text-[#D4D4D8] font-semibold uppercase tracking-wider">
-                    {rev.service}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-          </div>
-        </section>
-
-        {/* SECTION: PRICING LIST */}
-        <main id="pricing" className="flex-1 bg-[#050505] py-20 relative z-20">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            
-            <div className="text-center mb-16">
-              <h2 className="text-4xl sm:text-5xl font-black text-white uppercase tracking-tighter drop-shadow-lg font-heading">
-                New Price List
-              </h2>
-              <div className="w-16 h-1 bg-[#D4D4D8] mx-auto mt-6 mb-4"></div>
-              <p className="text-xs text-zinc-400 uppercase tracking-widest font-light">
-                Transparent dental casting prices • Free cuts on standard orders
-              </p>
-            </div>
-
-            {/* Diamond Tier */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div className="bg-[#111] border border-white/10 rounded-sm p-8 hover:border-[#D4D4D8]/50 transition-colors">
-                <h3 className="text-2xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Silver Moissanite Grillz</h3>
-                <div className="flex justify-center mb-6 h-32 opacity-80">
-                  <img src={silverMoissanite} alt="Silver Moissanite" className="h-full object-contain mix-blend-screen" />
-                </div>
-                <div className="flex flex-col">
-                   <PricingRow label="6 on 6" price="$1,175" />
-                   <PricingRow label="8 on 8" price="$1,550" />
-                   <PricingRow label="10 on 10" price="$1,900" />
-                </div>
-              </div>
-
-              <div className="bg-[#111] border border-white/10 rounded-sm p-8 hover:border-[#D4D4D8]/50 transition-colors">
-                <h3 className="text-2xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Silver Lab Diamond Grillz</h3>
-                <div className="flex justify-center mb-6 h-32 opacity-80 filter contrast-125 brightness-110">
-                  <img src={silverMoissanite} alt="Silver Lab Diamond" className="h-full object-contain mix-blend-screen" />
-                </div>
-                <div className="flex flex-col">
-                   <PricingRow label="6 on 6" price="$1,900" />
-                   <PricingRow label="8 on 8" price="$2,550" />
-                   <PricingRow label="10 on 10" price="$3,180" />
-                </div>
-              </div>
-            </div>
-
-            {/* Plain Metal Tier */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              
-              <div className="bg-[#111] border border-white/10 rounded-sm p-6 hover:border-[#D4D4D8]/50 transition-colors">
-                <h3 className="text-xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Silver Plain Grillz</h3>
-                <div className="flex justify-center mb-6 h-24 opacity-90">
-                  <img src={silverPlain} alt="Silver Plain" className="h-full object-contain mix-blend-screen" />
-                </div>
-                <div className="flex flex-col">
-                   <PricingRow label="2 Teeth" price="$225" />
-                   <PricingRow label="4 Teeth" price="$45 / Tooth" />
-                   <PricingRow label="6-10 Teeth" price="$40 / Tooth" />
-                </div>
-              </div>
-
-              <div className="bg-[#111] border border-[#D4D4D8]/30 rounded-sm p-6 hover:border-[#D4D4D8] transition-colors relative">
-                <div className="absolute top-0 right-0 py-1 px-3 bg-[#D4D4D8] text-black text-[9px] font-bold uppercase tracking-widest">Popular</div>
-                <h3 className="text-xl font-bold text-[#D4D4D8] uppercase tracking-wider mb-6 text-center border-b border-[#D4D4D8]/10 pb-4">10K Gold Plain Grillz</h3>
-                <div className="flex justify-center mb-6 h-24 opacity-90">
-                  <img src={goldPlain} alt="10K Gold Plain" className="h-full object-contain mix-blend-screen" />
-                </div>
-                <div className="flex flex-col">
-                   <PricingRow label="2 Teeth" price="$275" />
-                   <PricingRow label="4 Teeth" price="$420" />
-                   <PricingRow label="6-10 Teeth" price="$95 / Tooth" />
-                </div>
-              </div>
-
-              <div className="bg-[#111] border border-[#D4D4D8]/30 border-opacity-50 rounded-sm p-6 hover:border-[#D4D4D8] transition-colors">
-                <h3 className="text-xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">14K Gold Plain Grillz</h3>
-                <div className="flex justify-center mb-6 h-24 opacity-90 brightness-110">
-                  <img src={goldPlain} alt="14K Gold Plain" className="h-full object-contain mix-blend-screen" />
-                </div>
-                <div className="flex flex-col">
-                   <PricingRow label="2 Teeth" price="$350" />
-                   <PricingRow label="4 Teeth" price="$520" />
-                   <PricingRow label="6-10 Teeth" price="$115 / Tooth" />
-                </div>
-              </div>
-              
-            </div>
-
-            {/* Quick Action Button below Pricing */}
-            <div className="mt-12 text-center">
-              <button
-                onClick={() => openBookingWithPreset()}
-                className="px-10 py-4 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffffff] transition-all rounded-sm shadow-[0_0_20px_rgba(212,212,216,0.3)] inline-flex items-center gap-2"
-              >
-                <Calendar className="w-4 h-4" />
-                <span>Book With Price Lock</span>
-              </button>
-            </div>
-
-          </div>
-        </main>
+          </section>
 
         {/* How It Works (Mail Orders & In-Person Appointment Studio) */}
         <section id="how-it-works" className="py-24 bg-[#0a0a0a] border-t border-white/5 relative z-20">
@@ -507,47 +222,6 @@ export default function App() {
                 <p className="text-sm text-zinc-400 leading-relaxed font-light">
                   Hand polished to a mirror gleam with laser cuts, stone pave, and deep perm lines. Pick up in studio or receive insured express delivery to your door.
                 </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Meet the Owner */}
-        <section id="meet-the-owner" aria-labelledby="owner-heading" className="py-20 sm:py-24 bg-[#111] border-t border-white/5 relative z-20">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-20 items-center">
-              <figure className="w-full max-w-md mx-auto border border-[#D4D4D8]/30 rounded-sm overflow-hidden">
-                <img
-                  src={ownerHelpingClient}
-                  alt="Jeremy King, owner of Jawz Custom Jewelry, helping a client try on a necklace in the studio"
-                  width={816}
-                  height={1278}
-                  loading="lazy"
-                  decoding="async"
-                  className="w-full h-auto block"
-                />
-                <figcaption className="px-6 py-4 bg-[#0a0a0a] text-[#D4D4D8] text-xs font-bold uppercase tracking-widest text-center">
-                  Custom jewelry. Personal attention.
-                </figcaption>
-              </figure>
-              <div>
-                <p className="text-[#D4D4D8] text-xs font-bold uppercase tracking-[0.25em] mb-4">Meet the Owner</p>
-                <h2 id="owner-heading" className="text-4xl sm:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter font-heading mb-4">Jeremy King</h2>
-                <p className="text-sm text-zinc-300 uppercase tracking-widest mb-6">The person behind Jawz Custom Jewelry</p>
-                <div className="w-12 h-1 bg-[#D4D4D8] mb-8"></div>
-                <p className="text-base text-zinc-300 font-light leading-relaxed mb-5">
-                  Jeremy is from the same community he serves. For him, Jawz Custom Jewelry is a way to bring personal service and custom pieces to the people who call this area home.
-                </p>
-                <p className="text-sm text-zinc-400 font-light leading-relaxed mb-8">
-                  From your first idea to the final fit, Jeremy helps you explore the details that make a piece yours. Whether you’re looking for custom grillz, a ring, or a chain, it starts with a conversation at the Arlington studio.
-                </p>
-                <button
-                  onClick={() => openBookingWithPreset({ serviceType: 'in-person' })}
-                  className="px-8 py-4 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffffff] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D4D4D8] transition-colors rounded-sm inline-flex items-center justify-center gap-3"
-                >
-                  <span>Book a Consultation</span>
-                  <ArrowRight className="w-4 h-4" aria-hidden="true" />
-                </button>
               </div>
             </div>
           </div>
@@ -710,6 +384,453 @@ export default function App() {
             </div>
           </div>
         </section>
+        </div>
+      );
+    }
+
+    // HOME PAGE
+    return (
+      <div className="flex-1 w-full flex flex-col">
+
+        {/* Hero Section */}
+        <section className="relative overflow-hidden bg-[#050505]">
+          <div className="absolute inset-0 z-0">
+            <img 
+              src={jawzPendantHero} 
+              alt="Jawz Custom Jewelry iced-out pendant on a silver rope chain" 
+              className="w-full h-full object-cover opacity-60 object-top"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent z-10"></div>
+          </div>
+          
+          <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 flex flex-col items-center justify-center min-h-[62vh] text-center">
+            
+            {/* Top Quality Badge */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#D4D4D8]/10 border border-[#D4D4D8]/30 text-[#D4D4D8] text-[11px] uppercase tracking-[0.25em] font-bold mb-6 rounded-full shadow-[0_0_15px_rgba(212,212,216,0.15)]">
+              <Award className="w-3.5 h-3.5" />
+              <span>Arlington, TX • Strictly By Appointment Only • Est. 2023</span>
+            </div>
+
+            <h1 className="text-4xl sm:text-6xl md:text-8xl font-black tracking-tight text-white mb-4 uppercase drop-shadow-2xl font-heading">
+              Made to <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4D4D8] to-[#ffffff]">Shine</span>
+            </h1>
+            
+            <p className="text-zinc-300 uppercase tracking-[0.3em] text-xs sm:text-sm font-semibold mb-3 max-w-2xl mx-auto">
+              Custom Dental Grillz & Fine Jewelry Studio
+            </p>
+
+            <p className="text-zinc-400 text-xs sm:text-sm font-light mb-10 max-w-xl mx-auto leading-relaxed">
+              Private 1-on-1 in-person impressions at our Arlington, TX studio (1201 N Watson Rd) & direct express mail-order mold kits shipped nationwide. Solid gold, flawless moissanite, and certified lab diamonds.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center w-full max-w-2xl">
+              {/* PRIMARY BOOKING CTA */}
+              <button 
+                onClick={() => openBookingWithPreset()} 
+                className="px-8 py-4 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffffff] transition-all shadow-[0_0_25px_rgba(212,212,216,0.4)] flex items-center justify-center gap-2 rounded-sm"
+              >
+                <Calendar className="w-4 h-4" />
+                <span>Book Custom Appointment</span>
+              </button>
+
+              {/* PAST WORK & BEST SELLERS CTA */}
+              <button 
+                onClick={() => setCurrentPage('pastwork')} 
+                className="px-8 py-4 border border-[#D4D4D8]/50 text-white text-xs font-bold uppercase tracking-widest bg-black/60 hover:bg-[#D4D4D8]/15 transition-all backdrop-blur-sm flex items-center justify-center gap-2 rounded-sm"
+              >
+                <Sparkles className="w-4 h-4 text-[#D4D4D8]" />
+                <span>Explore Past Work</span>
+              </button>
+
+              {/* REVIEWS SHORTCUT */}
+              <button 
+                onClick={() => setCurrentPage('reviews')} 
+                className="px-6 py-4 border border-white/10 text-zinc-300 text-xs font-bold uppercase tracking-widest bg-zinc-900/60 hover:border-zinc-500 hover:text-white transition-all backdrop-blur-sm flex items-center justify-center gap-2 rounded-sm"
+              >
+                <div className="flex text-[#D4D4D8]">
+                  <Star className="w-3.5 h-3.5 fill-[#D4D4D8]" />
+                </div>
+                <span>4.9★ Reviews</span>
+              </button>
+            </div>
+
+            {/* Direct Gemini AI Mockup Callout */}
+            <div className="mt-8">
+              <button 
+                onClick={() => goTo('configurator')}
+                className="group inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 border border-[#D4D4D8]/40 hover:border-[#D4D4D8] text-xs text-zinc-300 hover:text-white transition-all shadow-md"
+              >
+                <span className="w-2 h-2 rounded-full bg-[#D4D4D8] animate-pulse"></span>
+                <span className="text-[#D4D4D8] font-bold">Have an idea?</span>
+                <span>Design it in the Design Studio, then see it realistic with AI Preview</span>
+                <ArrowRight className="w-3.5 h-3.5 text-[#D4D4D8] group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+
+            {/* Quick Micro Info */}
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-[11px] uppercase tracking-widest text-zinc-400">
+              <span className="flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5 text-[#D4D4D8]" /> Guaranteed Snug Fit
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5 text-[#D4D4D8]" /> 10K, 14K, 18K Solid Gold
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5 text-[#D4D4D8]" /> Moissanite Passes Diamond Tester
+              </span>
+            </div>
+
+          </div>
+        </section>
+
+        {/* SECTION: BEST SELLERS AMONGST PAST WORK */}
+        <section id="best-sellers" className="py-20 bg-[#080808] border-t border-b border-white/5 relative z-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+              <div>
+                <div className="flex items-center gap-2 text-[#D4D4D8] text-xs uppercase font-bold tracking-[0.3em] mb-2">
+                  <Sparkles className="w-4 h-4" />
+                  <span>Most Requested Custom Work</span>
+                </div>
+                <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white font-heading">
+                  Best Sellers Amongst Past Work
+                </h2>
+                <p className="text-xs sm:text-sm text-zinc-400 max-w-xl mt-2 font-light">
+                  Our top client favorites crafted since 2023. Tap a piece to see it on Instagram, or book a session for a style like it.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setCurrentPage('pastwork')}
+                  className="px-6 py-3 border border-[#D4D4D8] text-[#D4D4D8] text-xs font-bold uppercase tracking-widest hover:bg-[#D4D4D8] hover:text-black transition-all rounded-sm flex items-center gap-2"
+                >
+                  <span>View All Past Work</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Best Sellers Grid Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {bestSellers.map((post, idx) => (
+                <InstagramPostCard key={post.id} post={post} rank={idx + 1} onBook={handleBookInstagramPost} />
+              ))}
+            </div>
+
+            {/* Quick Consultation Banner */}
+            <div className="mt-12 p-6 bg-gradient-to-r from-zinc-950 via-[#111] to-zinc-950 border border-white/10 rounded-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <h4 className="text-base font-bold uppercase text-white font-heading">
+                  Want To Mix & Match Cuts Or Add Diamond Dust?
+                </h4>
+                <p className="text-xs text-zinc-400 font-light mt-0.5">
+                  In our booking system, you can select your exact teeth on the interactive arch and write specific custom notes.
+                </p>
+              </div>
+
+              <button
+                onClick={() => openBookingWithPreset()}
+                className="px-6 py-3 bg-white text-black hover:bg-zinc-200 text-xs font-bold uppercase tracking-widest transition-colors rounded-sm shrink-0"
+              >
+                Custom Tooth Selection
+              </button>
+            </div>
+
+          </div>
+        </section>
+
+        {/* Design Studio callout */}
+        <section aria-labelledby="studio-callout-heading" className="py-20 sm:py-24 bg-[#050505] border-b border-white/5 relative z-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+            <div>
+              <div className="flex items-center gap-2 text-[#D4D4D8] text-xs uppercase font-bold tracking-[0.3em] mb-3">
+                <Sparkles className="w-4 h-4" aria-hidden="true" />
+                <span>Design Studio</span>
+              </div>
+              <h2 id="studio-callout-heading" className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white font-heading">
+                Design Yours in Minutes
+              </h2>
+              <p className="text-sm text-zinc-400 mt-4 max-w-lg font-light leading-relaxed">
+                Tap the teeth you want covered, pick your metal, cuts, jewels and cutouts, and watch your grill come to life with a live price. Building a pendant, chain or ring instead? That's in the Design Studio too.
+              </p>
+              <ol className="mt-6 space-y-2 text-sm text-zinc-300">
+                <li><span className="text-[#D4D4D8] font-bold">1.</span> Design it in the Design Studio</li>
+                <li><span className="text-[#D4D4D8] font-bold">2.</span> See it realistic with AI Preview (optional)</li>
+                <li><span className="text-[#D4D4D8] font-bold">3.</span> Book. Your design is sent to Jeremy with your appointment</li>
+              </ol>
+              <div className="flex flex-wrap gap-3 mt-8">
+                <button
+                  onClick={() => goTo('configurator')}
+                  className="px-8 py-4 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-white transition-all rounded-sm shadow-[0_0_20px_rgba(212,212,216,0.3)] inline-flex items-center gap-2"
+                >
+                  <span>Open the Design Studio</span>
+                  <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                </button>
+                <button
+                  onClick={() => openBookingWithPreset({ design: studioDesign })}
+                  className="px-8 py-4 border border-white/20 text-white text-xs font-bold uppercase tracking-widest hover:border-[#D4D4D8] transition-colors rounded-sm inline-flex items-center gap-2"
+                >
+                  <Calendar className="w-4 h-4" aria-hidden="true" />
+                  <span>Book This Design</span>
+                </button>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => goTo('configurator')}
+              aria-label="Open the Design Studio"
+              className="block bg-gradient-to-b from-zinc-900 to-black border border-white/10 hover:border-[#D4D4D8]/60 transition-colors rounded-lg p-4 sm:p-6"
+            >
+              {studioDesign.mode === 'grillz'
+                ? <MouthPreview design={studioDesign.grillz} />
+                : <div className="flex justify-center"><JewelryPreview design={studioDesign.jewelry} /></div>}
+              <span className="block mt-3 text-[10px] uppercase tracking-widest font-bold text-zinc-500">Your saved design • Tap to edit</span>
+            </button>
+          </div>
+        </section>
+
+        {/* Studio photo strip */}
+        <section aria-label="Inside the Jawz studio in Arlington" className="bg-black border-b border-white/5 relative z-20">
+          <div className="grid grid-cols-3 h-40 sm:h-64">
+            <img src={studioLogoWall} alt="The Jawz diamond logo on the studio wall" loading="lazy" decoding="async" className="w-full h-full object-cover object-[center_40%] grayscale-[30%]" />
+            <img src={ownerHelpingClient} alt="Hexagon lights and display case inside the Jawz studio" loading="lazy" decoding="async" className="w-full h-full object-cover object-top" />
+            <img src={studioMarbleFloor} alt="Black marble floor and Jawz logo rug in the studio" loading="lazy" decoding="async" className="w-full h-full object-cover grayscale-[30%]" />
+          </div>
+          <p className="text-center text-[10px] uppercase tracking-[0.3em] text-zinc-500 py-3">The Arlington Studio • 1201 N Watson Rd • By Appointment Only</p>
+        </section>
+
+        {/* Meet the Owner */}
+        <section id="meet-the-owner" aria-labelledby="owner-heading" className="py-20 sm:py-24 bg-[#111] border-t border-white/5 relative z-20">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-20 items-center">
+              <figure className="w-full max-w-md mx-auto border border-[#D4D4D8]/30 rounded-sm overflow-hidden">
+                <img
+                  src={ownerHelpingClient}
+                  alt="Jeremy King, owner of Jawz Custom Jewelry, helping a client try on a necklace in the studio"
+                  width={816}
+                  height={1278}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-auto block"
+                />
+                <figcaption className="px-6 py-4 bg-[#0a0a0a] text-[#D4D4D8] text-xs font-bold uppercase tracking-widest text-center">
+                  Custom jewelry. Personal attention.
+                </figcaption>
+              </figure>
+              <div>
+                <p className="text-[#D4D4D8] text-xs font-bold uppercase tracking-[0.25em] mb-4">Meet the Owner</p>
+                <h2 id="owner-heading" className="text-4xl sm:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter font-heading mb-4">Jeremy King</h2>
+                <p className="text-sm text-zinc-300 uppercase tracking-widest mb-6">The person behind Jawz Custom Jewelry</p>
+                <div className="w-12 h-1 bg-[#D4D4D8] mb-8"></div>
+                <p className="text-base text-zinc-300 font-light leading-relaxed mb-5">
+                  Jeremy is from the same community he serves. For him, Jawz Custom Jewelry is a way to bring personal service and custom pieces to the people who call this area home.
+                </p>
+                <p className="text-sm text-zinc-400 font-light leading-relaxed mb-8">
+                  From your first idea to the final fit, Jeremy helps you explore the details that make a piece yours. Whether you’re looking for custom grillz, a ring, or a chain, it starts with a conversation at the Arlington studio.
+                </p>
+                <button
+                  onClick={() => openBookingWithPreset({ serviceType: 'in-person' })}
+                  className="px-8 py-4 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffffff] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D4D4D8] transition-colors rounded-sm inline-flex items-center justify-center gap-3"
+                >
+                  <span>Book a Consultation</span>
+                  <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION: GOOGLE REVIEWS & SOCIAL PROOF RIBBON */}
+        <section className="py-16 bg-[#050505] border-b border-white/5 relative z-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 mb-10 pb-8 border-b border-white/10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-white/5 border border-white/15 flex items-center justify-center shrink-0">
+                  <svg className="w-8 h-8" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                    <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                  </svg>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-black text-white font-heading">4.9</span>
+                    <div className="flex text-[#FBBC05]">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-4 h-4 fill-[#FBBC05] text-[#FBBC05]" />
+                      ))}
+                    </div>
+                    <span className="text-xs uppercase font-bold text-zinc-300 tracking-wider">
+                      (14 Google Reviews)
+                    </span>
+                  </div>
+                  <p className="text-xs text-zinc-400 mt-1 font-light">
+                    Verified client feedback for <strong className="text-white font-semibold">Jawz Jewelry</strong> • 1201 N Watson Rd, Arlington, TX 76006
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href="https://share.google/GXB7WauH8A7ATM5wM"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-5 py-2.5 bg-white text-black text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-zinc-200 transition-colors flex items-center gap-1.5 shadow-sm"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                    <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                  </svg>
+                  <span>Google Reviews</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+
+                <button
+                  onClick={() => setCurrentPage('reviews')}
+                  className="px-5 py-2.5 border border-[#D4D4D8] text-[#D4D4D8] text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-[#D4D4D8] hover:text-black transition-all"
+                >
+                  Read Verified Reviews
+                </button>
+              </div>
+            </div>
+
+            {/* Testimonials Preview Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {GOOGLE_REVIEWS_DATA.slice(0, 3).map((rev) => (
+                <div key={rev.id} className="bg-[#111] border border-white/5 p-6 rounded-sm space-y-3">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-zinc-800 text-white font-bold flex items-center justify-center text-xs">
+                        {rev.author.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-white uppercase">{rev.author}</div>
+                        <div className="text-[10px] text-zinc-500">{rev.location}</div>
+                      </div>
+                    </div>
+                    <div className="flex text-[#D4D4D8]">
+                      {[...Array(rev.rating)].map((_, i) => (
+                        <Star key={i} className="w-3.5 h-3.5 fill-[#D4D4D8]" />
+                      ))}
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-zinc-300 font-light leading-relaxed">
+                    "{rev.text}"
+                  </p>
+
+                  <div className="pt-2 text-[10px] text-[#D4D4D8] font-semibold uppercase tracking-wider">
+                    {rev.service}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+          </div>
+        </section>
+
+        {/* SECTION: PRICING LIST */}
+        <main id="pricing" className="flex-1 bg-[#050505] py-20 relative z-20">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div className="text-center mb-16">
+              <h2 className="text-4xl sm:text-5xl font-black text-white uppercase tracking-tighter drop-shadow-lg font-heading">
+                New Price List
+              </h2>
+              <div className="w-16 h-1 bg-[#D4D4D8] mx-auto mt-6 mb-4"></div>
+              <p className="text-xs text-zinc-400 uppercase tracking-widest font-light">
+                Transparent dental casting prices • Free cuts on standard orders
+              </p>
+            </div>
+
+            {/* Diamond Tier */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="bg-[#111] border border-white/10 rounded-sm p-8 hover:border-[#D4D4D8]/50 transition-colors">
+                <h3 className="text-2xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Silver Moissanite Grillz</h3>
+                <div className="mb-6 h-40 overflow-hidden rounded-sm border border-white/10 bg-black">
+                  <img src={tierMoissanite} alt="Silver Moissanite grillz made by Jawz" loading="lazy" decoding="async" className="w-full h-full object-cover object-[center_45%]" />
+                </div>
+                <div className="flex flex-col">
+                   <PricingRow label="6 on 6" price="$1,175" />
+                   <PricingRow label="8 on 8" price="$1,550" />
+                   <PricingRow label="10 on 10" price="$1,900" />
+                </div>
+              </div>
+
+              <div className="bg-[#111] border border-white/10 rounded-sm p-8 hover:border-[#D4D4D8]/50 transition-colors">
+                <h3 className="text-2xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Silver Lab Diamond Grillz</h3>
+                <div className="mb-6 h-40 overflow-hidden rounded-sm border border-white/10 bg-black">
+                  <img src={tierLabDiamond} alt="Silver Lab Diamond grillz made by Jawz" loading="lazy" decoding="async" className="w-full h-full object-cover object-[center_48%]" />
+                </div>
+                <div className="flex flex-col">
+                   <PricingRow label="6 on 6" price="$1,900" />
+                   <PricingRow label="8 on 8" price="$2,550" />
+                   <PricingRow label="10 on 10" price="$3,180" />
+                </div>
+              </div>
+            </div>
+
+            {/* Plain Metal Tier */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              
+              <div className="bg-[#111] border border-white/10 rounded-sm p-6 hover:border-[#D4D4D8]/50 transition-colors">
+                <h3 className="text-xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Silver Plain Grillz</h3>
+                <div className="mb-6 h-32 overflow-hidden rounded-sm border border-white/10 bg-black">
+                  <img src={tierSilverPlain} alt="Silver Plain grillz made by Jawz" loading="lazy" decoding="async" className="w-full h-full object-cover object-[center_55%]" />
+                </div>
+                <div className="flex flex-col">
+                   <PricingRow label="2 Teeth" price="$225" />
+                   <PricingRow label="4 Teeth" price="$45 / Tooth" />
+                   <PricingRow label="6-10 Teeth" price="$40 / Tooth" />
+                </div>
+              </div>
+
+              <div className="bg-[#111] border border-[#D4D4D8]/30 rounded-sm p-6 hover:border-[#D4D4D8] transition-colors relative">
+                <div className="absolute top-0 right-0 py-1 px-3 bg-[#D4D4D8] text-black text-[9px] font-bold uppercase tracking-widest">Popular</div>
+                <h3 className="text-xl font-bold text-[#D4D4D8] uppercase tracking-wider mb-6 text-center border-b border-[#D4D4D8]/10 pb-4">10K Gold Plain Grillz</h3>
+                <div className="mb-6 h-32 overflow-hidden rounded-sm border border-white/10 bg-black">
+                  <img src={tier10kGold} alt="10K Gold Plain grillz made by Jawz" loading="lazy" decoding="async" className="w-full h-full object-cover object-[center_24%]" />
+                </div>
+                <div className="flex flex-col">
+                   <PricingRow label="2 Teeth" price="$275" />
+                   <PricingRow label="4 Teeth" price="$420" />
+                   <PricingRow label="6-10 Teeth" price="$95 / Tooth" />
+                </div>
+              </div>
+
+              <div className="bg-[#111] border border-[#D4D4D8]/30 border-opacity-50 rounded-sm p-6 hover:border-[#D4D4D8] transition-colors">
+                <h3 className="text-xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">14K Gold Plain Grillz</h3>
+                <div className="mb-6 h-32 overflow-hidden rounded-sm border border-white/10 bg-black">
+                  <img src={tier14kGold} alt="14K Gold Plain grillz made by Jawz" loading="lazy" decoding="async" className="w-full h-full object-cover object-[center_30%]" />
+                </div>
+                <div className="flex flex-col">
+                   <PricingRow label="2 Teeth" price="$350" />
+                   <PricingRow label="4 Teeth" price="$520" />
+                   <PricingRow label="6-10 Teeth" price="$115 / Tooth" />
+                </div>
+              </div>
+              
+            </div>
+
+            {/* Quick Action Button below Pricing */}
+            <div className="mt-12 text-center">
+              <button
+                onClick={() => openBookingWithPreset()}
+                className="px-10 py-4 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffffff] transition-all rounded-sm shadow-[0_0_20px_rgba(212,212,216,0.3)] inline-flex items-center gap-2"
+              >
+                <Calendar className="w-4 h-4" />
+                <span>Book With Price Lock</span>
+              </button>
+            </div>
+
+          </div>
+        </main>
 
         {/* FAQ Section */}
         <section id="faq" className="py-24 bg-[#050505] border-t border-white/5 relative">
@@ -749,6 +870,20 @@ export default function App() {
                  Book Appointment Now
                </button>
             </div>
+          </div>
+        </section>
+
+        {/* More info */}
+        <section className="py-12 bg-[#0a0a0a] border-t border-white/5 relative z-20">
+          <div className="max-w-4xl mx-auto px-4 text-center">
+            <p className="text-sm text-zinc-400 mb-4">Want the details on how mold kits work, add-on prices, deposits and turnaround?</p>
+            <button
+              onClick={() => goTo('info')}
+              className="px-8 py-3 border border-white/20 text-white text-xs font-bold uppercase tracking-widest hover:border-[#D4D4D8] hover:text-[#D4D4D8] transition-colors rounded-sm inline-flex items-center gap-2"
+            >
+              <span>How It Works, Add-Ons & Policies</span>
+              <ArrowRight className="w-4 h-4" aria-hidden="true" />
+            </button>
           </div>
         </section>
 
@@ -940,6 +1075,12 @@ export default function App() {
           >
             Price List
           </a>
+          <button 
+            onClick={() => { setIsMobileMenuOpen(false); setCurrentPage('info'); }} 
+            className="p-4 border-b border-white/5 text-left font-semibold text-zinc-300"
+          >
+            How It Works & Policies
+          </button>
           <a 
             href="tel:4694875734" 
             className="p-4 text-zinc-300 text-left font-semibold flex items-center gap-2"
@@ -950,10 +1091,31 @@ export default function App() {
         </div>
       )}
 
-      {/* Main Content View */}
-      <div className="flex-1 w-full flex flex-col">
+      {/* Main Content View (extra bottom space on phones for the booking bar) */}
+      <div className="flex-1 w-full flex flex-col pb-16 lg:pb-0">
         {renderContent()}
       </div>
+
+      {/* Phone booking bar */}
+      {!isBookingOpen && !isMobileMenuOpen && (
+        <nav aria-label="Quick actions" className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-black/95 backdrop-blur-md border-t border-[#D4D4D8]/25 px-3 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] grid grid-cols-2 gap-2">
+          {currentPage === 'configurator' ? (
+            <a href="tel:4694875734" className="py-3 border border-white/20 text-white text-[11px] font-bold uppercase tracking-widest rounded-sm flex items-center justify-center gap-2">
+              <Phone className="w-4 h-4" aria-hidden="true" /> Call Studio
+            </a>
+          ) : (
+            <button onClick={() => goTo('configurator')} className="py-3 border border-white/20 text-white text-[11px] font-bold uppercase tracking-widest rounded-sm flex items-center justify-center gap-2">
+              <Sparkles className="w-4 h-4" aria-hidden="true" /> Design Yours
+            </button>
+          )}
+          <button
+            onClick={() => openBookingWithPreset(currentPage === 'configurator' || (currentPage === 'ailab' && aiFromStudio) ? { design: studioDesign } : undefined)}
+            className="py-3 bg-[#D4D4D8] text-black text-[11px] font-black uppercase tracking-widest rounded-sm flex items-center justify-center gap-2"
+          >
+            <Calendar className="w-4 h-4" aria-hidden="true" /> {currentPage === 'configurator' ? 'Book This Design' : 'Book'}
+          </button>
+        </nav>
+      )}
 
       {/* Booking Modal (Accessible across all screens) */}
       <BookingModal
@@ -1000,6 +1162,12 @@ export default function App() {
               className="hover:text-[#D4D4D8] transition-colors"
             >
               Google Reviews
+            </button>
+            <button 
+              onClick={() => setCurrentPage('info')} 
+              className="hover:text-[#D4D4D8] transition-colors"
+            >
+              How It Works & Policies
             </button>
             <a 
               href="https://share.google/GXB7WauH8A7ATM5wM" 

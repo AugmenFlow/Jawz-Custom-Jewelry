@@ -42,6 +42,34 @@ export interface BookingData {
 export const BOOKING_STEPS = ['Design', 'Date & Contact', 'Confirmed'];
 
 const FORM_ENDPOINT = '/__forms.html';
+const SLOTS_ENDPOINT = '/api/slots';
+
+/** Times already booked on a date. Returns an empty list if the check isn't available. */
+async function fetchTakenSlots(date: string): Promise<string[]> {
+  try {
+    const res = await fetch(`${SLOTS_ENDPOINT}?date=${encodeURIComponent(date)}`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data.taken) ? data.taken : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Holds the time for this booking. 'taken' means someone else got it first. */
+async function reserveSlot(booking: BookingData): Promise<'ok' | 'taken' | 'unavailable'> {
+  try {
+    const res = await fetch(SLOTS_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date: booking.appointmentDate, time: booking.appointmentTime, bookingId: booking.id, service: booking.serviceType }),
+    });
+    if (res.status === 409) return 'taken';
+    return res.ok ? 'ok' : 'unavailable';
+  } catch {
+    return 'unavailable';
+  }
+}
 const MAX_ATTACHMENT_BYTES = 6 * 1024 * 1024;
 
 /** Sends the booking to the studio through Netlify Forms (dashboard + email notifications). */
@@ -135,6 +163,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
   const [step, setStep] = useState<1 | 2 | 3>(1); // 1: Design, 2: Date & Contact, 3: Confirmed
   const [design, setDesign] = useState<StudioDesign | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const [takenSlots, setTakenSlots] = useState<string[]>([]);
   
   // Customization state
   const [serviceType, setServiceType] = useState<'in-person' | 'mail-order' | 'jewelry' | 'adjustment'>('in-person');
@@ -196,6 +225,18 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
     setAttachedMockupImage(preset.attachedMockupImage || null);
     setGeminiShareLink(preset.geminiShareLink || '');
   }, [initialPreset, isOpen]);
+
+  // Hide times that are already booked for the chosen day
+  useEffect(() => {
+    if (!isOpen || step !== 2) return;
+    let cancelled = false;
+    fetchTakenSlots(selectedDate).then(taken => {
+      if (cancelled) return;
+      setTakenSlots(taken);
+      setSelectedTime(current => (taken.includes(current) ? TIME_SLOTS.find(t => !taken.includes(t)) || current : current));
+    });
+    return () => { cancelled = true; };
+  }, [isOpen, step, selectedDate]);
 
   if (!isOpen) return null;
 
@@ -309,7 +350,20 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
       designLink: design ? designShareUrl(design) : undefined,
     };
 
+    if (takenSlots.includes(selectedTime)) {
+      setFormError('That time is already booked. Please pick another time.');
+      return;
+    }
+
     setIsSending(true);
+    const slot = await reserveSlot(newBooking);
+    if (slot === 'taken') {
+      setIsSending(false);
+      setTakenSlots(await fetchTakenSlots(selectedDate));
+      setFormError(`Sorry, someone just booked ${selectedTime} on that day. Please pick another time.`);
+      return;
+    }
+
     try {
       newBooking.deliveredToStudio = await sendBookingToStudio(newBooking);
     } catch (err) {
@@ -808,21 +862,31 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                     <span>Select Time Slot:</span>
                   </label>
                   <div className="grid grid-cols-2 gap-2">
-                    {TIME_SLOTS.map((slot) => (
-                      <button
-                        key={slot}
-                        type="button"
-                        onClick={() => setSelectedTime(slot)}
-                        className={`py-2 text-xs font-bold rounded-sm border transition-all ${
-                          selectedTime === slot
-                            ? 'bg-[#D4D4D8] text-black border-[#D4D4D8]'
-                            : 'bg-zinc-900 text-zinc-300 border-white/10 hover:border-zinc-600'
-                        }`}
-                      >
-                        {slot}
-                      </button>
-                    ))}
+                    {TIME_SLOTS.map((slot) => {
+                      const isTaken = takenSlots.includes(slot);
+                      return (
+                        <button
+                          key={slot}
+                          type="button"
+                          disabled={isTaken}
+                          onClick={() => setSelectedTime(slot)}
+                          aria-label={isTaken ? `${slot} (booked)` : slot}
+                          className={`py-2 text-xs font-bold rounded-sm border transition-all ${
+                            isTaken
+                              ? 'bg-black text-zinc-600 border-white/5 line-through cursor-not-allowed'
+                              : selectedTime === slot
+                                ? 'bg-[#D4D4D8] text-black border-[#D4D4D8]'
+                                : 'bg-zinc-900 text-zinc-300 border-white/10 hover:border-zinc-600'
+                          }`}
+                        >
+                          {slot}
+                        </button>
+                      );
+                    })}
                   </div>
+                  {takenSlots.length === TIME_SLOTS.length && (
+                    <p className="text-[11px] text-amber-300 mt-2">This day is fully booked. Please choose another date.</p>
+                  )}
                 </div>
               </div>
 

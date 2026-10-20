@@ -12,31 +12,12 @@ interface GoogleReviewsProps {
 }
 
 export default function GoogleReviews({ onOpenBooking, onBackToHome }: GoogleReviewsProps) {
-  const [reviews, setReviews] = useState<GoogleReview[]>(() => {
-    try {
-      const saved = localStorage.getItem('jawz_customer_reviews');
-      if (saved) {
-        return [...JSON.parse(saved), ...GOOGLE_REVIEWS_DATA];
-      }
-    } catch (e) {
-      console.error(e);
-    }
-    return GOOGLE_REVIEWS_DATA;
-  });
+  const reviews: GoogleReview[] = GOOGLE_REVIEWS_DATA;
 
   const [activeTag, setActiveTag] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'relevant' | 'newest' | 'highest' | 'lowest'>('relevant');
-  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [helpfulLikes, setHelpfulLikes] = useState<Record<string, number>>({});
   
-  // Submit new review form state
-  const [authorName, setAuthorName] = useState('');
-  const [location, setLocation] = useState('Arlington, TX');
-  const [service, setService] = useState('Custom Engagement Ring / Grillz');
-  const [rating, setRating] = useState(5);
-  const [reviewText, setReviewText] = useState('');
-  const [submittedSuccess, setSubmittedSuccess] = useState(false);
-
   // Official Google Business & Reviews URL provided by client
   const googleShareUrl = 'https://share.google/GXB7WauH8A7ATM5wM';
   const businessAddress = '1201 N Watson Rd, Arlington, TX 76006, United States';
@@ -47,43 +28,6 @@ export default function GoogleReviews({ onOpenBooking, onBackToHome }: GoogleRev
       ...prev,
       [id]: (prev[id] || 0) + 1
     }));
-  };
-
-  const handleSubmitReview = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!authorName.trim() || !reviewText.trim()) return;
-
-    const newRev: GoogleReview = {
-      id: `rev-${Date.now()}`,
-      author: authorName,
-      location,
-      reviewerMeta: '1 review',
-      date: 'Just now',
-      rating,
-      service,
-      verified: true,
-      tags: ['quality products'],
-      text: reviewText
-    };
-
-    const updated = [newRev, ...reviews];
-    setReviews(updated);
-
-    try {
-      const existing = JSON.parse(localStorage.getItem('jawz_customer_reviews') || '[]');
-      existing.unshift(newRev);
-      localStorage.setItem('jawz_customer_reviews', JSON.stringify(existing));
-    } catch (err) {
-      console.error(err);
-    }
-
-    setSubmittedSuccess(true);
-    setTimeout(() => {
-      setSubmittedSuccess(false);
-      setIsSubmitModalOpen(false);
-      setAuthorName('');
-      setReviewText('');
-    }, 2000);
   };
 
   // Filter chips defined directly from Google Business Profile
@@ -457,121 +401,6 @@ export default function GoogleReviews({ onOpenBooking, onBackToHome }: GoogleRev
 
         </div>
       </section>
-
-      {/* SUBMIT REVIEW MODAL */}
-      {isSubmitModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="relative w-full max-w-lg bg-[#111] border border-[#D4D4D8]/40 rounded-lg p-6 shadow-2xl">
-            <div className="flex justify-between items-center mb-4 border-b border-white/10 pb-3">
-              <h3 className="text-lg font-black uppercase tracking-wider text-white font-heading">
-                Leave A Client Review
-              </h3>
-              <button onClick={() => setIsSubmitModalOpen(false)} className="text-zinc-400 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {submittedSuccess ? (
-              <div className="py-8 text-center space-y-3">
-                <CheckCircle2 className="w-12 h-12 text-[#D4D4D8] mx-auto" />
-                <h4 className="text-lg font-bold text-white uppercase">Review Submitted!</h4>
-                <p className="text-xs text-zinc-400">Thank you for sharing your feedback with Jawz Jewelry.</p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmitReview} className="space-y-4">
-                <div>
-                  <label className="block text-xs uppercase tracking-wider font-semibold text-gray-300 mb-1">
-                    Your Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Baileigh I."
-                    value={authorName}
-                    onChange={(e) => setAuthorName(e.target.value)}
-                    className="w-full bg-black border border-white/20 p-2.5 rounded-sm text-sm text-white focus:outline-none focus:border-[#D4D4D8]"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider font-semibold text-gray-300 mb-1">
-                      City / Location
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Arlington, TX"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                      className="w-full bg-black border border-white/20 p-2.5 rounded-sm text-sm text-white focus:outline-none focus:border-[#D4D4D8]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider font-semibold text-gray-300 mb-1">
-                      Star Rating
-                    </label>
-                    <select
-                      value={rating}
-                      onChange={(e) => setRating(Number(e.target.value))}
-                      className="w-full bg-black border border-white/20 p-2.5 rounded-sm text-sm text-white focus:outline-none focus:border-[#D4D4D8]"
-                    >
-                      <option value={5}>5 Stars (Exceptional)</option>
-                      <option value={4}>4 Stars (Great)</option>
-                      <option value={3}>3 Stars (Average)</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs uppercase tracking-wider font-semibold text-gray-300 mb-1">
-                    Service / Piece Made
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Custom Wedding Ring / Gold Grillz"
-                    value={service}
-                    onChange={(e) => setService(e.target.value)}
-                    className="w-full bg-black border border-white/20 p-2.5 rounded-sm text-sm text-white focus:outline-none focus:border-[#D4D4D8]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs uppercase tracking-wider font-semibold text-gray-300 mb-1">
-                    Your Review *
-                  </label>
-                  <textarea
-                    required
-                    rows={4}
-                    placeholder="Tell us about the craftsmanship, turnaround time, diamond quality, or customer service..."
-                    value={reviewText}
-                    onChange={(e) => setReviewText(e.target.value)}
-                    className="w-full bg-black border border-white/20 p-2.5 rounded-sm text-sm text-white focus:outline-none focus:border-[#D4D4D8]"
-                  />
-                </div>
-
-                <div className="flex justify-between items-center pt-2">
-                  <a
-                    href={googleShareUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[11px] text-zinc-400 hover:text-[#D4D4D8] underline flex items-center gap-1"
-                  >
-                    <span>Post directly on Google Business Listing →</span>
-                  </a>
-
-                  <button
-                    type="submit"
-                    className="px-6 py-2.5 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-wider rounded-sm hover:bg-[#ffffff]"
-                  >
-                    Submit Review
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
 
     </div>
   );
