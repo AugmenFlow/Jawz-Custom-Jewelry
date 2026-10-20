@@ -5,16 +5,15 @@ import {
   Sparkles, MapPin, Phone, Award, ExternalLink, MessageSquare, 
   CheckCircle2, ShieldCheck, Heart 
 } from 'lucide-react';
-import tierMoissanite from './assets/images/instagram/DZdz5mZtB3c.jpg';
-import tierLabDiamond from './assets/images/instagram/DN_en5XEq8m.jpg';
-import tierSilverPlain from './assets/images/instagram/DCmk4CHvrHd.jpg';
-import tier10kGold from './assets/images/instagram/C_yYcLjvNOY.jpg';
-import tier14kGold from './assets/images/instagram/C8SptlIRW_I.jpg';
+import silverMoissanite from './assets/images/silver_moissanite_1779848576581.png';
+import goldPlain from './assets/images/gold_plain_1779848593610.png';
+import silverPlain from './assets/images/silver_plain_1779848608539.png';
 import jawzPendantHero from './assets/images/jawz_pendant_hero.jpg';
 import jawzLogo from './assets/images/jawz-custom-jewelry-logo.png';
 import ownerHelpingClient from './assets/images/owner-helping-client.jpg';
-import studioLogoWall from './assets/images/studio-logo-wall.jpg';
-import studioMarbleFloor from './assets/images/studio-marble-floor.jpg';
+import stripPendant from './assets/images/instagram/DZQBwGTOi3U.jpg';
+import stripRing from './assets/images/instagram/DPEoxVyDS0e.jpg';
+import stripCuban from './assets/images/instagram/C8Z6kHHPFTG.jpg';
 import { MouthPreview, JewelryPreview } from './design/DesignPreviews';
 
 import Configurator from './Configurator';
@@ -591,14 +590,20 @@ export default function App() {
           </div>
         </section>
 
-        {/* Studio photo strip */}
-        <section aria-label="Inside the Jawz studio in Arlington" className="bg-black border-b border-white/5 relative z-20">
-          <div className="grid grid-cols-3 h-40 sm:h-64">
-            <img src={studioLogoWall} alt="The Jawz diamond logo on the studio wall" loading="lazy" decoding="async" className="w-full h-full object-cover object-[center_40%] grayscale-[30%]" />
-            <img src={ownerHelpingClient} alt="Hexagon lights and display case inside the Jawz studio" loading="lazy" decoding="async" className="w-full h-full object-cover object-top" />
-            <img src={studioMarbleFloor} alt="Black marble floor and Jawz logo rug in the studio" loading="lazy" decoding="async" className="w-full h-full object-cover grayscale-[30%]" />
+        {/* Jewelry photo strip */}
+        <section aria-label="Custom jewelry made by Jawz" className="bg-black border-b border-white/5 relative z-20">
+          <div className="grid grid-cols-3 h-48 sm:h-72">
+            {[
+              { src: stripPendant, alt: 'Iced-out custom "JR" letter pendant', pos: 'object-[center_60%]', id: 'DZQBwGTOi3U', type: 'reel' },
+              { src: stripRing, alt: 'Custom diamond engagement ring on a client', pos: 'object-[center_70%]', id: 'DPEoxVyDS0e', type: 'p' },
+              { src: stripCuban, alt: 'Two-tone iced Cuban link chain in its box', pos: 'object-center', id: 'C8Z6kHHPFTG', type: 'reel' },
+            ].map(photo => (
+              <a key={photo.id} href={`https://www.instagram.com/${photo.type}/${photo.id}/`} target="_blank" rel="noopener noreferrer" aria-label={`${photo.alt} — view on Instagram (opens in a new tab)`} className="block overflow-hidden group">
+                <img src={photo.src} alt={photo.alt} loading="lazy" decoding="async" className={`w-full h-full object-cover ${photo.pos} motion-safe:group-hover:scale-105 motion-safe:transition-transform duration-500`} />
+              </a>
+            ))}
           </div>
-          <p className="text-center text-[10px] uppercase tracking-[0.3em] text-zinc-500 py-3">The Arlington Studio • 1201 N Watson Rd • By Appointment Only</p>
+          <p className="text-center text-[10px] uppercase tracking-[0.3em] text-zinc-500 py-3">Pendants • Rings • Chains — Made in Arlington, TX</p>
         </section>
 
         {/* Meet the Owner */}
@@ -753,8 +758,9 @@ export default function App() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div className="bg-[#111] border border-white/10 rounded-sm p-8 hover:border-[#D4D4D8]/50 transition-colors">
                 <h3 className="text-2xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Silver Moissanite Grillz</h3>
-                <div className="mb-6 h-40 overflow-hidden rounded-sm border border-white/10 bg-black">
-                  <img src={tierMoissanite} alt="Silver Moissanite grillz made by Jawz" loading="lazy" decoding="async" className="w-full h-full object-cover object-[center_45%]" />
+                <div className="relative mb-6 h-36 flex items-center justify-center rounded-sm bg-[radial-gradient(circle_at_center,_rgba(212,212,216,0.12)_0%,_transparent_70%)]">
+                  <img src={silverMoissanite} alt="Silver Moissanite grillz" loading="lazy" decoding="async" className="h-full object-contain mix-blend-screen" />
+                  <img src={jawzLogo} alt="" aria-hidden="true" className="absolute bottom-0 right-0 w-9 h-9 object-contain opacity-80" />
                 </div>
                 <div className="flex flex-col">
                    <PricingRow label="6 on 6" price="$1,175" />
@@ -765,8 +771,9 @@ export default function App() {
 
               <div className="bg-[#111] border border-white/10 rounded-sm p-8 hover:border-[#D4D4D8]/50 transition-colors">
                 <h3 className="text-2xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Silver Lab Diamond Grillz</h3>
-                <div className="mb-6 h-40 overflow-hidden rounded-sm border border-white/10 bg-black">
-                  <img src={tierLabDiamond} alt="Silver Lab Diamond grillz made by Jawz" loading="lazy" decoding="async" className="w-full h-full object-cover object-[center_48%]" />
+                <div className="relative mb-6 h-36 flex items-center justify-center rounded-sm bg-[radial-gradient(circle_at_center,_rgba(212,212,216,0.12)_0%,_transparent_70%)]">
+                  <img src={silverMoissanite} alt="Silver Lab Diamond grillz" loading="lazy" decoding="async" className="h-full object-contain mix-blend-screen contrast-125 brightness-110" />
+                  <img src={jawzLogo} alt="" aria-hidden="true" className="absolute bottom-0 right-0 w-9 h-9 object-contain opacity-80" />
                 </div>
                 <div className="flex flex-col">
                    <PricingRow label="6 on 6" price="$1,900" />
@@ -781,8 +788,9 @@ export default function App() {
               
               <div className="bg-[#111] border border-white/10 rounded-sm p-6 hover:border-[#D4D4D8]/50 transition-colors">
                 <h3 className="text-xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Silver Plain Grillz</h3>
-                <div className="mb-6 h-32 overflow-hidden rounded-sm border border-white/10 bg-black">
-                  <img src={tierSilverPlain} alt="Silver Plain grillz made by Jawz" loading="lazy" decoding="async" className="w-full h-full object-cover object-[center_55%]" />
+                <div className="relative mb-6 h-28 flex items-center justify-center rounded-sm bg-[radial-gradient(circle_at_center,_rgba(212,212,216,0.12)_0%,_transparent_70%)]">
+                  <img src={silverPlain} alt="Silver Plain grillz" loading="lazy" decoding="async" className="h-full object-contain mix-blend-screen" />
+                  <img src={jawzLogo} alt="" aria-hidden="true" className="absolute bottom-0 right-0 w-9 h-9 object-contain opacity-80" />
                 </div>
                 <div className="flex flex-col">
                    <PricingRow label="2 Teeth" price="$225" />
@@ -794,8 +802,9 @@ export default function App() {
               <div className="bg-[#111] border border-[#D4D4D8]/30 rounded-sm p-6 hover:border-[#D4D4D8] transition-colors relative">
                 <div className="absolute top-0 right-0 py-1 px-3 bg-[#D4D4D8] text-black text-[9px] font-bold uppercase tracking-widest">Popular</div>
                 <h3 className="text-xl font-bold text-[#D4D4D8] uppercase tracking-wider mb-6 text-center border-b border-[#D4D4D8]/10 pb-4">10K Gold Plain Grillz</h3>
-                <div className="mb-6 h-32 overflow-hidden rounded-sm border border-white/10 bg-black">
-                  <img src={tier10kGold} alt="10K Gold Plain grillz made by Jawz" loading="lazy" decoding="async" className="w-full h-full object-cover object-[center_24%]" />
+                <div className="relative mb-6 h-28 flex items-center justify-center rounded-sm bg-[radial-gradient(circle_at_center,_rgba(212,212,216,0.12)_0%,_transparent_70%)]">
+                  <img src={goldPlain} alt="10K Gold Plain grillz" loading="lazy" decoding="async" className="h-full object-contain mix-blend-screen" />
+                  <img src={jawzLogo} alt="" aria-hidden="true" className="absolute bottom-0 right-0 w-9 h-9 object-contain opacity-80" />
                 </div>
                 <div className="flex flex-col">
                    <PricingRow label="2 Teeth" price="$275" />
@@ -806,8 +815,9 @@ export default function App() {
 
               <div className="bg-[#111] border border-[#D4D4D8]/30 border-opacity-50 rounded-sm p-6 hover:border-[#D4D4D8] transition-colors">
                 <h3 className="text-xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">14K Gold Plain Grillz</h3>
-                <div className="mb-6 h-32 overflow-hidden rounded-sm border border-white/10 bg-black">
-                  <img src={tier14kGold} alt="14K Gold Plain grillz made by Jawz" loading="lazy" decoding="async" className="w-full h-full object-cover object-[center_30%]" />
+                <div className="relative mb-6 h-28 flex items-center justify-center rounded-sm bg-[radial-gradient(circle_at_center,_rgba(212,212,216,0.12)_0%,_transparent_70%)]">
+                  <img src={goldPlain} alt="14K Gold Plain grillz" loading="lazy" decoding="async" className="h-full object-contain mix-blend-screen brightness-110" />
+                  <img src={jawzLogo} alt="" aria-hidden="true" className="absolute bottom-0 right-0 w-9 h-9 object-contain opacity-80" />
                 </div>
                 <div className="flex flex-col">
                    <PricingRow label="2 Teeth" price="$350" />
