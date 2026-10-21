@@ -1,55 +1,67 @@
-// Shared design model for the Design Studio, AI Preview and booking form.
+// Shared design model for the Design Studio and booking form.
 //
 // Teeth are numbered 1-14 left to right on each arch (as you look at the customer):
 // 1-2 molars, 3-4 premolars, 5 canine, 6 lateral, 7-8 centrals, 9 lateral, 10 canine, 11-12 premolars, 13-14 molars.
 
+/** Price-list tiers. Every other combination is quoted by Jeremy. */
 export type Material = 'silver-moissanite' | 'silver-lab-diamond' | 'silver-plain' | '10k-gold' | '14k-gold' | '14k-white-gold';
+export type Metal = 'silver' | '10k' | '14k' | '18k';
+export type GoldColor = 'yellow' | 'white' | 'rose';
+export type Stone = 'moissanite' | 'lab-diamond' | 'natural-diamond';
+export type StoneStyle = 'honeycomb' | 'honeymoon' | 'jumbo' | 'galaxy' | 'emerald';
 export type AddOn = 'rose-cuts' | 'starburst-cuts' | 'speciality-cut' | 'laser-design' | 'diamond-dust' | '3d-design';
 export type FreeStyle = 'solid' | 'open-face' | 'perm-cut' | 'diamond-cuts' | 'nugget-cut';
-export type ToothDesign = 'none' | 'red-jewel' | 'blue-jewel' | 'green-jewel' | 'clear-jewel' | 'star-cutout' | 'heart-cutout' | 'cross-cutout' | 'number-cutout';
 export type ToothKind = 'molar' | 'premolar' | 'canine' | 'lateral' | 'central';
-export type JewelryType = 'pendant' | 'chain' | 'ring';
 export type MetalShades = [string, string, string];
 
 export interface GrillzDesign {
-  material: Material;
+  metal: Metal;
+  /** Only used for gold. */
+  color: GoldColor;
+  stones: boolean;
+  stone: Stone;
+  stoneStyle: StoneStyle;
   baseStyle: FreeStyle;
   addons: AddOn[];
   top: number[];
   bottom: number[];
-  topDesigns: Record<number, ToothDesign>;
-  bottomDesigns: Record<number, ToothDesign>;
-  notes: string;
-}
-
-export interface JewelryDesign {
-  type: JewelryType;
-  metal: string;
-  stones: string;
-  text: string;
-  pendantStyle: string;
-  pendantSize: string;
-  chainStyle: string;
-  chainWidth: string;
-  chainLength: string;
-  ringStyle: string;
-  ringSize: string;
+  /** What the customer wants on specific teeth, keyed by `toothKey` (e.g. "top-7"). */
+  toothNotes: Record<string, string>;
   notes: string;
 }
 
 export interface StudioDesign {
-  mode: 'grillz' | 'jewelry';
   grillz: GrillzDesign;
-  jewelry: JewelryDesign;
 }
 
-export const MATERIALS: { id: Material; name: string; prompt: string; metal: MetalShades; iced: boolean }[] = [
-  { id: '10k-gold', name: '10K Gold Plain', prompt: '10k solid yellow gold', metal: ['#f7df91', '#d6a634', '#93691a'], iced: false },
-  { id: '14k-gold', name: '14K Gold Plain', prompt: '14k solid yellow gold', metal: ['#fde7a3', '#e2b23f', '#a1761b'], iced: false },
-  { id: '14k-white-gold', name: '14K White Gold', prompt: '14k solid white gold', metal: ['#ffffff', '#dcdfe4', '#969ea9'], iced: false },
-  { id: 'silver-plain', name: 'Silver Plain', prompt: 'polished 925 dental silver', metal: ['#f5f6f8', '#c4c9d0', '#7b828c'], iced: false },
-  { id: 'silver-moissanite', name: 'Silver Moissanite (Iced)', prompt: '925 silver fully iced with VVS moissanite stones', metal: ['#ffffff', '#d7dbe1', '#8d949e'], iced: true },
-  { id: 'silver-lab-diamond', name: 'Silver Lab Diamond (Iced)', prompt: '925 silver fully iced with VVS lab diamonds', metal: ['#ffffff', '#e1e4e9', '#9aa1ab'], iced: true },
+export const METALS: { id: Metal; name: string }[] = [
+  { id: 'silver', name: '925 Silver' },
+  { id: '10k', name: '10K Gold' },
+  { id: '14k', name: '14K Gold' },
+  { id: '18k', name: '18K Gold' },
+];
+
+export const GOLD_COLORS: { id: GoldColor; name: string; metal: MetalShades }[] = [
+  { id: 'yellow', name: 'Yellow', metal: ['#fde7a3', '#e2b23f', '#a1761b'] },
+  { id: 'white', name: 'White', metal: ['#ffffff', '#dcdfe4', '#969ea9'] },
+  { id: 'rose', name: 'Rose', metal: ['#f9d4c4', '#d9947a', '#9a5a45'] },
+];
+
+const SILVER_SHADES: MetalShades = ['#f5f6f8', '#c4c9d0', '#7b828c'];
+
+export const STONES: { id: Stone; name: string }[] = [
+  { id: 'moissanite', name: 'Moissanite' },
+  { id: 'lab-diamond', name: 'Lab Diamond' },
+  { id: 'natural-diamond', name: 'Natural Diamond' },
+];
+
+/** Setting styles are all the same price; only the metal and stone change it. */
+export const STONE_STYLES: { id: StoneStyle; name: string }[] = [
+  { id: 'honeycomb', name: 'Honeycomb' },
+  { id: 'honeymoon', name: 'Honeymoon' },
+  { id: 'jumbo', name: 'Jumbo' },
+  { id: 'galaxy', name: 'Galaxy' },
+  { id: 'emerald', name: 'Emerald' },
 ];
 
 export const FREE_STYLES: { id: FreeStyle; name: string }[] = [
@@ -69,19 +81,18 @@ export const PREMIUM_ADDONS: { id: AddOn; name: string; price: number; suffix?: 
   { id: '3d-design', name: '3D Design', price: 85, suffix: 'and up' },
 ];
 
-export const TOOTH_DESIGN_INFO: { id: ToothDesign; name: string; price: number }[] = [
-  { id: 'none', name: 'Add / Remove Tooth', price: 0 },
-  { id: 'red-jewel', name: 'Red Jewel', price: 50 },
-  { id: 'blue-jewel', name: 'Blue Jewel', price: 50 },
-  { id: 'green-jewel', name: 'Green Jewel', price: 50 },
-  { id: 'clear-jewel', name: 'Clear Jewel', price: 50 },
-  { id: 'star-cutout', name: 'Star Cutout', price: 20 },
-  { id: 'heart-cutout', name: 'Heart Cutout', price: 20 },
-  { id: 'cross-cutout', name: 'Cross Cutout', price: 20 },
-  { id: 'number-cutout', name: 'Number Cutout', price: 20 },
-];
-
 export const TOOTH_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+
+export const toothKey = (isTop: boolean, n: number) => `${isTop ? 'top' : 'bottom'}-${n}`;
+export const toothLabel = (isTop: boolean, n: number) => `${isTop ? 'Top' : 'Bottom'} #${n}`;
+
+/** Tooth notes for covered teeth, top arch first, in tooth order. */
+export const toothNoteList = (g: GrillzDesign) =>
+  [true, false].flatMap(isTop =>
+    [...(isTop ? g.top : g.bottom)].sort((a, b) => a - b)
+      .map(n => ({ isTop, n, label: toothLabel(isTop, n), note: (g.toothNotes[toothKey(isTop, n)] || '').trim() }))
+      .filter(t => t.note),
+  );
 
 export const toothKind = (n: number): ToothKind => {
   const d = n <= 7 ? 7 - n : n - 8; // 0 = central
@@ -131,91 +142,75 @@ export function grillzBasePrice(material: string, count: number): number | null 
 export const addonsPrice = (addons: string[], count: number) =>
   addons.reduce((sum, id) => sum + (PREMIUM_ADDONS.find(a => a.id === id)?.price || 0) * count, 0);
 
-export const toothDesignList = (g: GrillzDesign) => [
-  ...Object.entries(g.topDesigns).map(([n, d]) => ({ arch: 'Top', n: Number(n), d })),
-  ...Object.entries(g.bottomDesigns).map(([n, d]) => ({ arch: 'Bottom', n: Number(n), d })),
-];
+/** Which price-list tier a design falls in, or null when it's quoted at consultation. */
+export function priceTier(g: GrillzDesign): Material | null {
+  if (g.metal === 'silver') {
+    if (!g.stones) return 'silver-plain';
+    if (g.stone === 'moissanite') return 'silver-moissanite';
+    if (g.stone === 'lab-diamond') return 'silver-lab-diamond';
+    return null;
+  }
+  if (g.stones) return null;
+  if (g.metal === '10k') return '10k-gold';
+  if (g.metal === '14k') return '14k-gold';
+  return null;
+}
+
+/** Metal, colour and stones matching one of the booking form's metal choices. */
+export function grillzFromMaterial(material: string): Pick<GrillzDesign, 'metal' | 'color' | 'stones' | 'stone'> {
+  const base = { color: 'yellow' as GoldColor, stones: false, stone: 'moissanite' as Stone };
+  if (material === 'silver-plain') return { ...base, metal: 'silver' };
+  if (material === 'silver-moissanite') return { ...base, metal: 'silver', stones: true };
+  if (material === 'silver-lab-diamond') return { ...base, metal: 'silver', stones: true, stone: 'lab-diamond' };
+  if (material === '10k-gold') return { ...base, metal: '10k' };
+  if (material === '14k-white-gold') return { ...base, metal: '14k', color: 'white' };
+  if (material === '18k-natural') return { ...base, metal: '18k', stones: true, stone: 'natural-diamond' };
+  return { ...base, metal: '14k' };
+}
 
 export function grillzEstimate(g: GrillzDesign) {
   const count = g.top.length + g.bottom.length;
-  const base = grillzBasePrice(g.material, count) || 0;
+  const tier = priceTier(g);
+  const base = tier ? grillzBasePrice(tier, count) : null;
   const addons = addonsPrice(g.addons, count);
-  const designs = toothDesignList(g).reduce((sum, { d }) => sum + (TOOTH_DESIGN_INFO.find(t => t.id === d)?.price || 0), 0);
-  return { count, base, addons, designs, total: base + addons + designs };
+  return { count, base, addons, total: base === null ? null : base + addons };
 }
 
-export const materialName = (id: string) => MATERIALS.find(m => m.id === id)?.name || id;
+export const metalShades = (g: GrillzDesign): MetalShades =>
+  g.metal === 'silver' ? SILVER_SHADES : (GOLD_COLORS.find(c => c.id === g.color) || GOLD_COLORS[0]).metal;
+
+/** E.g. "14K Rose Gold" or "925 Silver". */
+export function grillzMetalName(g: GrillzDesign) {
+  if (g.metal === 'silver') return '925 Silver';
+  const color = GOLD_COLORS.find(c => c.id === g.color)?.name || '';
+  return `${g.metal.toUpperCase()} ${color} Gold`;
+}
+
+/** E.g. "Moissanite, Honeycomb setting" or "No stones". */
+export function grillzStoneName(g: GrillzDesign) {
+  if (!g.stones) return 'No stones';
+  return `${stoneName(g.stone)}, ${stoneStyleName(g.stoneStyle)} setting`;
+}
+
+export const stoneName = (id: string) => STONES.find(s => s.id === id)?.name || id;
+export const stoneStyleName = (id: string) => STONE_STYLES.find(s => s.id === id)?.name || id;
 export const styleName = (id: string) => FREE_STYLES.find(s => s.id === id)?.name || id;
 export const addonName = (id: string) => PREMIUM_ADDONS.find(a => a.id === id)?.name || id;
-export const toothDesignName = (id: string) => TOOTH_DESIGN_INFO.find(t => t.id === id)?.name || id;
-
-// ---------------------------------------------------------------- Jewelry
-
-export const JEWELRY_TYPES: { id: JewelryType; name: string }[] = [
-  { id: 'pendant', name: 'Custom Pendant' },
-  { id: 'chain', name: 'Chain' },
-  { id: 'ring', name: 'Ring' },
-];
-
-export const JEWELRY_METALS: { id: string; name: string; metal: MetalShades }[] = [
-  { id: '925-silver', name: '925 Silver', metal: ['#f5f6f8', '#c4c9d0', '#7b828c'] },
-  { id: '10k-yellow', name: '10K Yellow Gold', metal: ['#f7df91', '#d6a634', '#93691a'] },
-  { id: '14k-yellow', name: '14K Yellow Gold', metal: ['#fde7a3', '#e2b23f', '#a1761b'] },
-  { id: '14k-white', name: '14K White Gold', metal: ['#ffffff', '#dcdfe4', '#969ea9'] },
-  { id: '14k-rose', name: '14K Rose Gold', metal: ['#f9d4c4', '#d9947a', '#9a5a45'] },
-];
-
-export const JEWELRY_STONES = [
-  { id: 'none', name: 'No Stones (Polished)' },
-  { id: 'moissanite', name: 'VVS Moissanite' },
-  { id: 'lab-diamond', name: 'Lab Diamonds' },
-  { id: 'natural-diamond', name: 'Natural Diamonds' },
-];
-
-export const PENDANT_STYLES = ['Script Name', 'Block Letters', 'Initial', 'Logo / Custom Shape', 'Photo Medallion'];
-export const PENDANT_SIZES = ['1 inch', '1.5 inches', '2 inches', '3 inches'];
-export const CHAIN_STYLES = ['Cuban Link', 'Rope', 'Tennis', 'Franco', 'Figaro'];
-export const CHAIN_WIDTHS = ['3mm', '5mm', '8mm', '12mm', '15mm'];
-export const CHAIN_LENGTHS = ['18"', '20"', '22"', '24"', '26"'];
-export const RING_STYLES = ['Solitaire Engagement', 'Wedding Band', 'Signet', 'Cluster / Pinky', 'Custom Name Ring'];
-export const RING_SIZES = ['5', '6', '7', '8', '9', '10', '11', '12', 'Not Sure'];
-
-export const jewelryMetalName = (j: JewelryDesign) => JEWELRY_METALS.find(m => m.id === j.metal)?.name || j.metal;
-export const jewelryStoneName = (j: JewelryDesign) => JEWELRY_STONES.find(s => s.id === j.stones)?.name || j.stones;
-
-export function jewelryDetails(j: JewelryDesign) {
-  if (j.type === 'pendant') return `${j.pendantStyle} pendant reading "${j.text || '—'}", ${j.pendantSize}`;
-  if (j.type === 'chain') return `${j.chainWidth} ${j.chainStyle} chain, ${j.chainLength} long`;
-  const lettering = (j.ringStyle === 'Signet' || j.ringStyle === 'Custom Name Ring') && j.text ? ` with "${j.text}"` : '';
-  return `${j.ringStyle} ring${lettering}, size ${j.ringSize}`;
-}
 
 // ---------------------------------------------------------------- Defaults
 
 export const DEFAULT_DESIGN: StudioDesign = {
-  mode: 'grillz',
   grillz: {
-    material: '14k-gold',
+    metal: '14k',
+    color: 'yellow',
+    stones: false,
+    stone: 'moissanite',
+    stoneStyle: 'honeycomb',
     baseStyle: 'perm-cut',
     addons: [],
     top: presetTeeth(6),
     bottom: [],
-    topDesigns: {},
-    bottomDesigns: {},
-    notes: '',
-  },
-  jewelry: {
-    type: 'pendant',
-    metal: '925-silver',
-    stones: 'moissanite',
-    text: 'JAWZ',
-    pendantStyle: PENDANT_STYLES[0],
-    pendantSize: PENDANT_SIZES[1],
-    chainStyle: CHAIN_STYLES[0],
-    chainWidth: CHAIN_WIDTHS[2],
-    chainLength: CHAIN_LENGTHS[1],
-    ringStyle: RING_STYLES[0],
-    ringSize: RING_SIZES[8],
+    toothNotes: {},
     notes: '',
   },
 };
@@ -227,42 +222,19 @@ const listTeeth = (teeth: number[], label: string) =>
 
 /** Plain-text summary of the design, sent to Jeremy with the booking. */
 export function designSummary(design: StudioDesign) {
-  if (design.mode === 'jewelry') {
-    const j = design.jewelry;
-    return [
-      `Jewelry: ${jewelryDetails(j)}.`,
-      `Metal: ${jewelryMetalName(j)}. Stones: ${jewelryStoneName(j)}.`,
-      j.notes && `Notes: ${j.notes}`,
-      'Price to be quoted at consultation.',
-    ].filter(Boolean).join('\n');
-  }
   const g = design.grillz;
   const est = grillzEstimate(g);
   const arches = [listTeeth(g.top, 'top'), listTeeth(g.bottom, 'bottom')].filter(Boolean).join(' + ');
   const addons = g.addons.map(addonName).join(', ');
-  const perTooth = toothDesignList(g).map(({ arch, n, d }) => `${arch} #${n}: ${toothDesignName(d)}`).join('; ');
   return [
     `Grillz: ${arches || 'no teeth selected'}.`,
-    `Metal: ${materialName(g.material)}. Style: ${styleName(g.baseStyle)}.`,
+    `Metal: ${grillzMetalName(g)}. Stones: ${grillzStoneName(g)}.`,
+    !g.stones && `Style: ${styleName(g.baseStyle)}.`,
     addons && `Add-ons: ${addons}.`,
-    perTooth && `Jewels & cutouts: ${perTooth}.`,
+    ...toothNoteList(g).map(t => `${t.label}: ${t.note}`),
     g.notes && `Notes: ${g.notes}`,
-    `Estimate: $${est.total.toLocaleString()}.`,
+    est.total === null ? 'Estimate: quoted at consultation.' : `Estimate: $${est.total.toLocaleString()}.`,
   ].filter(Boolean).join('\n');
-}
-
-/** Short description used to fill in the AI Preview prompts. */
-export function designPrompt(design: StudioDesign) {
-  if (design.mode === 'jewelry') {
-    const j = design.jewelry;
-    return `custom ${jewelryDetails(j)} in ${jewelryMetalName(j).toLowerCase()}${j.stones === 'none' ? ', high-polish finish' : `, iced out with ${jewelryStoneName(j).toLowerCase()}`}${j.notes ? `. ${j.notes}` : ''}`;
-  }
-  const g = design.grillz;
-  const mat = MATERIALS.find(m => m.id === g.material)!;
-  const arches = [g.top.length && `${g.top.length}-tooth top`, g.bottom.length && `${g.bottom.length}-tooth bottom`].filter(Boolean).join(' and ');
-  const addons = g.addons.map(id => addonName(id).toLowerCase()).join(', ');
-  const designs = [...new Set(toothDesignList(g).map(({ d }) => toothDesignName(d).toLowerCase()))].join(', ');
-  return `custom ${arches} grillz in ${mat.prompt}, ${styleName(g.baseStyle).toLowerCase()} style${addons ? `, with ${addons}` : ''}${designs ? `, accented with ${designs}` : ''}${g.notes ? `. ${g.notes}` : ''}`;
 }
 
 // ---------------------------------------------------------------- Saving & sharing
@@ -271,13 +243,20 @@ const STORAGE_KEY = 'jawz_studio_design';
 const SHARE_PARAM = 'design';
 
 const isDesign = (value: any): value is StudioDesign =>
-  value && (value.mode === 'grillz' || value.mode === 'jewelry') && value.grillz && value.jewelry && Array.isArray(value.grillz.top);
+  value && value.grillz && Array.isArray(value.grillz.top);
 
-const withDefaults = (d: StudioDesign): StudioDesign => ({
-  mode: d.mode,
-  grillz: { ...DEFAULT_DESIGN.grillz, ...d.grillz },
-  jewelry: { ...DEFAULT_DESIGN.jewelry, ...d.jewelry },
-});
+// Older saved designs may carry fields that no longer exist (jewelry, per-tooth jewels,
+// a single `material`); those are converted or dropped so the design still opens.
+const withDefaults = (d: StudioDesign): StudioDesign => {
+  const { material, topDesigns, bottomDesigns, ...grillz } = d.grillz as GrillzDesign & { material?: string; topDesigns?: unknown; bottomDesigns?: unknown };
+  return {
+    grillz: {
+      ...DEFAULT_DESIGN.grillz,
+      ...(material && !('metal' in grillz) ? grillzFromMaterial(material) : {}),
+      ...grillz,
+    },
+  };
+};
 
 export function loadSavedDesign(): StudioDesign {
   try {
@@ -307,7 +286,7 @@ const fromBase64Url = (code: string) => {
 
 /** Link that opens the Design Studio with this exact design. */
 export function designShareUrl(design: StudioDesign) {
-  const payload = design.mode === 'grillz' ? { mode: design.mode, grillz: design.grillz } : { mode: design.mode, jewelry: design.jewelry };
+  const payload = { grillz: design.grillz };
   return `${window.location.origin}/#${SHARE_PARAM}=${toBase64Url(JSON.stringify(payload))}`;
 }
 

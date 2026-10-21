@@ -2,7 +2,6 @@ import express from 'express';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import Stripe from 'stripe';
-import { GoogleGenAI } from '@google/genai';
 
 async function startServer() {
   const app = express();
@@ -21,72 +20,8 @@ async function startServer() {
     return stripeClient;
   }
 
-  const ai = new GoogleGenAI({
-    apiKey: process.env.GEMINI_API_KEY,
-    httpOptions: {
-      headers: {
-        'User-Agent': 'aistudio-build',
-      }
-    }
-  });
-
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
-  app.post('/api/generate-mockup', async (req, res) => {
-    try {
-      const { prompt, image } = req.body;
-      if (!prompt) {
-        return res.status(400).json({ error: 'Prompt is required' });
-      }
-
-      let contents: any = { parts: [{ text: prompt }] };
-      if (image) {
-        contents = {
-          parts: [
-            {
-              inlineData: {
-                data: image.data,
-                mimeType: image.mimeType,
-              },
-            },
-            {
-              text: prompt,
-            },
-          ],
-        };
-      }
-
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents,
-        config: {
-          imageConfig: {
-            aspectRatio: "1:1"
-          }
-        }
-      });
-      
-      let imageUrl = null;
-      for (const part of response.candidates?.[0]?.content?.parts || []) {
-        if (part.inlineData) {
-          const base64EncodeString = part.inlineData.data;
-          imageUrl = `data:${part.inlineData.mimeType || 'image/png'};base64,${base64EncodeString}`;
-          break;
-        }
-      }
-
-      if (imageUrl) {
-        res.json({ imageUrl });
-      } else {
-        res.status(500).json({ error: 'Failed to generate image. No image data returned.' });
-      }
-
-    } catch (error: any) {
-      console.error('Error generating mockup:', error);
-      res.status(500).json({ error: error.message });
-    }
-  });
 
   app.post('/api/create-payment-intent', async (req, res) => {
     try {

@@ -14,16 +14,15 @@ import ownerHelpingClient from './assets/images/owner-helping-client.jpg';
 import stripPendant from './assets/images/instagram/DZQBwGTOi3U.jpg';
 import stripRing from './assets/images/instagram/DPEoxVyDS0e.jpg';
 import stripCuban from './assets/images/instagram/C8Z6kHHPFTG.jpg';
-import { MouthPreview, JewelryPreview } from './design/DesignPreviews';
+import { MouthPreview } from './design/DesignPreviews';
 
 import Configurator from './Configurator';
-import AILab from './AILab';
 import PastWork from './PastWork';
 import GoogleReviews from './GoogleReviews';
 import { InstagramPostCard, instagramPostUrl } from './InstagramGallery';
 import { BEST_SELLER_POSTS, InstagramPost } from './data/instagramPosts';
 import BookingModal, { BookingData, BookingPreset } from './BookingModal';
-import { StudioDesign, loadSavedDesign, saveDesign, readSharedDesign, designPrompt } from './design/designModel';
+import { StudioDesign, loadSavedDesign, saveDesign, readSharedDesign } from './design/designModel';
 import { GOOGLE_REVIEWS_DATA } from './data/pastWorkData';
 
 const PricingRow = ({ label, price }: { label: string, price: string }) => (
@@ -33,7 +32,7 @@ const PricingRow = ({ label, price }: { label: string, price: string }) => (
   </div>
 );
 
-type Page = 'home' | 'pastwork' | 'reviews' | 'configurator' | 'ailab' | 'info';
+type Page = 'home' | 'pastwork' | 'reviews' | 'configurator' | 'info';
 
 // Every page has its own address so links, the back button and Google all work
 const PAGE_PATHS: Record<Page, string> = {
@@ -41,7 +40,6 @@ const PAGE_PATHS: Record<Page, string> = {
   pastwork: '/past-work',
   reviews: '/reviews',
   configurator: '/design-studio',
-  ailab: '/ai-preview',
   info: '/info',
 };
 
@@ -49,8 +47,7 @@ const PAGE_TITLES: Record<Page, string> = {
   home: 'Jawz Jewelry | Arlington, TX | Custom Grillz, Engagement Rings & Fine Jewelry',
   pastwork: 'Past Work | Jawz Custom Jewelry',
   reviews: 'Google Reviews | Jawz Custom Jewelry',
-  configurator: 'Design Studio | Design Your Grillz or Jewelry | Jawz',
-  ailab: 'AI Preview | See Your Design Realistic | Jawz',
+  configurator: 'Design Studio | Design Your Grillz | Jawz',
   info: 'Add-Ons, Policies & How It Works | Jawz Custom Jewelry',
 };
 
@@ -79,10 +76,9 @@ export default function App() {
   useEffect(() => {
     document.title = PAGE_TITLES[currentPage];
   }, [currentPage]);
-  // The customer's design follows them between the Design Studio, AI Preview and booking
+  // The customer's design follows them between the Design Studio and booking
   const [sharedDesign] = useState<StudioDesign | null>(() => readSharedDesign());
   const [studioDesign, setStudioDesign] = useState<StudioDesign>(() => sharedDesign || loadSavedDesign());
-  const [aiFromStudio, setAiFromStudio] = useState(false);
 
   useEffect(() => {
     saveDesign(studioDesign);
@@ -142,32 +138,6 @@ export default function App() {
           onChange={setStudioDesign}
           onBack={() => goTo('home')} 
           onBook={() => openBookingWithPreset({ design: studioDesign })}
-          onOpenAIPreview={() => {
-            setAiFromStudio(true);
-            goTo('ailab');
-          }}
-        />
-      );
-    }
-
-    if (currentPage === 'ailab') {
-      return (
-        <AILab 
-          onBack={() => goTo('home')} 
-          initialIdea={aiFromStudio ? designPrompt(studioDesign) : undefined}
-          onOpenToothLab={() => goTo('configurator')}
-          onBookConsultation={(data) => {
-            openBookingWithPreset({
-              notes: data.notes,
-              serviceType: data.serviceType,
-              material: data.material,
-              teeth: data.teeth,
-              cuts: data.cuts,
-              attachedMockupImage: data.attachedMockupImage,
-              geminiShareLink: data.geminiShareLink,
-              design: aiFromStudio ? studioDesign : undefined,
-            });
-          }}
         />
       );
     }
@@ -453,7 +423,7 @@ export default function App() {
               </button>
             </div>
 
-            {/* Direct Gemini AI Mockup Callout */}
+            {/* Design Studio shortcut */}
             <div className="mt-8">
               <button 
                 onClick={() => goTo('configurator')}
@@ -461,7 +431,7 @@ export default function App() {
               >
                 <span className="w-2 h-2 rounded-full bg-[#D4D4D8] animate-pulse"></span>
                 <span className="text-[#D4D4D8] font-bold">Have an idea?</span>
-                <span>Design it in the Design Studio, then see it realistic with AI Preview</span>
+                <span>Design your grillz in the Design Studio with a live price</span>
                 <ArrowRight className="w-3.5 h-3.5 text-[#D4D4D8] group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
@@ -552,12 +522,11 @@ export default function App() {
                 Design Yours in Minutes
               </h2>
               <p className="text-sm text-zinc-400 mt-4 max-w-lg font-light leading-relaxed">
-                Tap the teeth you want covered, pick your metal, cuts, jewels and cutouts, and watch your grill come to life with a live price. Building a pendant, chain or ring instead? That's in the Design Studio too.
+                Tap the teeth you want covered, pick your metal and gold color, choose your stones and setting style, and watch your grill come to life with a live price.
               </p>
               <ol className="mt-6 space-y-2 text-sm text-zinc-300">
                 <li><span className="text-[#D4D4D8] font-bold">1.</span> Design it in the Design Studio</li>
-                <li><span className="text-[#D4D4D8] font-bold">2.</span> See it realistic with AI Preview (optional)</li>
-                <li><span className="text-[#D4D4D8] font-bold">3.</span> Book. Your design is sent to Jeremy with your appointment</li>
+                <li><span className="text-[#D4D4D8] font-bold">2.</span> Book. Your design is sent to Jeremy with your appointment</li>
               </ol>
               <div className="flex flex-wrap gap-3 mt-8">
                 <button
@@ -582,9 +551,7 @@ export default function App() {
               aria-label="Open the Design Studio"
               className="block bg-gradient-to-b from-zinc-900 to-black border border-white/10 hover:border-[#D4D4D8]/60 transition-colors rounded-lg p-4 sm:p-6"
             >
-              {studioDesign.mode === 'grillz'
-                ? <MouthPreview design={studioDesign.grillz} />
-                : <div className="flex justify-center"><JewelryPreview design={studioDesign.jewelry} /></div>}
+              <MouthPreview design={studioDesign.grillz} />
               <span className="block mt-3 text-[10px] uppercase tracking-widest font-bold text-zinc-500">Your saved design • Tap to edit</span>
             </button>
           </div>
@@ -783,6 +750,10 @@ export default function App() {
               </div>
             </div>
 
+            <p className="text-center text-xs text-zinc-400 -mt-2 mb-10">
+              Honeycomb, Honeymoon, Jumbo, Galaxy and Emerald settings are all the same price. Only the metal and stones change it.
+            </p>
+
             {/* Plain Metal Tier */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               
@@ -837,6 +808,31 @@ export default function App() {
                 <Calendar className="w-4 h-4" />
                 <span>Book With Price Lock</span>
               </button>
+            </div>
+
+            {/* Not on the price list */}
+            <div className="mt-12 max-w-3xl mx-auto bg-[#111] border border-[#D4D4D8]/30 rounded-sm p-6 sm:p-8 text-center">
+              <h3 className="text-lg sm:text-xl font-bold text-white uppercase tracking-wider font-heading">Don't See Your Price?</h3>
+              <p className="text-sm text-zinc-400 mt-3 font-light leading-relaxed">
+                If what you're looking for isn't listed, like 18K gold, natural diamonds, gold with stones, custom jewelry or a one-of-a-kind design, reach out and ask. Or book a consultation and add notes about what you want. Your request and contact info go straight to Jeremy, who gets back to you with a quote.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
+                <button
+                  onClick={() => openBookingWithPreset({ notes: "Pricing inquiry (not on the price list): " })}
+                  className="px-6 py-3.5 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-white transition-all rounded-sm inline-flex items-center justify-center gap-2"
+                >
+                  <Calendar className="w-4 h-4" aria-hidden="true" />
+                  <span>Book a Consultation</span>
+                </button>
+                <a
+                  href={`sms:+14694875734?body=${encodeURIComponent("Hi Jeremy! I didn't see pricing on your site for something I'm looking for: ")}`}
+                  className="px-6 py-3.5 border border-white/20 text-white text-xs font-bold uppercase tracking-widest hover:border-[#D4D4D8] transition-colors rounded-sm inline-flex items-center justify-center gap-2"
+                >
+                  <MessageSquare className="w-4 h-4" aria-hidden="true" />
+                  <span>Text to Inquire</span>
+                </a>
+              </div>
+              <p className="text-[11px] text-zinc-500 mt-4">Or call <a href="tel:4694875734" className="text-[#D4D4D8] hover:text-white">(469) 487-5734</a></p>
             </div>
 
           </div>
@@ -977,16 +973,6 @@ export default function App() {
                 Design Studio
               </button>
 
-              <button 
-                onClick={() => setCurrentPage('ailab')} 
-                className={`uppercase text-[11px] tracking-[0.2em] font-semibold transition-colors flex items-center gap-1.5 ${
-                  currentPage === 'ailab' ? 'text-white border-b-2 border-[#D4D4D8] pb-1 font-bold' : 'text-zinc-300 hover:text-[#D4D4D8]'
-                }`}
-              >
-                <Sparkles className="w-3.5 h-3.5 text-[#D4D4D8]" />
-                <span>AI Preview</span>
-              </button>
-
               <a 
                 href="#pricing" 
                 onClick={() => {
@@ -1056,14 +1042,7 @@ export default function App() {
             onClick={() => { setIsMobileMenuOpen(false); setCurrentPage('configurator'); }} 
             className="p-4 border-b border-white/5 text-left font-bold text-white flex items-center gap-2"
           >
-            <span>Design Studio (Grillz & Jewelry)</span>
-          </button>
-          <button 
-            onClick={() => { setIsMobileMenuOpen(false); setCurrentPage('ailab'); }} 
-            className="p-4 border-b border-white/5 text-[#D4D4D8] text-left font-bold flex items-center gap-2"
-          >
-            <Sparkles className="w-4 h-4 text-[#D4D4D8]" />
-            <span>AI Preview (Realistic Pictures)</span>
+            <span>Design Studio (Grillz)</span>
           </button>
           <button 
             onClick={() => { setIsMobileMenuOpen(false); setCurrentPage('reviews'); }} 
@@ -1119,7 +1098,7 @@ export default function App() {
             </button>
           )}
           <button
-            onClick={() => openBookingWithPreset(currentPage === 'configurator' || (currentPage === 'ailab' && aiFromStudio) ? { design: studioDesign } : undefined)}
+            onClick={() => openBookingWithPreset(currentPage === 'configurator' ? { design: studioDesign } : undefined)}
             className="py-3 bg-[#D4D4D8] text-black text-[11px] font-black uppercase tracking-widest rounded-sm flex items-center justify-center gap-2"
           >
             <Calendar className="w-4 h-4" aria-hidden="true" /> {currentPage === 'configurator' ? 'Book This Design' : 'Book'}
