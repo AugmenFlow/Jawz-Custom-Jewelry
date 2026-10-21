@@ -35,6 +35,8 @@ export interface BookingData {
   designLink?: string;
   /** Custom jewelry & watch requests only */
   jewelry?: { metal: string; stone: string; size: string; budget: string };
+  /** Influencer promo / discount code the customer entered */
+  promoCode?: string;
   /** Whether the booking reached the studio's inbox */
   deliveredToStudio?: boolean;
 }
@@ -97,6 +99,7 @@ async function sendBookingToStudio(booking: BookingData) {
     stone: booking.jewelry?.stone || '',
     size: booking.jewelry?.size || '',
     budget: booking.jewelry?.budget || '',
+    'promo-code': booking.promoCode || '',
   };
   Object.entries(fields).forEach(([key, value]) => body.append(key, value));
 
@@ -198,6 +201,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
   const [email, setEmail] = useState<string>('');
   const [instagram, setInstagram] = useState<string>('');
   const [contactMethod, setContactMethod] = useState<'text' | 'call' | 'instagram' | 'email'>('text');
+  const [promoCode, setPromoCode] = useState('');
   
   // Confirmed booking ref
   const [confirmedBooking, setConfirmedBooking] = useState<BookingData | null>(null);
@@ -231,6 +235,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
     setJewelryStone(JEWELRY_STONES[0]);
     setJewelrySize('');
     setJewelryBudget('');
+    setPromoCode('');
   }, [initialPreset, isOpen]);
 
   // Hide times that are already booked for the chosen day
@@ -346,6 +351,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
       cuts: isJewelry ? [] : selectedCuts,
       jewelry: isJewelry ? { metal: jewelryMetal, stone: jewelryStone, size: jewelrySize.trim(), budget: formatBudget(jewelryBudget) } : undefined,
       customNotes,
+      promoCode: promoCode.trim() || undefined,
       estimatedPrice: calculateEstimate(),
       createdAt: new Date().toISOString(),
       status: 'confirmed',
@@ -402,7 +408,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
   // SMS draft for quick texting owner
   const getSmsDraft = (booking: BookingData) => {
     const text = encodeURIComponent(
-      `Hi Jeremy! I just booked an appointment on your site (Ref ${booking.id}). Name: ${booking.clientName}, Date: ${booking.appointmentDate} at ${booking.appointmentTime}. Looking for: ${lookingFor(booking, ', ')}. Notes: ${booking.customNotes || 'None'}.${booking.designLink ? ` My design: ${booking.designLink}` : ''}`
+      `Hi Jeremy! I just booked an appointment on your site (Ref ${booking.id}). Name: ${booking.clientName}, Date: ${booking.appointmentDate} at ${booking.appointmentTime}. Looking for: ${lookingFor(booking, ', ')}. Notes: ${booking.customNotes || 'None'}.${booking.promoCode ? ` Promo code: ${booking.promoCode}.` : ''}${booking.designLink ? ` My design: ${booking.designLink}` : ''}`
     );
     return `sms:+14697511734?body=${text}`;
   };
@@ -982,6 +988,24 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                 </div>
               </div>
 
+              {/* Influencer Promo Code */}
+              <div className="bg-[#111] border border-white/10 p-5 rounded-sm space-y-2">
+                <label htmlFor="promo-code" className="block text-xs font-bold uppercase tracking-widest text-[#D4D4D8]">
+                  Promo / Discount Code (Optional)
+                </label>
+                <p className="text-[11px] text-zinc-400">Heard about us from an influencer? Enter their code and Jeremy will apply the discount when he confirms your quote.</p>
+                <input
+                  id="promo-code"
+                  type="text"
+                  placeholder="e.g., MARCUS10"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value.toUpperCase().replace(/\s+/g, ''))}
+                  maxLength={30}
+                  autoCapitalize="characters"
+                  className="w-full sm:w-64 bg-black border border-white/20 rounded-sm p-2.5 text-sm text-white font-mono tracking-wider focus:outline-none focus:border-[#D4D4D8]"
+                />
+              </div>
+
               {/* Policy & Deposit Notice */}
               <div className="bg-black border border-[#D4D4D8]/30 p-4 rounded-sm flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-[#D4D4D8] shrink-0 mt-0.5" />
@@ -1093,6 +1117,12 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                   <span className="text-zinc-500 uppercase tracking-wider font-semibold">Estimated Total:</span>
                   <span className="text-[#D4D4D8] font-bold font-heading text-sm">{confirmedBooking.estimatedPrice}</span>
                 </div>
+                {confirmedBooking.promoCode && (
+                  <div className="flex justify-between items-center border-b border-white/5 pb-2 text-xs">
+                    <span className="text-zinc-500 uppercase tracking-wider font-semibold">Promo Code:</span>
+                    <span className="text-emerald-300 font-bold font-mono">{confirmedBooking.promoCode} (applied at confirmation)</span>
+                  </div>
+                )}
                 {confirmedBooking.designSummary && (
                   <div className="border-b border-white/5 pb-2 text-xs">
                     <span className="text-zinc-500 uppercase tracking-wider font-semibold block mb-1">Your Design:</span>
@@ -1139,6 +1169,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                   <span>Call Studio: (469) 751-1734</span>
                 </a>
               </div>
+              <p className="text-xs text-amber-300 font-semibold">Text before calling to avoid spam filter!</p>
 
               <div className="pt-4">
                 <button
