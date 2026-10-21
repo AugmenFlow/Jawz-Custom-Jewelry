@@ -442,10 +442,10 @@ export default function App() {
                 <Check className="w-3.5 h-3.5 text-[#D4D4D8]" /> Guaranteed Snug Fit
               </span>
               <span className="flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5 text-[#D4D4D8]" /> 10K, 14K, 18K Solid Gold
+                <Check className="w-3.5 h-3.5 text-[#D4D4D8]" /> 925 Silver, 10K, 14K, 18K Solid Gold
               </span>
               <span className="flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5 text-[#D4D4D8]" /> Moissanite Passes Diamond Tester
+                <Check className="w-3.5 h-3.5 text-[#D4D4D8]" /> Moissanite, Lab Diamond, Natural Diamond, and more
               </span>
             </div>
 
