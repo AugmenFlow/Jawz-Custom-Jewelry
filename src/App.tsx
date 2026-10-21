@@ -836,7 +836,7 @@ export default function App() {
                   <span>Text to Inquire</span>
                 </a>
               </div>
-              <p className="text-[11px] text-zinc-500 mt-4">Or call <a href="tel:4697511734" className="text-[#D4D4D8] hover:text-white">(469) 751-1734</a></p>
+              <p className="text-[11px] text-zinc-500 mt-4">Or call <a href="tel:4697511734" className="text-[#D4D4D8] hover:text-white">(469) 751-1734</a> <span className="text-amber-300 font-semibold">Text before calling to avoid spam filter!</span></p>
             </div>
 
           </div>
@@ -918,6 +918,7 @@ export default function App() {
           <div className="flex items-center gap-1.5 text-zinc-300">
             <Phone className="w-3 h-3 text-[#D4D4D8]" />
             <a href="tel:4697511734" className="hover:text-[#D4D4D8] transition-colors">(469) 751-1734</a>
+            <span className="text-amber-300 normal-case tracking-normal">(Text before calling to avoid spam filter!)</span>
           </div>
         </div>
       </div>
@@ -1011,6 +1012,7 @@ export default function App() {
               >
                 <Phone className="w-3 h-3 text-[#D4D4D8]" />
                 <span>(469) 751-1734</span>
+                <span className="text-amber-300 normal-case tracking-normal">· Text first!</span>
               </a>
 
               <button 
@@ -1081,6 +1083,7 @@ export default function App() {
             <Phone className="w-4 h-4 text-[#D4D4D8]" />
             <span>Call (469) 751-1734</span>
           </a>
+          <p className="px-4 pb-4 -mt-2 text-xs text-amber-300">Text before calling to avoid spam filter!</p>
         </div>
       )}
 
@@ -1133,7 +1136,7 @@ export default function App() {
             />
             <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-bold flex flex-col gap-0.5">
               <span className="text-zinc-300">&copy; {new Date().getFullYear()} JAWZ JEWELRY • EST. 2023</span>
-              <span>1201 N Watson Rd, Arlington, TX 76006, United States • (469) 751-1734</span>
+              <span>1201 N Watson Rd, Arlington, TX 76006, United States • (469) 751-1734 • Text before calling to avoid spam filter!</span>
               <span>Hours: 10:00 AM – 7:30 PM • By Appointment</span>
             </div>
           </div>
