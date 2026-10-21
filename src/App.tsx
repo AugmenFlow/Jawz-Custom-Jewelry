@@ -3,7 +3,7 @@ import {
   Menu, User, ChevronDown, Check, Star, ArrowRight, 
   Instagram, Facebook, X, Calendar, 
   Sparkles, MapPin, Phone, Award, ExternalLink, MessageSquare, 
-  CheckCircle2, ShieldCheck, Heart 
+  CheckCircle2, ShieldCheck, Heart, Clock
 } from 'lucide-react';
 import silverMoissanite from './assets/images/silver_moissanite_1779848576581.png';
 import goldPlain from './assets/images/gold_plain_1779848593610.png';
@@ -262,6 +262,10 @@ export default function App() {
                  </h3>
                  <p className="text-sm text-zinc-400 font-light leading-relaxed mb-6 max-w-sm">
                    1201 N Watson Rd, Arlington, TX 76006, United States. We do not operate an open retail storefront — the studio opens exclusively for scheduled client appointments.
+                 </p>
+                 <p className="text-xs uppercase tracking-widest font-bold text-white mb-4 flex items-center gap-2">
+                   <Clock className="w-3.5 h-3.5 text-[#D4D4D8]" />
+                   <span>Hours: 10:00 AM – 7:30 PM</span>
                  </p>
                  <div className="bg-black border border-red-900/50 text-red-400 px-4 py-2 uppercase text-[10px] tracking-widest font-bold mb-8">
                    Strictly By Appointment Only
@@ -1130,6 +1134,7 @@ export default function App() {
             <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-bold flex flex-col gap-0.5">
               <span className="text-zinc-300">&copy; {new Date().getFullYear()} JAWZ JEWELRY • EST. 2023</span>
               <span>1201 N Watson Rd, Arlington, TX 76006, United States • (469) 487-5734</span>
+              <span>Hours: 10:00 AM – 7:30 PM • By Appointment</span>
             </div>
           </div>
 

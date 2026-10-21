@@ -11,6 +11,7 @@ import {
 } from './design/designModel';
 import { MouthPreview } from './design/DesignPreviews';
 import FlowSteps from './design/FlowSteps';
+import DateCalendar, { toDateKey } from './design/DateCalendar';
 
 export interface BookingData {
   id: string;
@@ -160,8 +161,11 @@ const CUT_OPTIONS = [
   { id: '3d-design', name: '3D Sculpted Design (+$85/tooth)' },
 ];
 
+// Studio hours are 10:00 AM – 7:30 PM, so the last 30-minute slot starts at 7:00 PM
 const TIME_SLOTS = [
-  '10:30 AM', '11:45 AM', '1:00 PM', '2:15 PM', '3:30 PM', '4:45 PM', '6:00 PM', '7:15 PM'
+  '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM',
+  '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM', '3:00 PM', '3:30 PM',
+  '4:00 PM', '4:30 PM', '5:00 PM', '5:30 PM', '6:00 PM', '6:30 PM', '7:00 PM',
 ];
 
 export default function BookingModal({ isOpen, onClose, initialPreset, onEditDesign }: BookingModalProps) {
@@ -186,7 +190,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
   const [selectedDate, setSelectedDate] = useState<string>(() => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
-    return d.toISOString().split('T')[0];
+    return toDateKey(d);
   });
   const [selectedTime, setSelectedTime] = useState<string>('1:00 PM');
   const [clientName, setClientName] = useState<string>('');
@@ -813,6 +817,10 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                   <MapPin className="w-4 h-4 text-[#D4D4D8]" />
                   <span>Physical Studio: 1201 N Watson Rd, Arlington, TX 76006</span>
                 </div>
+                <div className="flex items-center gap-2 text-white font-bold text-xs uppercase tracking-wider">
+                  <Clock className="w-4 h-4 text-[#D4D4D8]" />
+                  <span>Hours: 10:00 AM – 7:30 PM</span>
+                </div>
                 <p className="text-xs text-zinc-400 font-light leading-relaxed">
                   Strictly by appointment only. We schedule private 1-on-1 slots so you get dedicated jeweler attention. For mail orders, kit is shipped following phone consultation.
                 </p>
@@ -825,14 +833,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                     <Calendar className="w-4 h-4 text-[#D4D4D8]" />
                     <span>Select Appointment Date:</span>
                   </label>
-                  <input
-                    type="date"
-                    required
-                    value={selectedDate}
-                    min={new Date().toISOString().split('T')[0]}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="w-full bg-black border border-white/20 rounded-sm p-3 text-sm text-white focus:outline-none focus:border-[#D4D4D8] transition-colors"
-                  />
+                  <DateCalendar value={selectedDate} onChange={setSelectedDate} />
                   <div className="flex gap-2 mt-2">
                     {[
                       { label: 'Tomorrow', offset: 1 },
@@ -841,7 +842,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                     ].map((item, i) => {
                       const d = new Date();
                       d.setDate(d.getDate() + item.offset);
-                      const str = d.toISOString().split('T')[0];
+                      const str = toDateKey(d);
                       return (
                         <button
                           key={i}
@@ -863,7 +864,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                     <Clock className="w-4 h-4 text-[#D4D4D8]" />
                     <span>Select Time Slot:</span>
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     {TIME_SLOTS.map((slot) => {
                       const isTaken = takenSlots.includes(slot);
                       return (
