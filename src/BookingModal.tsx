@@ -32,6 +32,8 @@ export interface BookingData {
   status: 'confirmed' | 'pending';
   designSummary?: string;
   designLink?: string;
+  /** Custom jewelry & watch requests only */
+  jewelry?: { metal: string; stone: string; size: string; budget: string };
   /** Whether the booking reached the studio's inbox */
   deliveredToStudio?: boolean;
 }
@@ -91,6 +93,9 @@ async function sendBookingToStudio(booking: BookingData) {
     'design-link': booking.designLink || '',
     notes: booking.customNotes,
     estimate: booking.estimatedPrice,
+    stone: booking.jewelry?.stone || '',
+    size: booking.jewelry?.size || '',
+    budget: booking.jewelry?.budget || '',
   };
   Object.entries(fields).forEach(([key, value]) => body.append(key, value));
 
@@ -98,6 +103,16 @@ async function sendBookingToStudio(booking: BookingData) {
   const response = await fetch(FORM_ENDPOINT, { method: 'POST', body });
   return response.ok;
 }
+
+const formatBudget = (raw: string) => {
+  const digits = raw.replace(/\D/g, '');
+  return digits ? `$${Number(digits).toLocaleString()}` : '';
+};
+
+/** What the customer wants made, for calendar and text-message drafts. */
+const lookingFor = (b: BookingData, sep = '\n') => b.jewelry
+  ? [`Custom piece in ${b.jewelry.metal}`, `Stone: ${b.jewelry.stone}`, b.jewelry.size && `Size: ${b.jewelry.size}`, b.jewelry.budget && `Budget: ${b.jewelry.budget}`].filter(Boolean).join(sep)
+  : `${b.selectedTopTeeth.length} top / ${b.selectedBottomTeeth.length} bottom teeth in ${b.material}`;
 
 export interface BookingPreset {
   teeth?: { top: number[]; bottom: number[] };
@@ -125,8 +140,11 @@ const MATERIAL_OPTIONS = [
   { id: 'silver-lab-diamond', name: 'Silver Lab Diamond (VVS)', priceInfo: 'Colorless D-F Certified', color: '#ffffff' },
   { id: 'silver-plain', name: '925 Dental Silver', priceInfo: '$40/tooth (Budget Classic)', color: '#cbd5e1' },
   { id: '18k-natural', name: '18K Gold / Natural Diamonds', priceInfo: 'Bespoke Private Consultation', color: '#f59e0b' },
-  { id: 'jewelry-only', name: 'Custom Jewelry / Chain / Watch', priceInfo: 'Price on Consultation', color: '#a855f7' }
 ];
+
+// Custom jewelry & watches are quoted per piece, so no per-tooth prices here
+const JEWELRY_METALS = ['10K Gold', '14K Gold', '18K Gold', '925 Sterling Silver', 'Not Sure Yet'];
+const JEWELRY_STONES = ['No Stones', 'Moissanite', 'Lab Diamond', 'Natural Diamond', 'Not Sure Yet'];
 
 const CUT_OPTIONS = [
   { id: 'solid', name: 'Solid Caps (Free)' },
@@ -159,6 +177,10 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
   const [material, setMaterial] = useState<string>('10k-gold');
   const [selectedCuts, setSelectedCuts] = useState<string[]>(['perm-cut']);
   const [customNotes, setCustomNotes] = useState<string>('');
+  const [jewelryMetal, setJewelryMetal] = useState(JEWELRY_METALS[0]);
+  const [jewelryStone, setJewelryStone] = useState(JEWELRY_STONES[0]);
+  const [jewelrySize, setJewelrySize] = useState('');
+  const [jewelryBudget, setJewelryBudget] = useState('');
   
   // Date & Contact State
   const [selectedDate, setSelectedDate] = useState<string>(() => {
@@ -201,6 +223,10 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
       setSelectedCuts(preset.cuts || ['perm-cut']);
     }
     setCustomNotes(preset.notes || '');
+    setJewelryMetal(JEWELRY_METALS[0]);
+    setJewelryStone(JEWELRY_STONES[0]);
+    setJewelrySize('');
+    setJewelryBudget('');
   }, [initialPreset, isOpen]);
 
   // Hide times that are already booked for the chosen day
@@ -271,7 +297,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
       const { total } = grillzEstimate(design.grillz);
       return total === null ? 'Custom Quoted on Confirmation' : `$${total.toLocaleString()}`;
     }
-    if (serviceType === 'jewelry') return 'Custom Jewelry Quote upon Consultation';
+    if (serviceType === 'jewelry') return jewelryBudget.trim() ? `Budget: ${formatBudget(jewelryBudget)}` : 'Custom Jewelry Quote upon Consultation';
     if (serviceType === 'adjustment') return '$50 - $120 (Fit depending)';
     if (totalTeethCount === 0) return 'Select teeth above';
     const base = grillzBasePrice(material, totalTeethCount);
@@ -298,6 +324,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
     }
     setFormError(null);
 
+    const isJewelry = serviceType === 'jewelry';
     const bookingId = `JAWZ-${Math.floor(1000 + Math.random() * 9000)}`;
     const newBooking: BookingData = {
       id: bookingId,
@@ -309,10 +336,11 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
       contactMethod,
       appointmentDate: selectedDate,
       appointmentTime: selectedTime,
-      selectedTopTeeth: Array.from<number>(selectedTopTeeth).sort((a, b) => a - b),
-      selectedBottomTeeth: Array.from<number>(selectedBottomTeeth).sort((a, b) => a - b),
-      material,
-      cuts: selectedCuts,
+      selectedTopTeeth: isJewelry ? [] : Array.from<number>(selectedTopTeeth).sort((a, b) => a - b),
+      selectedBottomTeeth: isJewelry ? [] : Array.from<number>(selectedBottomTeeth).sort((a, b) => a - b),
+      material: isJewelry ? jewelryMetal : material,
+      cuts: isJewelry ? [] : selectedCuts,
+      jewelry: isJewelry ? { metal: jewelryMetal, stone: jewelryStone, size: jewelrySize.trim(), budget: formatBudget(jewelryBudget) } : undefined,
       customNotes,
       estimatedPrice: calculateEstimate(),
       createdAt: new Date().toISOString(),
@@ -362,7 +390,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
     const title = encodeURIComponent(`Jawz Jewelry Appointment - ${booking.clientName}`);
     const location = encodeURIComponent('1201 N Watson Rd, Arlington, TX 76006, United States');
     const details = encodeURIComponent(
-      `Appointment with Jawz Jewelry\nRef: ${booking.id}\nService: ${booking.serviceType}\nTeeth: ${booking.selectedTopTeeth.length} Top, ${booking.selectedBottomTeeth.length} Bottom\nMaterial: ${booking.material}\nNotes: ${booking.customNotes || 'None'}\nStudio Phone: (469) 487-5734\nStrictly by appointment only.`
+      `Appointment with Jawz Jewelry\nRef: ${booking.id}\nService: ${booking.serviceType}\n${lookingFor(booking)}\nNotes: ${booking.customNotes || 'None'}\nStudio Phone: (469) 487-5734\nStrictly by appointment only.`
     );
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&location=${location}&details=${details}`;
   };
@@ -370,7 +398,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
   // SMS draft for quick texting owner
   const getSmsDraft = (booking: BookingData) => {
     const text = encodeURIComponent(
-      `Hi Jeremy! I just booked an appointment on your site (Ref ${booking.id}). Name: ${booking.clientName}, Date: ${booking.appointmentDate} at ${booking.appointmentTime}. Looking for: ${booking.selectedTopTeeth.length} top / ${booking.selectedBottomTeeth.length} bottom teeth in ${booking.material}. Notes: ${booking.customNotes || 'None'}.${booking.designLink ? ` My design: ${booking.designLink}` : ''}`
+      `Hi Jeremy! I just booked an appointment on your site (Ref ${booking.id}). Name: ${booking.clientName}, Date: ${booking.appointmentDate} at ${booking.appointmentTime}. Looking for: ${lookingFor(booking, ', ')}. Notes: ${booking.customNotes || 'None'}.${booking.designLink ? ` My design: ${booking.designLink}` : ''}`
     );
     return `sms:+14694875734?body=${text}`;
   };
@@ -619,7 +647,68 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                 </div>
               )}
 
+              {/* Custom jewelry & watches: metal, stone, size and budget */}
+              {serviceType === 'jewelry' && (
+                <div className="bg-[#111] border border-white/10 rounded-sm p-4 sm:p-6 space-y-5">
+                  <div>
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-white">Your Piece</h3>
+                    <p className="text-xs text-zinc-400 mt-0.5">Chains, rings, pendants and watches are quoted per piece at your consultation.</p>
+                  </div>
+                  {([['Metal', JEWELRY_METALS, jewelryMetal, setJewelryMetal], ['Stone', JEWELRY_STONES, jewelryStone, setJewelryStone]] as const).map(([label, options, value, set]) => (
+                    <div key={label}>
+                      <span className="block text-xs uppercase tracking-widest font-bold text-gray-300 mb-2">{label}:</span>
+                      <div className="flex flex-wrap gap-2" role="group" aria-label={label}>
+                        {options.map(opt => (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => set(opt)}
+                            aria-pressed={value === opt}
+                            className={`px-3 py-1.5 text-xs font-semibold rounded-sm border transition-all ${
+                              value === opt
+                                ? 'bg-[#D4D4D8] text-black border-[#D4D4D8] font-bold'
+                                : 'bg-zinc-900 text-zinc-300 border-white/10 hover:border-zinc-500'
+                            }`}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="jewelry-size" className="block text-xs uppercase tracking-widest font-bold text-gray-300 mb-2">Size:</label>
+                      <input
+                        id="jewelry-size"
+                        value={jewelrySize}
+                        onChange={e => setJewelrySize(e.target.value)}
+                        maxLength={80}
+                        placeholder='e.g. ring size 9, 22" chain, 2" pendant'
+                        className="w-full bg-black border border-white/20 rounded-sm p-2.5 text-sm text-white focus:outline-none focus:border-[#D4D4D8] placeholder:text-zinc-600"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="jewelry-budget" className="block text-xs uppercase tracking-widest font-bold text-gray-300 mb-2">Budget:</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-500">$</span>
+                        <input
+                          id="jewelry-budget"
+                          inputMode="numeric"
+                          value={jewelryBudget}
+                          onChange={e => setJewelryBudget(e.target.value.replace(/[^\d,]/g, ''))}
+                          maxLength={12}
+                          placeholder="e.g. 1,500"
+                          className="w-full bg-black border border-white/20 rounded-sm p-2.5 pl-7 text-sm text-white focus:outline-none focus:border-[#D4D4D8] placeholder:text-zinc-600"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Material & Metal Selection */}
+              {serviceType !== 'jewelry' && (
               <div>
                 <label className="block text-xs uppercase tracking-widest font-bold text-gray-300 mb-2">
                   Select Preferred Metal / Purity:
@@ -647,6 +736,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                   ))}
                 </div>
               </div>
+              )}
 
               {/* Cuts & Design Add-ons */}
               {serviceType !== 'jewelry' && (
@@ -686,7 +776,9 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                 <textarea
                   value={customNotes}
                   onChange={(e) => setCustomNotes(e.target.value)}
-                  placeholder="e.g., I want an open face on tooth 7 & 8, perm cuts throughout, starburst cut on left canine. Also please let me know diamond tester results. Budget around $1,200..."
+                  placeholder={serviceType === 'jewelry'
+                    ? 'e.g., Cuban link chain with a custom name pendant, iced-out bezel on my watch. Reference photos on Instagram...'
+                    : "e.g., I want an open face on tooth 7 & 8, perm cuts throughout, starburst cut on left canine. Also please let me know diamond tester results. Budget around $1,200..."}
                   rows={4}
                   className="w-full bg-black border border-white/20 rounded-sm p-3 text-sm text-white focus:outline-none focus:border-[#D4D4D8] transition-colors placeholder:text-zinc-600 font-sans"
                 />
@@ -977,6 +1069,14 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                   <span className="text-zinc-500 uppercase tracking-wider font-semibold">Service:</span>
                   <span className="text-white font-bold uppercase">{confirmedBooking.serviceType}</span>
                 </div>
+                {confirmedBooking.jewelry ? (
+                  ([['Metal', confirmedBooking.jewelry.metal], ['Stone', confirmedBooking.jewelry.stone], ['Size', confirmedBooking.jewelry.size || 'Not given'], ['Budget', confirmedBooking.jewelry.budget || 'Not given']] as const).map(([label, value]) => (
+                    <div key={label} className="flex justify-between items-center border-b border-white/5 pb-2 text-xs">
+                      <span className="text-zinc-500 uppercase tracking-wider font-semibold">{label}:</span>
+                      <span className="text-white font-bold">{value}</span>
+                    </div>
+                  ))
+                ) : (<>
                 <div className="flex justify-between items-center border-b border-white/5 pb-2 text-xs">
                   <span className="text-zinc-500 uppercase tracking-wider font-semibold">Teeth Configured:</span>
                   <span className="text-[#D4D4D8] font-bold">
@@ -987,6 +1087,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                   <span className="text-zinc-500 uppercase tracking-wider font-semibold">Metal / Material:</span>
                   <span className="text-white font-bold capitalize">{confirmedBooking.material.replace('-', ' ')}</span>
                 </div>
+                </>)}
                 <div className="flex justify-between items-center border-b border-white/5 pb-2 text-xs">
                   <span className="text-zinc-500 uppercase tracking-wider font-semibold">Estimated Total:</span>
                   <span className="text-[#D4D4D8] font-bold font-heading text-sm">{confirmedBooking.estimatedPrice}</span>
