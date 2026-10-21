@@ -1,7 +1,7 @@
 import React from 'react';
 import { ChevronRight } from 'lucide-react';
 
-/** Step chips shared by the Design Studio, AI Preview and booking form so the journey looks the same everywhere. */
+/** Step chips shared by the Design Studio and booking form so the journey looks the same everywhere. */
 export default function FlowSteps({
   steps,
   active,

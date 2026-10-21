@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  X, Calendar, Clock, MapPin, Check, Sparkles, AlertCircle, Phone, 
+  X, Calendar, Clock, MapPin, Check, AlertCircle, Phone, 
   Mail, MessageSquare, ChevronRight, User, ShieldCheck, ArrowRight,
   Printer, Share2, Gem, Layers, HelpCircle
 } from 'lucide-react';
 import {
   StudioDesign, GrillzDesign, FreeStyle, AddOn, FREE_STYLES,
   presetTeeth, grillzBasePrice, addonsPrice, grillzEstimate, designSummary, designShareUrl,
-  materialName, styleName, addonName, toothDesignList, toothDesignName,
-  jewelryDetails, jewelryMetalName, jewelryStoneName,
+  styleName, addonName, grillzMetalName, grillzStoneName, grillzFromMaterial, toothNoteList, DEFAULT_DESIGN,
 } from './design/designModel';
-import { MouthPreview, JewelryPreview } from './design/DesignPreviews';
+import { MouthPreview } from './design/DesignPreviews';
 import FlowSteps from './design/FlowSteps';
 
 export interface BookingData {
@@ -31,8 +30,6 @@ export interface BookingData {
   estimatedPrice: string;
   createdAt: string;
   status: 'confirmed' | 'pending';
-  attachedMockupImage?: string;
-  geminiShareLink?: string;
   designSummary?: string;
   designLink?: string;
   /** Whether the booking reached the studio's inbox */
@@ -70,7 +67,6 @@ async function reserveSlot(booking: BookingData): Promise<'ok' | 'taken' | 'unav
     return 'unavailable';
   }
 }
-const MAX_ATTACHMENT_BYTES = 6 * 1024 * 1024;
 
 /** Sends the booking to the studio through Netlify Forms (dashboard + email notifications). */
 async function sendBookingToStudio(booking: BookingData) {
@@ -95,16 +91,9 @@ async function sendBookingToStudio(booking: BookingData) {
     'design-link': booking.designLink || '',
     notes: booking.customNotes,
     estimate: booking.estimatedPrice,
-    'gemini-link': booking.geminiShareLink || '',
   };
   Object.entries(fields).forEach(([key, value]) => body.append(key, value));
 
-  if (booking.attachedMockupImage?.startsWith('data:')) {
-    const blob = await (await fetch(booking.attachedMockupImage)).blob();
-    if (blob.size <= MAX_ATTACHMENT_BYTES) {
-      body.append('design-image', blob, `${booking.id}-design.${blob.type.split('/')[1] || 'png'}`);
-    }
-  }
 
   const response = await fetch(FORM_ENDPOINT, { method: 'POST', body });
   return response.ok;
@@ -116,8 +105,6 @@ export interface BookingPreset {
   cuts?: string[];
   notes?: string;
   serviceType?: 'in-person' | 'mail-order' | 'jewelry' | 'adjustment';
-  attachedMockupImage?: string;
-  geminiShareLink?: string;
   /** A design made in the Design Studio. The form opens on a review of it instead of asking again. */
   design?: StudioDesign;
 }
@@ -172,8 +159,6 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
   const [material, setMaterial] = useState<string>('10k-gold');
   const [selectedCuts, setSelectedCuts] = useState<string[]>(['perm-cut']);
   const [customNotes, setCustomNotes] = useState<string>('');
-  const [attachedMockupImage, setAttachedMockupImage] = useState<string | null>(null);
-  const [geminiShareLink, setGeminiShareLink] = useState<string>('');
   
   // Date & Contact State
   const [selectedDate, setSelectedDate] = useState<string>(() => {
@@ -201,19 +186,13 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
     setFormError(null);
     setDesign(fromStudio);
 
-    if (fromStudio?.mode === 'grillz') {
+    if (fromStudio) {
       const g = fromStudio.grillz;
       setServiceType(preset.serviceType === 'mail-order' ? 'mail-order' : 'in-person');
       setSelectedTopTeeth(new Set(g.top));
       setSelectedBottomTeeth(new Set(g.bottom));
-      setMaterial(g.material);
+      setMaterial(`${grillzMetalName(g)}${g.stones ? ` with ${grillzStoneName(g)}` : ''}`);
       setSelectedCuts([g.baseStyle, ...g.addons]);
-    } else if (fromStudio?.mode === 'jewelry') {
-      setServiceType('jewelry');
-      setSelectedTopTeeth(new Set());
-      setSelectedBottomTeeth(new Set());
-      setMaterial('jewelry-only');
-      setSelectedCuts([]);
     } else {
       setServiceType(preset.serviceType || 'in-person');
       setSelectedTopTeeth(new Set(preset.teeth ? preset.teeth.top : presetTeeth(6)));
@@ -222,8 +201,6 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
       setSelectedCuts(preset.cuts || ['perm-cut']);
     }
     setCustomNotes(preset.notes || '');
-    setAttachedMockupImage(preset.attachedMockupImage || null);
-    setGeminiShareLink(preset.geminiShareLink || '');
   }, [initialPreset, isOpen]);
 
   // Hide times that are already booked for the chosen day
@@ -269,13 +246,12 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
 
   // The booking form's own choices, drawn with the same mouth as the Design Studio
   const formGrillz: GrillzDesign = {
-    material: material as GrillzDesign['material'],
+    ...DEFAULT_DESIGN.grillz,
+    ...grillzFromMaterial(material),
     baseStyle: (selectedCuts.find(c => FREE_STYLES.some(f => f.id === c)) || 'solid') as FreeStyle,
     addons: selectedCuts.filter(c => !FREE_STYLES.some(f => f.id === c)) as AddOn[],
     top: Array.from(selectedTopTeeth),
     bottom: Array.from(selectedBottomTeeth),
-    topDesigns: {},
-    bottomDesigns: {},
     notes: '',
   };
 
@@ -291,7 +267,10 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
 
   // Estimate calculation (same prices as the Design Studio)
   const calculateEstimate = () => {
-    if (design?.mode === 'grillz') return `$${grillzEstimate(design.grillz).total.toLocaleString()}`;
+    if (design) {
+      const { total } = grillzEstimate(design.grillz);
+      return total === null ? 'Custom Quoted on Confirmation' : `$${total.toLocaleString()}`;
+    }
     if (serviceType === 'jewelry') return 'Custom Jewelry Quote upon Consultation';
     if (serviceType === 'adjustment') return '$50 - $120 (Fit depending)';
     if (totalTeethCount === 0) return 'Select teeth above';
@@ -300,21 +279,15 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
     return `$${(base + addonsPrice(selectedCuts, totalTeethCount)).toLocaleString()}`;
   };
 
-  const designRows: [string, string][] = !design ? [] : design.mode === 'grillz'
-    ? [
-        ['Teeth', [design.grillz.top.length && `${design.grillz.top.length} top`, design.grillz.bottom.length && `${design.grillz.bottom.length} bottom`].filter(Boolean).join(' + ') || 'None'],
-        ['Metal', materialName(design.grillz.material)],
-        ['Style', styleName(design.grillz.baseStyle)],
-        ['Add-ons', design.grillz.addons.map(addonName).join(', ') || 'None'],
-        ['Jewels & cutouts', toothDesignList(design.grillz).map(({ arch, n, d }) => `${toothDesignName(d)} (${arch.toLowerCase()} #${n})`).join(', ') || 'None'],
-        ...(design.grillz.notes ? [['Notes', design.grillz.notes] as [string, string]] : []),
-      ]
-    : [
-        ['Piece', jewelryDetails(design.jewelry)],
-        ['Metal', jewelryMetalName(design.jewelry)],
-        ['Stones', jewelryStoneName(design.jewelry)],
-        ...(design.jewelry.notes ? [['Notes', design.jewelry.notes] as [string, string]] : []),
-      ];
+  const designRows: [string, string][] = !design ? [] : [
+    ['Teeth', [design.grillz.top.length && `${design.grillz.top.length} top`, design.grillz.bottom.length && `${design.grillz.bottom.length} bottom`].filter(Boolean).join(' + ') || 'None'],
+    ['Metal', grillzMetalName(design.grillz)],
+    ['Stones', grillzStoneName(design.grillz)],
+    ...(!design.grillz.stones ? [['Style', styleName(design.grillz.baseStyle)] as [string, string]] : []),
+    ['Add-ons', design.grillz.addons.map(addonName).join(', ') || 'None'],
+    ...toothNoteList(design.grillz).map(t => [t.label, t.note] as [string, string]),
+    ...(design.grillz.notes ? [['Notes', design.grillz.notes] as [string, string]] : []),
+  ];
 
   const handleConfirmBooking = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -344,8 +317,6 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
       estimatedPrice: calculateEstimate(),
       createdAt: new Date().toISOString(),
       status: 'confirmed',
-      attachedMockupImage: attachedMockupImage || undefined,
-      geminiShareLink: geminiShareLink || undefined,
       designSummary: design ? designSummary(design) : undefined,
       designLink: design ? designShareUrl(design) : undefined,
     };
@@ -459,19 +430,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
               <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                 <div className="md:col-span-3 bg-gradient-to-b from-zinc-900 to-black border border-white/10 rounded-lg p-4">
                   <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-400 block mb-3">Your Design</span>
-                  {design.mode === 'grillz'
-                    ? <MouthPreview design={design.grillz} />
-                    : <div className="flex justify-center"><JewelryPreview design={design.jewelry} /></div>}
-                  {attachedMockupImage && (
-                    <div className="mt-4 flex items-center gap-3 bg-black/60 border border-[#D4D4D8]/30 rounded-sm p-2.5">
-                      <img src={attachedMockupImage} alt="AI Preview picture of your design" className="w-16 h-16 object-cover rounded border border-[#D4D4D8]/50 shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-[#D4D4D8] flex items-center gap-1"><Sparkles className="w-3 h-3" /> AI Preview picture attached</span>
-                        <p className="text-[11px] text-zinc-400">Jeremy gets this picture with your booking.</p>
-                      </div>
-                      <button type="button" onClick={() => setAttachedMockupImage(null)} className="text-[11px] text-zinc-500 hover:text-red-400 shrink-0">Remove</button>
-                    </div>
-                  )}
+                  <MouthPreview design={design.grillz} />
                 </div>
 
                 <div className="md:col-span-2 flex flex-col gap-4">
@@ -489,28 +448,26 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                     <span className="text-2xl font-black text-[#D4D4D8] font-heading">{calculateEstimate()}</span>
                   </div>
 
-                  {design.mode === 'grillz' && (
-                    <div>
-                      <span className="block text-[10px] uppercase tracking-widest font-bold text-gray-300 mb-2">How should we take your mold?</span>
-                      <div className="grid grid-cols-2 gap-2">
-                        {[
-                          { id: 'in-person' as const, title: 'At the Studio', desc: 'Arlington, TX' },
-                          { id: 'mail-order' as const, title: 'Mail Me a Kit', desc: 'Free shipping' },
-                        ].map(opt => (
-                          <button
-                            key={opt.id}
-                            type="button"
-                            onClick={() => setServiceType(opt.id)}
-                            aria-pressed={serviceType === opt.id}
-                            className={`p-2.5 text-left rounded-sm border transition-all ${serviceType === opt.id ? 'border-[#D4D4D8] bg-[#D4D4D8]/10' : 'border-white/10 bg-[#121212] hover:border-zinc-700'}`}
-                          >
-                            <span className="block text-xs font-bold text-white uppercase">{opt.title}</span>
-                            <span className="text-[10px] text-zinc-400">{opt.desc}</span>
-                          </button>
-                        ))}
-                      </div>
+                  <div>
+                    <span className="block text-[10px] uppercase tracking-widest font-bold text-gray-300 mb-2">How should we take your mold?</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { id: 'in-person' as const, title: 'At the Studio', desc: 'Arlington, TX' },
+                        { id: 'mail-order' as const, title: 'Mail Me a Kit', desc: 'Free shipping' },
+                      ].map(opt => (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => setServiceType(opt.id)}
+                          aria-pressed={serviceType === opt.id}
+                          className={`p-2.5 text-left rounded-sm border transition-all ${serviceType === opt.id ? 'border-[#D4D4D8] bg-[#D4D4D8]/10' : 'border-white/10 bg-[#121212] hover:border-zinc-700'}`}
+                        >
+                          <span className="block text-xs font-bold text-white uppercase">{opt.title}</span>
+                          <span className="text-[10px] text-zinc-400">{opt.desc}</span>
+                        </button>
+                      ))}
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
 
@@ -539,53 +496,6 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
           {/* STEP 1 (from scratch): Customization & Interactive Tooth Selection */}
           {step === 1 && !design && (
             <div className="space-y-6">
-
-              {/* Attached Gemini / AI Design Banner */}
-              {attachedMockupImage && (
-                <div className="bg-gradient-to-r from-zinc-950 via-zinc-900 to-black border-2 border-[#D4D4D8]/60 rounded-md p-4 flex items-center justify-between gap-4 shadow-[0_0_20px_rgba(212,212,216,0.15)]">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <img 
-                      src={attachedMockupImage} 
-                      alt="Gemini AI Mockup" 
-                      className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-md border-2 border-[#D4D4D8] shadow-lg shrink-0 bg-black" 
-                    />
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="px-2 py-0.5 bg-[#D4D4D8] text-black text-[10px] font-black uppercase tracking-wider rounded-sm flex items-center gap-1">
-                          <Sparkles className="w-3 h-3" /> AI Preview Picture Attached
-                        </span>
-                      </div>
-                      <p className="text-xs text-white font-semibold mt-1">
-                        Your custom design mockup is attached to this appointment.
-                      </p>
-                      <p className="text-[11px] text-zinc-400">
-                        Jeremy will review this exact render during your fitting session to match teeth contours, metal karats, and gemstone cuts.
-                      </p>
-                      {geminiShareLink && (
-                        <a 
-                          href={geminiShareLink} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-[10px] text-[#D4D4D8] underline hover:text-white mt-1 inline-flex items-center gap-1"
-                        >
-                          <span>View Gemini Source Link</span> &rarr;
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                  <button 
-                    type="button" 
-                    onClick={() => {
-                      setAttachedMockupImage(null);
-                      setGeminiShareLink('');
-                    }}
-                    className="text-zinc-500 hover:text-red-400 text-xs px-2 py-1 shrink-0 rounded hover:bg-white/5 transition-colors"
-                    title="Remove attached mockup"
-                  >
-                    Remove
-                  </button>
-                </div>
-              )}
 
               {/* Service Type Selector */}
               <div>
@@ -701,7 +611,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                   <MouthPreview design={formGrillz} onToothClick={handleFormToothClick} />
                   <p className="text-[11px] text-zinc-500">
                     Tap teeth to add or remove them.{onEditDesign && (
-                      <> Want jewels, cutouts or a chain?{' '}
+                      <> Want stones, gold colors or setting styles?{' '}
                         <button type="button" onClick={onEditDesign} className="text-[#D4D4D8] underline underline-offset-2 hover:text-white">Open the Design Studio</button>
                       </>
                     )}
@@ -1057,7 +967,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
 
               {design && (
                 <div className="max-w-md mx-auto bg-gradient-to-b from-zinc-900 to-black border border-white/10 rounded-lg p-3">
-                  {design.mode === 'grillz' ? <MouthPreview design={design.grillz} /> : <div className="flex justify-center"><JewelryPreview design={design.jewelry} className="w-full max-w-xs" /></div>}
+                  <MouthPreview design={design.grillz} />
                 </div>
               )}
 
@@ -1081,36 +991,6 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                   <span className="text-zinc-500 uppercase tracking-wider font-semibold">Estimated Total:</span>
                   <span className="text-[#D4D4D8] font-bold font-heading text-sm">{confirmedBooking.estimatedPrice}</span>
                 </div>
-                {confirmedBooking.attachedMockupImage && (
-                  <div className="border-b border-white/5 pb-3 pt-1">
-                    <span className="text-zinc-500 uppercase tracking-wider font-semibold block mb-2 text-xs">Attached Design Mockup:</span>
-                    <div className="flex items-center gap-3 bg-black/60 p-2.5 rounded border border-[#D4D4D8]/30">
-                      <img 
-                        src={confirmedBooking.attachedMockupImage} 
-                        alt="Submitted Mockup" 
-                        className="w-16 h-16 object-cover rounded border border-[#D4D4D8]/50 shrink-0" 
-                      />
-                      <div className="text-left">
-                        <span className="text-[11px] font-bold text-[#D4D4D8] uppercase tracking-wider flex items-center gap-1">
-                          <Sparkles className="w-3 h-3" /> AI Preview Picture Attached
-                        </span>
-                        <p className="text-[10px] text-zinc-400 mt-0.5">
-                          Saved with appointment #{confirmedBooking.id}. Jeremy will reference this during your fitting.
-                        </p>
-                        {confirmedBooking.geminiShareLink && (
-                          <a 
-                            href={confirmedBooking.geminiShareLink} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="text-[10px] text-[#D4D4D8] underline hover:text-white mt-1 inline-block"
-                          >
-                            Open Gemini Link &rarr;
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
                 {confirmedBooking.designSummary && (
                   <div className="border-b border-white/5 pb-2 text-xs">
                     <span className="text-zinc-500 uppercase tracking-wider font-semibold block mb-1">Your Design:</span>
