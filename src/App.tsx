@@ -5,9 +5,11 @@ import {
   Sparkles, MapPin, Phone, Award, ExternalLink, MessageSquare, 
   CheckCircle2, ShieldCheck, Heart, Clock
 } from 'lucide-react';
-import silverMoissanite from './assets/images/silver_moissanite_1779848576581.png';
-import goldPlain from './assets/images/gold_plain_1779848593610.png';
-import silverPlain from './assets/images/silver_plain_1779848608539.png';
+import priceSilverMoissanite from './assets/images/pricing/silver-moissanite.jpg';
+import priceSilverLabDiamond from './assets/images/pricing/silver-lab-diamond.jpg';
+import priceSilverPlain from './assets/images/pricing/silver.jpg';
+import priceGold10k from './assets/images/pricing/gold-10k.jpg';
+import priceGold14k from './assets/images/pricing/gold-14k.jpg';
 import grillzHero from './assets/images/grillz-hero.jpg';
 import jawzLogo from './assets/images/jawz-custom-jewelry-logo.png';
 import ownerHelpingClient from './assets/images/owner-helping-client.jpg';
@@ -93,6 +95,15 @@ export default function App() {
   }, [sharedDesign]);
 
   const goTo = setCurrentPage;
+
+  // On phones the header Book button hides once scrolling starts, since the bottom bar has one
+  const [isScrolled, setIsScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY > 80);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   // Booking Modal State
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -668,9 +679,9 @@ export default function App() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div className="bg-[#111] border border-white/10 rounded-sm p-8 hover:border-[#D4D4D8]/50 transition-colors">
                 <h3 className="text-2xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Silver Moissanite Grillz</h3>
-                <div className="relative mb-6 h-36 flex items-center justify-center rounded-sm bg-[radial-gradient(circle_at_center,_rgba(212,212,216,0.12)_0%,_transparent_70%)]">
-                  <img src={silverMoissanite} alt="Silver Moissanite grillz" loading="lazy" decoding="async" className="h-full object-contain mix-blend-screen" />
-                  <img src={jawzLogo} alt="" aria-hidden="true" className="absolute bottom-0 right-0 w-9 h-9 object-contain opacity-80" />
+                <div className="relative mb-6 aspect-[1170/896] overflow-hidden rounded-sm bg-black">
+                  <img src={priceSilverMoissanite} alt="Silver Moissanite grillz, Honeycomb style" width={800} height={613} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                  <span className="absolute bottom-2 left-2 px-2.5 py-1 bg-black/75 backdrop-blur-sm border border-white/15 rounded-sm text-[10px] font-bold uppercase tracking-[0.2em] text-white">Honeycomb Style</span>
                 </div>
                 <div className="flex flex-col">
                    <PricingRow label="6 on 6" price="$1,175" />
@@ -681,9 +692,9 @@ export default function App() {
 
               <div className="bg-[#111] border border-white/10 rounded-sm p-8 hover:border-[#D4D4D8]/50 transition-colors">
                 <h3 className="text-2xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Silver Lab Diamond Grillz</h3>
-                <div className="relative mb-6 h-36 flex items-center justify-center rounded-sm bg-[radial-gradient(circle_at_center,_rgba(212,212,216,0.12)_0%,_transparent_70%)]">
-                  <img src={silverMoissanite} alt="Silver Lab Diamond grillz" loading="lazy" decoding="async" className="h-full object-contain mix-blend-screen contrast-125 brightness-110" />
-                  <img src={jawzLogo} alt="" aria-hidden="true" className="absolute bottom-0 right-0 w-9 h-9 object-contain opacity-80" />
+                <div className="relative mb-6 aspect-[1170/896] overflow-hidden rounded-sm bg-black">
+                  <img src={priceSilverLabDiamond} alt="Silver Lab Diamond grillz, Honeymoon style" width={800} height={613} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                  <span className="absolute bottom-2 left-2 px-2.5 py-1 bg-black/75 backdrop-blur-sm border border-white/15 rounded-sm text-[10px] font-bold uppercase tracking-[0.2em] text-white">Honeymoon Style</span>
                 </div>
                 <div className="flex flex-col">
                    <PricingRow label="6 on 6" price="$1,900" />
@@ -702,9 +713,9 @@ export default function App() {
               
               <div className="bg-[#111] border border-white/10 rounded-sm p-6 hover:border-[#D4D4D8]/50 transition-colors">
                 <h3 className="text-xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Silver Plain Grillz</h3>
-                <div className="relative mb-6 h-28 flex items-center justify-center rounded-sm bg-[radial-gradient(circle_at_center,_rgba(212,212,216,0.12)_0%,_transparent_70%)]">
-                  <img src={silverPlain} alt="Silver Plain grillz" loading="lazy" decoding="async" className="h-full object-contain mix-blend-screen" />
-                  <img src={jawzLogo} alt="" aria-hidden="true" className="absolute bottom-0 right-0 w-9 h-9 object-contain opacity-80" />
+                <div className="relative mb-6 aspect-[1170/896] overflow-hidden rounded-sm bg-black">
+                  <img src={priceSilverPlain} alt="Silver Plain grillz, Mosaic style" width={800} height={613} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                  <span className="absolute bottom-2 left-2 px-2.5 py-1 bg-black/75 backdrop-blur-sm border border-white/15 rounded-sm text-[10px] font-bold uppercase tracking-[0.2em] text-white">Mosaic Style</span>
                 </div>
                 <div className="flex flex-col">
                    <PricingRow label="2 Teeth" price="$225" />
@@ -716,9 +727,9 @@ export default function App() {
               <div className="bg-[#111] border border-[#D4D4D8]/30 rounded-sm p-6 hover:border-[#D4D4D8] transition-colors relative">
                 <div className="absolute top-0 right-0 py-1 px-3 bg-[#D4D4D8] text-black text-[9px] font-bold uppercase tracking-widest">Popular</div>
                 <h3 className="text-xl font-bold text-[#D4D4D8] uppercase tracking-wider mb-6 text-center border-b border-[#D4D4D8]/10 pb-4">10K Gold Plain Grillz</h3>
-                <div className="relative mb-6 h-28 flex items-center justify-center rounded-sm bg-[radial-gradient(circle_at_center,_rgba(212,212,216,0.12)_0%,_transparent_70%)]">
-                  <img src={goldPlain} alt="10K Gold Plain grillz" loading="lazy" decoding="async" className="h-full object-contain mix-blend-screen" />
-                  <img src={jawzLogo} alt="" aria-hidden="true" className="absolute bottom-0 right-0 w-9 h-9 object-contain opacity-80" />
+                <div className="relative mb-6 aspect-[1170/896] overflow-hidden rounded-sm bg-black">
+                  <img src={priceGold10k} alt="10K Gold Plain grillz, Galaxy style" width={800} height={613} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                  <span className="absolute bottom-2 left-2 px-2.5 py-1 bg-black/75 backdrop-blur-sm border border-white/15 rounded-sm text-[10px] font-bold uppercase tracking-[0.2em] text-white">Galaxy Style</span>
                 </div>
                 <div className="flex flex-col">
                    <PricingRow label="2 Teeth" price="$275" />
@@ -729,9 +740,9 @@ export default function App() {
 
               <div className="bg-[#111] border border-[#D4D4D8]/30 border-opacity-50 rounded-sm p-6 hover:border-[#D4D4D8] transition-colors">
                 <h3 className="text-xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">14K Gold Plain Grillz</h3>
-                <div className="relative mb-6 h-28 flex items-center justify-center rounded-sm bg-[radial-gradient(circle_at_center,_rgba(212,212,216,0.12)_0%,_transparent_70%)]">
-                  <img src={goldPlain} alt="14K Gold Plain grillz" loading="lazy" decoding="async" className="h-full object-contain mix-blend-screen brightness-110" />
-                  <img src={jawzLogo} alt="" aria-hidden="true" className="absolute bottom-0 right-0 w-9 h-9 object-contain opacity-80" />
+                <div className="relative mb-6 aspect-[1170/896] overflow-hidden rounded-sm bg-black">
+                  <img src={priceGold14k} alt="14K Gold Plain grillz, Emerald style" width={800} height={613} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                  <span className="absolute bottom-2 left-2 px-2.5 py-1 bg-black/75 backdrop-blur-sm border border-white/15 rounded-sm text-[10px] font-bold uppercase tracking-[0.2em] text-white">Emerald Style</span>
                 </div>
                 <div className="flex flex-col">
                    <PricingRow label="2 Teeth" price="$350" />
@@ -880,14 +891,14 @@ export default function App() {
 
             {/* Logo */}
             <div className="absolute left-1/2 -translate-x-1/2 lg:static lg:translate-x-0 flex-shrink-0 flex items-center">
-              <button onClick={() => setCurrentPage('home')} className="flex items-center gap-3 group text-center lg:text-left">
+              <button onClick={() => setCurrentPage('home')} className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-3 group text-center sm:text-left">
                 <img 
                   src={jawzLogo} 
                   alt="Jawz Custom Jewelry Logo" 
-                  className="hidden lg:block w-12 h-12 object-contain group-hover:scale-105 transition-transform"
+                  className="w-8 h-8 sm:w-11 sm:h-11 lg:w-12 lg:h-12 object-contain group-hover:scale-105 transition-transform"
                 />
                 <div>
-                  <div className="font-heading font-black text-2xl lg:text-xl tracking-wider text-white uppercase group-hover:text-[#D4D4D8] transition-colors leading-none">
+                  <div className="font-heading font-black text-xl sm:text-2xl lg:text-xl tracking-wider text-white uppercase group-hover:text-[#D4D4D8] transition-colors leading-none">
                     Jawz
                   </div>
                   <div className="text-[8px] sm:text-[9px] uppercase tracking-[0.28em] text-zinc-300 font-semibold mt-1 whitespace-nowrap">
@@ -956,7 +967,7 @@ export default function App() {
 
               <button 
                 onClick={() => openBookingWithPreset()} 
-                className="px-4 sm:px-5 py-2.5 bg-[#E4E4E7] text-black text-[11px] uppercase tracking-[0.2em] font-bold rounded-md flex items-center gap-2 hover:bg-[#ffffff] transition-colors"
+                className={`px-4 sm:px-5 py-2.5 bg-[#E4E4E7] text-black text-[11px] uppercase tracking-[0.2em] font-bold rounded-md items-center gap-2 hover:bg-[#ffffff] transition-colors ${isScrolled ? 'hidden lg:flex' : 'flex'}`}
               >
                 <Calendar className="w-4 h-4" aria-hidden="true" />
                 <span className="sm:hidden">Book</span>
