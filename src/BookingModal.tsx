@@ -34,7 +34,7 @@ export interface BookingData {
   designSummary?: string;
   designLink?: string;
   /** Custom jewelry & watch requests only */
-  jewelry?: { metal: string; stone: string; size: string; budget: string };
+  jewelry?: { consultation: string; pieces: string[]; metal: string; stone: string; size: string; budget: string };
   /** Influencer promo / discount code the customer entered */
   promoCode?: string;
   /** Whether the booking reached the studio's inbox */
@@ -96,6 +96,8 @@ async function sendBookingToStudio(booking: BookingData) {
     'design-link': booking.designLink || '',
     notes: booking.customNotes,
     estimate: booking.estimatedPrice,
+    consultation: booking.jewelry?.consultation || '',
+    pieces: booking.jewelry?.pieces.join(', ') || '',
     stone: booking.jewelry?.stone || '',
     size: booking.jewelry?.size || '',
     budget: booking.jewelry?.budget || '',
@@ -115,7 +117,7 @@ const formatBudget = (raw: string) => {
 
 /** What the customer wants made, for calendar and text-message drafts. */
 const lookingFor = (b: BookingData, sep = '\n') => b.jewelry
-  ? [`Custom piece in ${b.jewelry.metal}`, `Stone: ${b.jewelry.stone}`, b.jewelry.size && `Size: ${b.jewelry.size}`, b.jewelry.budget && `Budget: ${b.jewelry.budget}`].filter(Boolean).join(sep)
+  ? [b.jewelry.consultation, `Pieces: ${b.jewelry.pieces.join(', ')}`, `Metal: ${b.jewelry.metal}`, `Stone: ${b.jewelry.stone}`, b.jewelry.size && `Size: ${b.jewelry.size}`, b.jewelry.budget && `Budget: ${b.jewelry.budget}`].filter(Boolean).join(sep)
   : `${b.selectedTopTeeth.length} top / ${b.selectedBottomTeeth.length} bottom teeth in ${b.material}`;
 
 export interface BookingPreset {
@@ -147,6 +149,8 @@ const MATERIAL_OPTIONS = [
 ];
 
 // Custom jewelry & watches are quoted per piece, so no per-tooth prices here
+const JEWELRY_CONSULTATIONS = ['Jewelry Consultation', 'Watch Consultation', 'Ring Consultation'];
+const JEWELRY_PIECES = ['Pendant', 'Chain', 'Ring', 'Watch'];
 const JEWELRY_METALS = ['10K Gold', '14K Gold', '18K Gold', '925 Sterling Silver', 'Not Sure Yet'];
 const JEWELRY_STONES = ['No Stones', 'Moissanite', 'Lab Diamond', 'Natural Diamond', 'Not Sure Yet'];
 
@@ -184,6 +188,8 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
   const [material, setMaterial] = useState<string>('10k-gold');
   const [selectedCuts, setSelectedCuts] = useState<string[]>(['perm-cut']);
   const [customNotes, setCustomNotes] = useState<string>('');
+  const [jewelryConsultation, setJewelryConsultation] = useState(JEWELRY_CONSULTATIONS[0]);
+  const [jewelryPieces, setJewelryPieces] = useState<string[]>(['Chain']);
   const [jewelryMetal, setJewelryMetal] = useState(JEWELRY_METALS[0]);
   const [jewelryStone, setJewelryStone] = useState(JEWELRY_STONES[0]);
   const [jewelrySize, setJewelrySize] = useState('');
@@ -231,6 +237,8 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
       setSelectedCuts(preset.cuts || ['perm-cut']);
     }
     setCustomNotes(preset.notes || '');
+    setJewelryConsultation(JEWELRY_CONSULTATIONS[0]);
+    setJewelryPieces(['Chain']);
     setJewelryMetal(JEWELRY_METALS[0]);
     setJewelryStone(JEWELRY_STONES[0]);
     setJewelrySize('');
@@ -292,6 +300,16 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
 
   const handleFormToothClick = (n: number, isTop: boolean) => (isTop ? toggleTopTooth(n) : toggleBottomTooth(n));
 
+  // Watch / ring consultations start with that piece picked
+  const chooseConsultation = (type: string) => {
+    setJewelryConsultation(type);
+    if (type === 'Watch Consultation') setJewelryPieces(['Watch']);
+    if (type === 'Ring Consultation') setJewelryPieces(['Ring']);
+  };
+
+  const togglePiece = (piece: string) =>
+    setJewelryPieces(prev => prev.includes(piece) ? prev.filter(p => p !== piece) : [...prev, piece]);
+
   const toggleCut = (cutId: string) => {
     if (selectedCuts.includes(cutId)) {
       setSelectedCuts(selectedCuts.filter(c => c !== cutId));
@@ -331,6 +349,10 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
       setFormError('Please provide your full name and phone number so we can confirm your appointment.');
       return;
     }
+    if (serviceType === 'jewelry' && jewelryPieces.length === 0) {
+      setFormError('Please pick at least one piece (pendant, chain, ring or watch) for your consultation.');
+      return;
+    }
     setFormError(null);
 
     const isJewelry = serviceType === 'jewelry';
@@ -349,7 +371,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
       selectedBottomTeeth: isJewelry ? [] : Array.from<number>(selectedBottomTeeth).sort((a, b) => a - b),
       material: isJewelry ? jewelryMetal : material,
       cuts: isJewelry ? [] : selectedCuts,
-      jewelry: isJewelry ? { metal: jewelryMetal, stone: jewelryStone, size: jewelrySize.trim(), budget: formatBudget(jewelryBudget) } : undefined,
+      jewelry: isJewelry ? { consultation: jewelryConsultation, pieces: JEWELRY_PIECES.filter(p => jewelryPieces.includes(p)), metal: jewelryMetal, stone: jewelryStone, size: jewelrySize.trim(), budget: formatBudget(jewelryBudget) } : undefined,
       customNotes,
       promoCode: promoCode.trim() || undefined,
       estimatedPrice: calculateEstimate(),
@@ -663,6 +685,47 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                   <div>
                     <h3 className="text-sm font-bold uppercase tracking-widest text-white">Your Piece</h3>
                     <p className="text-xs text-zinc-400 mt-0.5">Chains, rings, pendants and watches are quoted per piece at your consultation.</p>
+                  </div>
+                  <div>
+                    <span className="block text-xs uppercase tracking-widest font-bold text-gray-300 mb-2">Consultation Type:</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2" role="group" aria-label="Consultation type">
+                      {JEWELRY_CONSULTATIONS.map(opt => (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => chooseConsultation(opt)}
+                          aria-pressed={jewelryConsultation === opt}
+                          className={`px-3 py-2.5 text-xs font-semibold rounded-sm border transition-all ${
+                            jewelryConsultation === opt
+                              ? 'bg-[#D4D4D8] text-black border-[#D4D4D8] font-bold'
+                              : 'bg-zinc-900 text-zinc-300 border-white/10 hover:border-zinc-500'
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="block text-xs uppercase tracking-widest font-bold text-gray-300 mb-2">Piece(s) (Multiple Select):</span>
+                    <div className="flex flex-wrap gap-2" role="group" aria-label="Pieces">
+                      {JEWELRY_PIECES.map(opt => (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => togglePiece(opt)}
+                          aria-pressed={jewelryPieces.includes(opt)}
+                          className={`px-3 py-1.5 text-xs font-semibold rounded-sm border transition-all ${
+                            jewelryPieces.includes(opt)
+                              ? 'bg-[#D4D4D8] text-black border-[#D4D4D8] font-bold'
+                              : 'bg-zinc-900 text-zinc-300 border-white/10 hover:border-zinc-500'
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                    {jewelryPieces.length === 0 && <p className="text-[11px] text-amber-300 mt-1.5">Pick at least one piece.</p>}
                   </div>
                   {([['Metal', JEWELRY_METALS, jewelryMetal, setJewelryMetal], ['Stone', JEWELRY_STONES, jewelryStone, setJewelryStone]] as const).map(([label, options, value, set]) => (
                     <div key={label}>
@@ -1095,7 +1158,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                   <span className="text-white font-bold uppercase">{confirmedBooking.serviceType}</span>
                 </div>
                 {confirmedBooking.jewelry ? (
-                  ([['Metal', confirmedBooking.jewelry.metal], ['Stone', confirmedBooking.jewelry.stone], ['Size', confirmedBooking.jewelry.size || 'Not given'], ['Budget', confirmedBooking.jewelry.budget || 'Not given']] as const).map(([label, value]) => (
+                  ([['Consultation', confirmedBooking.jewelry.consultation], ['Pieces', confirmedBooking.jewelry.pieces.join(', ')], ['Metal', confirmedBooking.jewelry.metal], ['Stone', confirmedBooking.jewelry.stone], ['Size', confirmedBooking.jewelry.size || 'Not given'], ['Budget', confirmedBooking.jewelry.budget || 'Not given']] as const).map(([label, value]) => (
                     <div key={label} className="flex justify-between items-center border-b border-white/5 pb-2 text-xs">
                       <span className="text-zinc-500 uppercase tracking-wider font-semibold">{label}:</span>
                       <span className="text-white font-bold">{value}</span>
