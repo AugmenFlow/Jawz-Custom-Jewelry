@@ -1,7 +1,7 @@
 import React, { useId } from 'react';
 import {
   GrillzDesign, MetalShades, ToothKind,
-  TOOTH_NUMBERS, KIND_LABEL, toothKind, metalShades, toothKey,
+  TOOTH_NUMBERS, KIND_LABEL, toothKind, metalShades, toothKey, toothCode,
 } from './designModel';
 
 // Front-view sizes for each tooth type (upper arch is larger than lower)
@@ -93,7 +93,7 @@ export function MouthPreview({ design, onToothClick, className = 'w-full h-auto 
           const path = toothPath(t.kind, t.w, t.h);
           const transform = isTop ? `translate(${t.x},${t.gumY})` : `translate(${t.x},${t.gumY}) scale(1,-1)`;
           const note = design.toothNotes?.[toothKey(isTop, t.n)]?.trim();
-          const label = `${isTop ? 'Top' : 'Bottom'} tooth #${t.n} (${KIND_LABEL[t.kind]})${isSelected ? ' — covered' : ''}${note ? ` — ${note}` : ''}`;
+          const label = `${isTop ? 'Top' : 'Bottom'} tooth ${toothCode(isTop, t.n)} (${KIND_LABEL[t.kind]})${isSelected ? ' — covered' : ''}${note ? ` — ${note}` : ''}`;
           const solidFill = isSelected && !isOpenFace;
           const texture = solidFill
             ? iced ? ref('ice') : design.baseStyle === 'diamond-cuts' ? ref('diamond-cut') : design.baseStyle === 'nugget-cut' ? ref('nugget') : null
@@ -151,8 +151,8 @@ export function MouthPreview({ design, onToothClick, className = 'w-full h-auto 
             const hasNote = selected.has(t.n) && Boolean(design.toothNotes?.[toothKey(isTop, t.n)]?.trim());
             return (
               <g key={t.n}>
-                <circle cx={cx} cy={cy} r={9} fill={hasNote ? '#D4D4D8' : 'rgba(0,0,0,0.45)'} stroke={selected.has(t.n) ? '#D4D4D8' : 'rgba(255,255,255,0.25)'} strokeWidth={1} />
-                <text x={cx} y={cy + 3.5} textAnchor="middle" fontSize={10} fontWeight={800} fill={hasNote ? '#000' : '#fff'}>{t.n}</text>
+                <rect x={cx - (t.n > 9 ? 13 : 10)} y={cy - 9} width={t.n > 9 ? 26 : 20} height={18} rx={9} fill={hasNote ? '#D4D4D8' : 'rgba(0,0,0,0.45)'} stroke={selected.has(t.n) ? '#D4D4D8' : 'rgba(255,255,255,0.25)'} strokeWidth={1} />
+                <text x={cx} y={cy + 3.5} textAnchor="middle" fontSize={t.n > 9 ? 9 : 10} fontWeight={800} fill={hasNote ? '#000' : '#fff'}>{toothCode(isTop, t.n)}</text>
               </g>
             );
           })}

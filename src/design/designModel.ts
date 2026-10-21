@@ -8,7 +8,7 @@ export type Material = 'silver-moissanite' | 'silver-lab-diamond' | 'silver-plai
 export type Metal = 'silver' | '10k' | '14k' | '18k';
 export type GoldColor = 'yellow' | 'white' | 'rose';
 export type Stone = 'moissanite' | 'lab-diamond' | 'natural-diamond';
-export type StoneStyle = 'honeycomb' | 'honeymoon' | 'jumbo' | 'galaxy' | 'emerald';
+export type StoneStyle = 'honeycomb' | 'honeymoon' | 'jumbo' | 'galaxy' | 'emerald' | 'mosaic' | 'hybrid' | 'other';
 export type AddOn = 'rose-cuts' | 'starburst-cuts' | 'speciality-cut' | 'laser-design' | 'diamond-dust' | '3d-design';
 export type FreeStyle = 'solid' | 'open-face' | 'perm-cut' | 'diamond-cuts' | 'nugget-cut';
 export type ToothKind = 'molar' | 'premolar' | 'canine' | 'lateral' | 'central';
@@ -62,6 +62,9 @@ export const STONE_STYLES: { id: StoneStyle; name: string }[] = [
   { id: 'jumbo', name: 'Jumbo' },
   { id: 'galaxy', name: 'Galaxy' },
   { id: 'emerald', name: 'Emerald' },
+  { id: 'mosaic', name: 'Mosaic' },
+  { id: 'hybrid', name: 'Hybrid' },
+  { id: 'other', name: 'Other' },
 ];
 
 export const FREE_STYLES: { id: FreeStyle; name: string }[] = [
@@ -84,7 +87,9 @@ export const PREMIUM_ADDONS: { id: AddOn; name: string; price: number; suffix?: 
 export const TOOTH_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 
 export const toothKey = (isTop: boolean, n: number) => `${isTop ? 'top' : 'bottom'}-${n}`;
-export const toothLabel = (isTop: boolean, n: number) => `${isTop ? 'Top' : 'Bottom'} #${n}`;
+/** Short code Jeremy uses to tell the arches apart, e.g. "T7" (top) or "B7" (bottom). */
+export const toothCode = (isTop: boolean, n: number) => `${isTop ? 'T' : 'B'}${n}`;
+export const toothLabel = (isTop: boolean, n: number) => `${isTop ? 'Top' : 'Bottom'} ${toothCode(isTop, n)}`;
 
 /** Tooth notes for covered teeth, top arch first, in tooth order. */
 export const toothNoteList = (g: GrillzDesign) =>
@@ -189,6 +194,7 @@ export function grillzMetalName(g: GrillzDesign) {
 /** E.g. "Moissanite, Honeycomb setting" or "No stones". */
 export function grillzStoneName(g: GrillzDesign) {
   if (!g.stones) return 'No stones';
+  if (g.stoneStyle === 'other') return `${stoneName(g.stone)}, custom setting (see notes)`;
   return `${stoneName(g.stone)}, ${stoneStyleName(g.stoneStyle)} setting`;
 }
 
@@ -217,14 +223,14 @@ export const DEFAULT_DESIGN: StudioDesign = {
 
 // ---------------------------------------------------------------- Summaries
 
-const listTeeth = (teeth: number[], label: string) =>
-  teeth.length ? `${teeth.length} ${label} (teeth #${[...teeth].sort((a, b) => a - b).join(', ')})` : '';
+const listTeeth = (teeth: number[], isTop: boolean) =>
+  teeth.length ? `${teeth.length} ${isTop ? 'top' : 'bottom'} (${[...teeth].sort((a, b) => a - b).map(n => toothCode(isTop, n)).join(', ')})` : '';
 
 /** Plain-text summary of the design, sent to Jeremy with the booking. */
 export function designSummary(design: StudioDesign) {
   const g = design.grillz;
   const est = grillzEstimate(g);
-  const arches = [listTeeth(g.top, 'top'), listTeeth(g.bottom, 'bottom')].filter(Boolean).join(' + ');
+  const arches = [listTeeth(g.top, true), listTeeth(g.bottom, false)].filter(Boolean).join(' + ');
   const addons = g.addons.map(addonName).join(', ');
   return [
     `Grillz: ${arches || 'no teeth selected'}.`,

@@ -161,7 +161,7 @@ export default function Configurator({
             {/* Designs on specific teeth */}
             <div className="bg-zinc-900 border border-white/5 rounded-lg p-4">
               <h4 className="text-xs tracking-widest uppercase text-zinc-400 mb-1">Designs on Specific Teeth <span className="text-zinc-600 normal-case tracking-normal">(optional)</span></h4>
-              <p className="text-[11px] text-zinc-500 mb-3">Each tooth is numbered on the preview. Pick a covered tooth and tell Jeremy what you want on it, like a stone, initials, a cutout or a fang tip.</p>
+              <p className="text-[11px] text-zinc-500 mb-3">Each tooth is numbered on the preview: T for top, B for bottom. Pick a covered tooth and tell Jeremy what you want on it, like a stone, initials, a cutout or a fang tip.</p>
               {coveredTeeth.length === 0 ? (
                 <p className="text-xs text-zinc-500">Cover some teeth first.</p>
               ) : (
@@ -273,6 +273,7 @@ export default function Configurator({
                         <button key={st.id} onClick={() => setGrillz({ stoneStyle: st.id })} aria-pressed={grillz.stoneStyle === st.id} className={pillClass(grillz.stoneStyle === st.id)}>{st.name}</button>
                       ))}
                     </div>
+                    {grillz.stoneStyle === 'other' && <p className="text-[11px] text-zinc-500 mt-2">Describe the setting you want in the Notes for Jeremy below.</p>}
                   </div>
                 </div>
               )}
