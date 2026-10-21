@@ -394,7 +394,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
     const title = encodeURIComponent(`Jawz Jewelry Appointment - ${booking.clientName}`);
     const location = encodeURIComponent('1201 N Watson Rd, Arlington, TX 76006, United States');
     const details = encodeURIComponent(
-      `Appointment with Jawz Jewelry\nRef: ${booking.id}\nService: ${booking.serviceType}\n${lookingFor(booking)}\nNotes: ${booking.customNotes || 'None'}\nStudio Phone: (469) 487-5734\nStrictly by appointment only.`
+      `Appointment with Jawz Jewelry\nRef: ${booking.id}\nService: ${booking.serviceType}\n${lookingFor(booking)}\nNotes: ${booking.customNotes || 'None'}\nStudio Phone: (469) 751-1734\nStrictly by appointment only.`
     );
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&location=${location}&details=${details}`;
   };
@@ -404,7 +404,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
     const text = encodeURIComponent(
       `Hi Jeremy! I just booked an appointment on your site (Ref ${booking.id}). Name: ${booking.clientName}, Date: ${booking.appointmentDate} at ${booking.appointmentTime}. Looking for: ${lookingFor(booking, ', ')}. Notes: ${booking.customNotes || 'None'}.${booking.designLink ? ` My design: ${booking.designLink}` : ''}`
     );
-    return `sms:+14694875734?body=${text}`;
+    return `sms:+14697511734?body=${text}`;
   };
 
   return (
@@ -1132,11 +1132,11 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                 </a>
 
                 <a
-                  href="tel:4694875734"
+                  href="tel:4697511734"
                   className="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold uppercase tracking-wider rounded-sm flex items-center gap-2 border border-white/10"
                 >
                   <Phone className="w-4 h-4 text-[#D4D4D8]" />
-                  <span>Call Studio: (469) 487-5734</span>
+                  <span>Call Studio: (469) 751-1734</span>
                 </a>
               </div>
 
