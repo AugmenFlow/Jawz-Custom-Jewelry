@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Menu, User, ChevronDown, Check, Star, ArrowRight, 
+  Menu, User, Star, ArrowRight, 
   Instagram, Facebook, X, Calendar, 
-  Sparkles, MapPin, Phone, Award, ExternalLink, MessageSquare, 
-  CheckCircle2, ShieldCheck, Heart, Clock
+  Sparkles, MapPin, Phone, Mail, MessageSquare, Clock
 } from 'lucide-react';
 import priceSilverMoissanite from './assets/images/pricing/silver-moissanite.jpg';
 import priceSilverLabDiamond from './assets/images/pricing/silver-lab-diamond.jpg';
@@ -23,7 +22,7 @@ import PastWork from './PastWork';
 import GoogleReviews from './GoogleReviews';
 import { InstagramPostCard, instagramPostUrl } from './InstagramGallery';
 import { BEST_SELLER_POSTS, InstagramPost } from './data/instagramPosts';
-import BookingModal, { BookingData, BookingPreset } from './BookingModal';
+import BookingModal, { BookingPreset, STUDIO_EMAIL } from './BookingModal';
 import { StudioDesign, loadSavedDesign, saveDesign, readSharedDesign } from './design/designModel';
 import { GOOGLE_REVIEWS_DATA } from './data/pastWorkData';
 
@@ -95,15 +94,6 @@ export default function App() {
   }, [sharedDesign]);
 
   const goTo = setCurrentPage;
-
-  // On phones the header Book button hides once scrolling starts, since the bottom bar has one
-  const [isScrolled, setIsScrolled] = useState(false);
-  useEffect(() => {
-    const onScroll = () => setIsScrolled(window.scrollY > 80);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
 
   // Booking Modal State
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -476,12 +466,8 @@ export default function App() {
                 Design Yours in Minutes
               </h2>
               <p className="text-sm text-zinc-400 mt-4 max-w-lg font-light leading-relaxed">
-                Tap the teeth you want covered, pick your metal and gold color, choose your stones and setting style, and watch your grill come to life with a live price.
+                Tap the teeth you want covered, pick your metal and gold color, choose your stones and setting style, and watch your grill come to life with a live price. When you book, your design goes straight to Jeremy.
               </p>
-              <ol className="mt-6 space-y-2 text-sm text-zinc-300">
-                <li><span className="text-[#D4D4D8] font-bold">1.</span> Design it in the Design Studio</li>
-                <li><span className="text-[#D4D4D8] font-bold">2.</span> Book. Your design is sent to Jeremy with your appointment</li>
-              </ol>
               <div className="flex flex-wrap gap-3 mt-8">
                 <button
                   onClick={() => goTo('configurator')}
@@ -489,13 +475,6 @@ export default function App() {
                 >
                   <span>Open the Design Studio</span>
                   <ArrowRight className="w-4 h-4" aria-hidden="true" />
-                </button>
-                <button
-                  onClick={() => openBookingWithPreset({ design: studioDesign })}
-                  className="px-8 py-4 border border-white/20 text-white text-xs font-bold uppercase tracking-widest hover:border-[#D4D4D8] transition-colors rounded-sm inline-flex items-center gap-2"
-                >
-                  <Calendar className="w-4 h-4" aria-hidden="true" />
-                  <span>Book This Design</span>
                 </button>
               </div>
             </div>
@@ -553,16 +532,9 @@ export default function App() {
                 <p className="text-base text-zinc-300 font-light leading-relaxed mb-5">
                   Jeremy is from the same community he serves. For him, Jawz Custom Jewelry is a way to bring personal service and custom pieces to the people who call this area home.
                 </p>
-                <p className="text-sm text-zinc-400 font-light leading-relaxed mb-8">
+                <p className="text-sm text-zinc-400 font-light leading-relaxed">
                   From your first idea to the final fit, Jeremy helps you explore the details that make a piece yours. Whether you’re looking for custom grillz, a ring, or a chain, it starts with a conversation at the Arlington studio.
                 </p>
-                <button
-                  onClick={() => openBookingWithPreset({ serviceType: 'in-person' })}
-                  className="px-8 py-4 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffffff] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D4D4D8] transition-colors rounded-sm inline-flex items-center justify-center gap-3"
-                >
-                  <span>Book a Consultation</span>
-                  <ArrowRight className="w-4 h-4" aria-hidden="true" />
-                </button>
               </div>
             </div>
           </div>
@@ -595,33 +567,17 @@ export default function App() {
                     </span>
                   </div>
                   <p className="text-xs text-zinc-400 mt-1 font-light">
-                    Verified client feedback for <strong className="text-white font-semibold">Jawz Jewelry</strong> • 1201 N Watson Rd, Arlington, TX 76006
+                    Verified client feedback for <strong className="text-white font-semibold">Jawz Jewelry</strong>
                   </p>
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-3">
-                <a
-                  href="https://share.google/GXB7WauH8A7ATM5wM"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-5 py-2.5 bg-white text-black text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-zinc-200 transition-colors flex items-center gap-1.5 shadow-sm"
-                >
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
-                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
-                    <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
-                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-                  </svg>
-                  <span>Google Reviews</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-
                 <button
                   onClick={() => setCurrentPage('reviews')}
                   className="px-5 py-2.5 border border-[#D4D4D8] text-[#D4D4D8] text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-[#D4D4D8] hover:text-black transition-all"
                 >
-                  Read Verified Reviews
+                  Read All Reviews
                 </button>
               </div>
             </div>
@@ -753,22 +709,11 @@ export default function App() {
               
             </div>
 
-            {/* Quick Action Button below Pricing */}
-            <div className="mt-12 text-center">
-              <button
-                onClick={() => openBookingWithPreset()}
-                className="px-10 py-4 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffffff] transition-all rounded-sm shadow-[0_0_20px_rgba(212,212,216,0.3)] inline-flex items-center gap-2"
-              >
-                <Calendar className="w-4 h-4" />
-                <span>Book With Price Lock</span>
-              </button>
-            </div>
-
             {/* Not on the price list */}
             <div className="mt-12 max-w-3xl mx-auto bg-[#111] border border-[#D4D4D8]/30 rounded-sm p-6 sm:p-8 text-center">
               <h3 className="text-lg sm:text-xl font-bold text-white uppercase tracking-wider font-heading">Don't See Your Price?</h3>
               <p className="text-sm text-zinc-400 mt-3 font-light leading-relaxed">
-                If what you're looking for isn't listed, like 18K gold, natural diamonds, gold with stones, custom jewelry or a one-of-a-kind design, reach out and ask. Or book a consultation and add notes about what you want. Your request and contact info go straight to Jeremy, who gets back to you with a quote.
+                18K gold, natural diamonds, gold with stones or a one-of-a-kind piece? Book a consultation, text or email Jeremy and get a quote.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
                 <button
@@ -785,8 +730,14 @@ export default function App() {
                   <MessageSquare className="w-4 h-4" aria-hidden="true" />
                   <span>Text to Inquire</span>
                 </a>
+                <a
+                  href={`mailto:${STUDIO_EMAIL}?subject=${encodeURIComponent('Pricing inquiry')}`}
+                  className="px-6 py-3.5 border border-white/20 text-white text-xs font-bold uppercase tracking-widest hover:border-[#D4D4D8] transition-colors rounded-sm inline-flex items-center justify-center gap-2"
+                >
+                  <Mail className="w-4 h-4" aria-hidden="true" />
+                  <span>Email Us</span>
+                </a>
               </div>
-              <p className="text-[11px] text-zinc-500 mt-4">Or call <a href="tel:4697511734" className="text-[#D4D4D8] hover:text-white">(469) 751-1734</a> <span className="text-amber-300 font-semibold">Text before calling to avoid spam filter!</span></p>
             </div>
 
           </div>
@@ -804,7 +755,7 @@ export default function App() {
 
             <div className="space-y-6">
               {[
-                { q: "How do in-person appointments work?", a: "Our Arlington, TX location (1201 N Watson Rd) is strictly by appointment only. When you book a time slot, Jeremy reserves dedicated private time to take your dental impression, consult on engagement/wedding rings or custom cuts, and ensure your fit is natural." },
+                { q: "How do in-person appointments work?", a: "Our Arlington, TX studio is strictly by appointment only. When you book a time slot, Jeremy reserves dedicated private time to take your dental impression, consult on engagement/wedding rings or custom cuts, and ensure your fit is natural." },
                 { q: "How long does the process take?", a: "Once we receive your completed mold impression or ring specs, turnaround time for standard pieces is typically 10-14 business days. Intricate custom designs with heavy diamond setting may take 3-4 weeks to perfect." },
                 { q: "Do you ship mold kits nationwide?", a: "Yes! Our direct mail-order mold kits are shipped directly to customers anywhere within the United States with full instructions and video support." },
                 { q: "What materials do you cast?", a: "We cast exclusively using dental-grade silver, 10k, 14k, and 18k solid gold. Our iced-out pieces feature hand-set lab diamonds, flawless moissanite, or natural conflict-free diamonds based on your preference." }
@@ -822,28 +773,24 @@ export default function App() {
             </div>
 
             <div className="mt-16 text-center">
-               <p className="text-xs uppercase tracking-widest text-zinc-500 mb-6">Ready to start?</p>
-               <button 
-                 onClick={() => openBookingWithPreset()}
-                 className="inline-flex items-center justify-center px-10 py-4 bg-[#D4D4D8] text-black font-black uppercase tracking-widest text-xs hover:bg-[#ffffff] transition-colors rounded-sm shadow-[0_0_15px_rgba(212,212,216,0.3)]"
-               >
-                 Book Appointment Now
-               </button>
+               <p className="text-sm text-zinc-400 mb-6">More on mold kits, add-on prices, deposits and turnaround.</p>
+               <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                 <button 
+                   onClick={() => openBookingWithPreset()}
+                   className="inline-flex items-center justify-center gap-2 px-10 py-4 bg-[#D4D4D8] text-black font-black uppercase tracking-widest text-xs hover:bg-[#ffffff] transition-colors rounded-sm shadow-[0_0_15px_rgba(212,212,216,0.3)]"
+                 >
+                   <Calendar className="w-4 h-4" aria-hidden="true" />
+                   <span>Book Appointment</span>
+                 </button>
+                 <button
+                   onClick={() => goTo('info')}
+                   className="inline-flex items-center justify-center gap-2 px-8 py-4 border border-white/20 text-white text-xs font-bold uppercase tracking-widest hover:border-[#D4D4D8] hover:text-[#D4D4D8] transition-colors rounded-sm"
+                 >
+                   <span>How It Works & Policies</span>
+                   <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                 </button>
+               </div>
             </div>
-          </div>
-        </section>
-
-        {/* More info */}
-        <section className="py-12 bg-[#0a0a0a] border-t border-white/5 relative z-20">
-          <div className="max-w-4xl mx-auto px-4 text-center">
-            <p className="text-sm text-zinc-400 mb-4">Want the details on how mold kits work, add-on prices, deposits and turnaround?</p>
-            <button
-              onClick={() => goTo('info')}
-              className="px-8 py-3 border border-white/20 text-white text-xs font-bold uppercase tracking-widest hover:border-[#D4D4D8] hover:text-[#D4D4D8] transition-colors rounded-sm inline-flex items-center gap-2"
-            >
-              <span>How It Works, Add-Ons & Policies</span>
-              <ArrowRight className="w-4 h-4" aria-hidden="true" />
-            </button>
           </div>
         </section>
 
@@ -861,9 +808,9 @@ export default function App() {
             <MapPin className="w-3 h-3 text-[#D4D4D8]" />
             <span>1201 N Watson Rd, Arlington, TX 76006</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="text-[#D4D4D8] font-bold tracking-[0.2em]">Private Studio • By Appointment Only</span>
+          <div className="flex items-center gap-1.5 text-zinc-300">
+            <Mail className="w-3 h-3 text-[#D4D4D8]" />
+            <a href={`mailto:${STUDIO_EMAIL}`} className="normal-case tracking-wider hover:text-[#D4D4D8] transition-colors">{STUDIO_EMAIL}</a>
           </div>
           <div className="flex items-center gap-1.5 text-zinc-300">
             <Phone className="w-3 h-3 text-[#D4D4D8]" />
@@ -956,22 +903,12 @@ export default function App() {
 
             {/* Right Contact & Single Primary Booking Action */}
             <div className="flex items-center space-x-3 sm:space-x-4">
-              <a 
-                href="tel:4697511734" 
-                className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-white/10 text-[10px] uppercase tracking-wider text-zinc-300 hover:border-[#D4D4D8] hover:text-[#D4D4D8] transition-colors"
-              >
-                <Phone className="w-3 h-3 text-[#D4D4D8]" />
-                <span>(469) 751-1734</span>
-                <span className="text-amber-300 normal-case tracking-normal">· Text first!</span>
-              </a>
-
               <button 
                 onClick={() => openBookingWithPreset()} 
-                className={`px-4 sm:px-5 py-2.5 bg-[#E4E4E7] text-black text-[11px] uppercase tracking-[0.2em] font-bold rounded-md items-center gap-2 hover:bg-[#ffffff] transition-colors ${isScrolled ? 'hidden lg:flex' : 'flex'}`}
+                className={`px-4 sm:px-5 py-2.5 bg-[#E4E4E7] text-black text-[11px] uppercase tracking-[0.2em] font-bold rounded-md items-center gap-2 hover:bg-[#ffffff] transition-colors hidden lg:pointer-fine:flex`}
               >
                 <Calendar className="w-4 h-4" aria-hidden="true" />
-                <span className="sm:hidden">Book</span>
-                <span className="hidden sm:inline">Book Appointment</span>
+                <span>Book Appointment</span>
               </button>
             </div>
 
@@ -1035,17 +972,24 @@ export default function App() {
             <span>Call (469) 751-1734</span>
           </a>
           <p className="px-4 pb-4 -mt-2 text-xs text-amber-300">Text before calling to avoid spam filter!</p>
+          <a 
+            href={`mailto:${STUDIO_EMAIL}`} 
+            className="p-4 border-t border-white/5 text-zinc-300 text-left font-semibold flex items-center gap-2 normal-case tracking-wider"
+          >
+            <Mail className="w-4 h-4 text-[#D4D4D8]" />
+            <span>{STUDIO_EMAIL}</span>
+          </a>
         </div>
       )}
 
-      {/* Main Content View (extra bottom space on phones for the booking bar) */}
-      <div className="flex-1 w-full flex flex-col pb-16 lg:pb-0">
+      {/* Main Content View (extra bottom space on phones and tablets for the booking bar) */}
+      <div className="flex-1 w-full flex flex-col pb-16 lg:pointer-fine:pb-0">
         {renderContent()}
       </div>
 
-      {/* Phone booking bar */}
+      {/* Phone & tablet booking bar (the header has no Book button on touch screens) */}
       {!isBookingOpen && !isMobileMenuOpen && (
-        <nav aria-label="Quick actions" className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-black/95 backdrop-blur-md border-t border-[#D4D4D8]/25 px-3 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] grid grid-cols-2 gap-2">
+        <nav aria-label="Quick actions" className="lg:pointer-fine:hidden fixed bottom-0 inset-x-0 z-40 bg-black/95 backdrop-blur-md border-t border-[#D4D4D8]/25 px-3 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] grid grid-cols-2 gap-2">
           {currentPage === 'configurator' ? (
             <a href="tel:4697511734" className="py-3 border border-white/20 text-white text-[11px] font-bold uppercase tracking-widest rounded-sm flex items-center justify-center gap-2">
               <Phone className="w-4 h-4" aria-hidden="true" /> Call Studio
@@ -1088,6 +1032,7 @@ export default function App() {
             <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-bold flex flex-col gap-0.5">
               <span className="text-zinc-300">&copy; {new Date().getFullYear()} JAWZ JEWELRY • EST. 2023</span>
               <span>1201 N Watson Rd, Arlington, TX 76006, United States • (469) 751-1734 • Text before calling to avoid spam filter!</span>
+              <a href={`mailto:${STUDIO_EMAIL}`} className="normal-case tracking-wider hover:text-[#D4D4D8] transition-colors">{STUDIO_EMAIL}</a>
               <span>Hours: 10:00 AM – 7:30 PM • By Appointment</span>
             </div>
           </div>

@@ -41,6 +41,8 @@ export interface BookingData {
   deliveredToStudio?: boolean;
 }
 
+export const STUDIO_EMAIL = 'jawzjewelry@gmail.com';
+
 export const BOOKING_STEPS = ['Design', 'Date & Contact', 'Confirmed'];
 
 const FORM_ENDPOINT = '/__forms.html';
@@ -422,7 +424,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
     const title = encodeURIComponent(`Jawz Jewelry Appointment - ${booking.clientName}`);
     const location = encodeURIComponent('1201 N Watson Rd, Arlington, TX 76006, United States');
     const details = encodeURIComponent(
-      `Appointment with Jawz Jewelry\nRef: ${booking.id}\nService: ${booking.serviceType}\n${lookingFor(booking)}\nNotes: ${booking.customNotes || 'None'}\nStudio Phone: (469) 751-1734\nStrictly by appointment only.`
+      `Appointment with Jawz Jewelry\nRef: ${booking.id}\nService: ${booking.serviceType}\n${lookingFor(booking)}\nNotes: ${booking.customNotes || 'None'}\nStudio Phone: (469) 751-1734\nStudio Email: ${STUDIO_EMAIL}\nStrictly by appointment only.`
     );
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&location=${location}&details=${details}`;
   };
@@ -1230,6 +1232,14 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                 >
                   <Phone className="w-4 h-4 text-[#D4D4D8]" />
                   <span>Call Studio: (469) 751-1734</span>
+                </a>
+
+                <a
+                  href={`mailto:${STUDIO_EMAIL}?subject=${encodeURIComponent(`Appointment ${confirmedBooking.id}`)}`}
+                  className="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold uppercase tracking-wider rounded-sm flex items-center gap-2 border border-white/10"
+                >
+                  <Mail className="w-4 h-4 text-[#D4D4D8]" />
+                  <span>Email Studio</span>
                 </a>
               </div>
               <p className="text-xs text-amber-300 font-semibold">Text before calling to avoid spam filter!</p>
