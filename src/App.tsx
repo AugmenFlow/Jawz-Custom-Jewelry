@@ -13,7 +13,7 @@ import goldPlain from './assets/images/gold_plain_1779848593610.png';
 import silverPlain from './assets/images/silver_plain_1779848608539.png';
 import grillzHero from './assets/images/grillz-hero.jpg';
 import jawzLogo from './assets/images/jawz-custom-jewelry-logo.png';
-import ownerPortrait from './assets/images/owner-portrait.jpg';
+import studioInterior from './assets/images/studio-interior.jpg';
 import stripPendant from './assets/images/instagram/DZQBwGTOi3U.jpg';
 import stripRing from './assets/images/instagram/DPEoxVyDS0e.jpg';
 import stripCuban from './assets/images/instagram/C8Z6kHHPFTG.jpg';
@@ -208,7 +208,7 @@ export default function App() {
               <DiamondStyleGallery />
 
               <p className="text-center text-xs text-zinc-400 -mt-2 mb-10">
-                Honeycomb, Honeymoon, Jumbo, Galaxy and Emerald settings are all the same price. Only the metal and stones change it.
+                Honeycomb, Honeymoon, Mosaic, Galaxy, Emerald, Jumbo and Hybrid settings are all the same price. Only the metal and stones change it.
               </p>
 
               {/* Plain Metal Tier */}
@@ -667,34 +667,40 @@ export default function App() {
           <p className="text-center text-[10px] uppercase tracking-[0.3em] text-zinc-500 py-3">Pendants • Rings • Chains — Made in Arlington, TX</p>
         </section>
 
-        {/* Meet the Owner */}
-        <section id="meet-the-owner" aria-labelledby="owner-heading" className="py-20 sm:py-24 bg-[#111] border-t border-white/5 relative z-20">
+        {/* The Studio */}
+        <section id="the-studio" aria-labelledby="studio-heading" className="py-20 sm:py-24 bg-[#111] border-t border-white/5 relative z-20">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-20 items-center">
               <figure className="w-full max-w-md mx-auto border border-[#D4D4D8]/30 rounded-sm overflow-hidden">
                 <img
-                  src={ownerPortrait}
-                  alt="Jeremy King, owner of Jawz Custom Jewelry, smiling in the studio wearing a custom Jawz pendant and black track jacket"
-                  width={816}
-                  height={1088}
+                  src={studioInterior}
+                  alt="Inside the Jawz Custom Jewelry studio in Arlington, TX: hexagon ceiling lights, black leather seating, a fitting chair, glass display cases and the Jawz diamond logo rug on a marble floor"
+                  width={720}
+                  height={1279}
                   loading="lazy"
                   decoding="async"
                   className="w-full h-auto block"
                 />
                 <figcaption className="px-6 py-4 bg-[#0a0a0a] text-[#D4D4D8] text-xs font-bold uppercase tracking-widest text-center">
-                  Custom jewelry. Personal attention.
+                  Private studio. By appointment only.
                 </figcaption>
               </figure>
               <div>
-                <p className="text-[#D4D4D8] text-xs font-bold uppercase tracking-[0.25em] mb-4">Meet the Owner</p>
-                <h2 id="owner-heading" className="text-4xl sm:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter font-heading mb-4">Jeremy King</h2>
-                <p className="text-sm text-zinc-300 uppercase tracking-widest mb-6">The person behind Jawz Custom Jewelry</p>
+                <p className="text-[#D4D4D8] text-xs font-bold uppercase tracking-[0.25em] mb-4">The Studio</p>
+                <h2 id="studio-heading" className="text-4xl sm:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter font-heading mb-4">Jawz Custom Jewelry</h2>
+                <p className="text-sm text-zinc-300 uppercase tracking-widest mb-6">Arlington, TX &bull; Serving all of DFW</p>
                 <div className="w-12 h-1 bg-[#D4D4D8] mb-8"></div>
                 <p className="text-base text-zinc-300 font-light leading-relaxed mb-5">
-                  Jeremy is from the same community he serves. For him, Jawz Custom Jewelry is a way to bring personal service and custom pieces to the people who call this area home.
+                  Our Arlington studio is a private space built for one client at a time. No crowded counters and no rush, just a comfortable room where you can sit down, see the work up close and talk through exactly what you want.
+                </p>
+                <p className="text-sm text-zinc-400 font-light leading-relaxed mb-5">
+                  We serve the Dallas–Fort Worth community: first-timers getting their first set of grillz, couples shopping for engagement and wedding rings, and collectors adding a chain, pendant or iced-out piece to their rotation. Every piece is custom made and fitted to you.
+                </p>
+                <p className="text-base text-white font-medium leading-relaxed mb-5 border-l-2 border-[#D4D4D8] pl-4">
+                  We are committed to providing quality custom jewelry that exceeds our clients’ expectations, with every piece held to the same standard from first sketch to final polish.
                 </p>
                 <p className="text-sm text-zinc-400 font-light leading-relaxed">
-                  From your first idea to the final fit, Jeremy helps you explore the details that make a piece yours. Whether you’re looking for custom grillz, a ring, or a chain, it starts with a conversation at the Arlington studio.
+                  Visits are by appointment only, so the studio is set aside for you when you arrive, from your dental mold and fitting to your final pickup.
                 </p>
               </div>
             </div>
