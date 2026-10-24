@@ -6,12 +6,14 @@ import {
 } from 'lucide-react';
 import priceSilverMoissanite from './assets/images/pricing/silver-moissanite.jpg';
 import priceSilverLabDiamond from './assets/images/pricing/silver-lab-diamond.jpg';
-import priceSilverPlain from './assets/images/pricing/silver.jpg';
-import priceGold10k from './assets/images/pricing/gold-10k.jpg';
-import priceGold14k from './assets/images/pricing/gold-14k.jpg';
+import priceScript from './assets/images/pricing/script.jpg';
+import priceNaturalDiamond from './assets/images/pricing/natural-diamond.jpg';
+import DiamondStyleGallery from './DiamondStyleGallery';
+import goldPlain from './assets/images/gold_plain_1779848593610.png';
+import silverPlain from './assets/images/silver_plain_1779848608539.png';
 import grillzHero from './assets/images/grillz-hero.jpg';
 import jawzLogo from './assets/images/jawz-custom-jewelry-logo.png';
-import ownerHelpingClient from './assets/images/owner-helping-client.jpg';
+import ownerPortrait from './assets/images/owner-portrait.jpg';
 import stripPendant from './assets/images/instagram/DZQBwGTOi3U.jpg';
 import stripRing from './assets/images/instagram/DPEoxVyDS0e.jpg';
 import stripCuban from './assets/images/instagram/C8Z6kHHPFTG.jpg';
@@ -21,7 +23,7 @@ import Configurator from './Configurator';
 import PastWork from './PastWork';
 import GoogleReviews from './GoogleReviews';
 import { InstagramPostCard, instagramPostUrl } from './InstagramGallery';
-import { BEST_SELLER_POSTS, InstagramPost } from './data/instagramPosts';
+import { RECENT_POSTS, InstagramPost } from './data/instagramPosts';
 import BookingModal, { BookingPreset, STUDIO_EMAIL } from './BookingModal';
 import { StudioDesign, loadSavedDesign, saveDesign, readSharedDesign } from './design/designModel';
 import { GOOGLE_REVIEWS_DATA } from './data/pastWorkData';
@@ -33,7 +35,7 @@ const PricingRow = ({ label, price }: { label: string, price: string }) => (
   </div>
 );
 
-type Page = 'home' | 'pastwork' | 'reviews' | 'configurator' | 'info';
+type Page = 'home' | 'pastwork' | 'reviews' | 'configurator' | 'pricing' | 'info';
 
 // Every page has its own address so links, the back button and Google all work
 const PAGE_PATHS: Record<Page, string> = {
@@ -41,6 +43,7 @@ const PAGE_PATHS: Record<Page, string> = {
   pastwork: '/past-work',
   reviews: '/reviews',
   configurator: '/design-studio',
+  pricing: '/pricing',
   info: '/info',
 };
 
@@ -49,6 +52,7 @@ const PAGE_TITLES: Record<Page, string> = {
   pastwork: 'Past Work | Jawz Custom Jewelry',
   reviews: 'Google Reviews | Jawz Custom Jewelry',
   configurator: 'Design Studio | Design Your Grillz | Jawz',
+  pricing: 'Price List | Custom Grillz Prices | Jawz Custom Jewelry',
   info: 'Add-Ons, Policies & How It Works | Jawz Custom Jewelry',
 };
 
@@ -110,7 +114,7 @@ export default function App() {
     });
   };
 
-  const bestSellers = BEST_SELLER_POSTS;
+  const recentWork = RECENT_POSTS;
 
   const renderContent = () => {
     if (currentPage === 'pastwork') {
@@ -140,6 +144,166 @@ export default function App() {
           onBack={() => goTo('home')} 
           onBook={() => openBookingWithPreset({ design: studioDesign })}
         />
+      );
+    }
+
+    if (currentPage === 'pricing') {
+      return (
+        <div className="flex-1 w-full flex flex-col">
+          <section id="pricing" className="flex-1 bg-[#050505] py-14 sm:py-20 relative z-20">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+              
+              <div className="text-center mb-16">
+                <button onClick={() => goTo('home')} className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-[#D4D4D8] hover:text-white transition-colors mb-6 font-semibold">
+                  ← Back to Home
+                </button>
+                <h1 className="text-4xl sm:text-6xl font-black text-white uppercase tracking-tight drop-shadow-lg font-heading">
+                  Price List
+                </h1>
+                <div className="w-16 h-1 bg-[#D4D4D8] mx-auto mt-6 mb-4"></div>
+                <p className="text-xs text-zinc-400 uppercase tracking-widest font-light">
+                  Transparent dental casting prices • Free cuts on standard orders
+                </p>
+              </div>
+
+              {/* Diamond Tier */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <div className="bg-[#111] border border-white/10 rounded-sm p-8 hover:border-[#D4D4D8]/50 transition-colors">
+                  <h3 className="text-2xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Silver Moissanite Grillz</h3>
+                  <div className="relative mb-6 aspect-[1170/896] overflow-hidden rounded-sm bg-black">
+                    <img src={priceSilverMoissanite} alt="Silver Moissanite grillz, Honeycomb style" width={800} height={613} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                    <span className="absolute bottom-2 left-2 px-2.5 py-1 bg-black/75 backdrop-blur-sm border border-white/15 rounded-sm text-[10px] font-bold uppercase tracking-[0.2em] text-white">Honeycomb Style</span>
+                  </div>
+                  <div className="flex flex-col">
+                     <PricingRow label="6 on 6" price="$1,175" />
+                     <PricingRow label="8 on 8" price="$1,550" />
+                     <PricingRow label="10 on 10" price="$1,900" />
+                  </div>
+                </div>
+
+                <div className="bg-[#111] border border-white/10 rounded-sm p-8 hover:border-[#D4D4D8]/50 transition-colors">
+                  <h3 className="text-2xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Silver Lab Diamond Grillz</h3>
+                  <div className="relative mb-6 aspect-[1170/896] overflow-hidden rounded-sm bg-black">
+                    <img src={priceSilverLabDiamond} alt="Silver Lab Diamond grillz, Honeymoon style" width={800} height={613} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                    <span className="absolute bottom-2 left-2 px-2.5 py-1 bg-black/75 backdrop-blur-sm border border-white/15 rounded-sm text-[10px] font-bold uppercase tracking-[0.2em] text-white">Honeymoon Style</span>
+                  </div>
+                  <div className="flex flex-col">
+                     <PricingRow label="6 on 6" price="$1,900" />
+                     <PricingRow label="8 on 8" price="$2,550" />
+                     <PricingRow label="10 on 10" price="$3,180" />
+                  </div>
+                </div>
+
+                <div className="bg-[#111] border border-white/10 rounded-sm p-8 hover:border-[#D4D4D8]/50 transition-colors md:col-span-2 lg:col-span-1">
+                  <h3 className="text-2xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Natural Diamond Grillz</h3>
+                  <div className="relative mb-6 aspect-[1170/896] overflow-hidden rounded-sm bg-black">
+                    <img src={priceNaturalDiamond} alt="Yellow gold grillz set with natural oval, pear and marquise diamonds" width={800} height={613} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex flex-col">
+                     <PricingRow label="All Sizes" price="Consultation Only" />
+                  </div>
+                </div>
+              </div>
+
+              <DiamondStyleGallery />
+
+              <p className="text-center text-xs text-zinc-400 -mt-2 mb-10">
+                Honeycomb, Honeymoon, Jumbo, Galaxy and Emerald settings are all the same price. Only the metal and stones change it.
+              </p>
+
+              {/* Plain Metal Tier */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <div className="bg-[#111] border border-white/10 rounded-sm p-6 hover:border-[#D4D4D8]/50 transition-colors">
+                  <h3 className="text-xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Silver Plain Grillz</h3>
+                  <div className="relative mb-6 h-28 flex items-center justify-center rounded-sm bg-[radial-gradient(circle_at_center,_rgba(212,212,216,0.12)_0%,_transparent_70%)]">
+                    <img src={silverPlain} alt="Silver Plain grillz" loading="lazy" decoding="async" className="h-full object-contain mix-blend-screen" />
+                    <img src={jawzLogo} alt="" aria-hidden="true" className="absolute bottom-0 right-0 w-9 h-9 object-contain opacity-80" />
+                  </div>
+                  <div className="flex flex-col">
+                     <PricingRow label="2 Teeth" price="$225" />
+                     <PricingRow label="4 Teeth" price="$45 / Tooth" />
+                     <PricingRow label="6-10 Teeth" price="$40 / Tooth" />
+                  </div>
+                </div>
+
+                <div className="bg-[#111] border border-[#D4D4D8]/30 rounded-sm p-6 hover:border-[#D4D4D8] transition-colors relative">
+                  <div className="absolute top-0 right-0 py-1 px-3 bg-[#D4D4D8] text-black text-[9px] font-bold uppercase tracking-widest">Popular</div>
+                  <h3 className="text-xl font-bold text-[#D4D4D8] uppercase tracking-wider mb-6 text-center border-b border-[#D4D4D8]/10 pb-4">10K Gold Plain Grillz</h3>
+                  <div className="relative mb-6 h-28 flex items-center justify-center rounded-sm bg-[radial-gradient(circle_at_center,_rgba(212,212,216,0.12)_0%,_transparent_70%)]">
+                    <img src={goldPlain} alt="10K Gold Plain grillz" loading="lazy" decoding="async" className="h-full object-contain mix-blend-screen" />
+                    <img src={jawzLogo} alt="" aria-hidden="true" className="absolute bottom-0 right-0 w-9 h-9 object-contain opacity-80" />
+                  </div>
+                  <div className="flex flex-col">
+                     <PricingRow label="2 Teeth" price="$275" />
+                     <PricingRow label="4 Teeth" price="$420" />
+                     <PricingRow label="6-10 Teeth" price="$95 / Tooth" />
+                  </div>
+                </div>
+
+                <div className="bg-[#111] border border-[#D4D4D8]/30 border-opacity-50 rounded-sm p-6 hover:border-[#D4D4D8] transition-colors">
+                  <h3 className="text-xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">14K Gold Plain Grillz</h3>
+                  <div className="relative mb-6 h-28 flex items-center justify-center rounded-sm bg-[radial-gradient(circle_at_center,_rgba(212,212,216,0.12)_0%,_transparent_70%)]">
+                    <img src={goldPlain} alt="14K Gold Plain grillz" loading="lazy" decoding="async" className="h-full object-contain mix-blend-screen brightness-110" />
+                    <img src={jawzLogo} alt="" aria-hidden="true" className="absolute bottom-0 right-0 w-9 h-9 object-contain opacity-80" />
+                  </div>
+                  <div className="flex flex-col">
+                     <PricingRow label="2 Teeth" price="$350" />
+                     <PricingRow label="4 Teeth" price="$520" />
+                     <PricingRow label="6-10 Teeth" price="$115 / Tooth" />
+                  </div>
+                </div>
+                
+              </div>
+
+              {/* Script Style */}
+              <div className="mt-6 max-w-xl mx-auto">
+                <div className="bg-[#111] border border-white/10 rounded-sm p-6 hover:border-[#D4D4D8]/50 transition-colors">
+                  <h3 className="text-xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Script Grillz</h3>
+                  <div className="relative mb-6 aspect-[1170/896] overflow-hidden rounded-sm bg-black">
+                    <img src={priceScript} alt="Silver Script grillz on top with Black Chrome grillz on the bottom" width={800} height={613} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                    <span className="absolute bottom-2 left-2 px-2.5 py-1 bg-black/75 backdrop-blur-sm border border-white/15 rounded-sm text-[10px] font-bold uppercase tracking-[0.2em] text-white">Script Style</span>
+                  </div>
+                  <div className="flex flex-col">
+                     <PricingRow label="8 on 8" price="$690" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Not on the price list */}
+              <div className="mt-12 max-w-3xl mx-auto bg-[#111] border border-[#D4D4D8]/30 rounded-sm p-6 sm:p-8 text-center">
+                <h3 className="text-lg sm:text-xl font-bold text-white uppercase tracking-wider font-heading">Don't See Your Price?</h3>
+                <p className="text-sm text-zinc-400 mt-3 font-light leading-relaxed">
+                  18K gold, natural diamonds, gold with stones or a one-of-a-kind piece? Book a consultation, text or email Jeremy and get a quote.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
+                  <button
+                    onClick={() => openBookingWithPreset({ notes: "Pricing inquiry (not on the price list): " })}
+                    className="px-6 py-3.5 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-white transition-all rounded-sm inline-flex items-center justify-center gap-2"
+                  >
+                    <Calendar className="w-4 h-4" aria-hidden="true" />
+                    <span>Book a Consultation</span>
+                  </button>
+                  <a
+                    href={`sms:+14697511734?body=${encodeURIComponent("Hi Jeremy! I didn't see pricing on your site for something I'm looking for: ")}`}
+                    className="px-6 py-3.5 border border-white/20 text-white text-xs font-bold uppercase tracking-widest hover:border-[#D4D4D8] transition-colors rounded-sm inline-flex items-center justify-center gap-2"
+                  >
+                    <MessageSquare className="w-4 h-4" aria-hidden="true" />
+                    <span>Text to Inquire</span>
+                  </a>
+                  <a
+                    href={`mailto:${STUDIO_EMAIL}?subject=${encodeURIComponent('Pricing inquiry')}`}
+                    className="px-6 py-3.5 border border-white/20 text-white text-xs font-bold uppercase tracking-widest hover:border-[#D4D4D8] transition-colors rounded-sm inline-flex items-center justify-center gap-2"
+                  >
+                    <Mail className="w-4 h-4" aria-hidden="true" />
+                    <span>Email Us</span>
+                  </a>
+                </div>
+              </div>
+
+            </div>
+          </section>
+        </div>
       );
     }
 
@@ -415,21 +579,21 @@ export default function App() {
           </div>
         </section>
 
-        {/* SECTION: BEST SELLERS AMONGST PAST WORK */}
-        <section id="best-sellers" className="py-20 bg-[#080808] border-t border-b border-white/5 relative z-20">
+        {/* SECTION: RECENT WORK */}
+        <section id="recent-work" className="py-20 bg-[#080808] border-t border-b border-white/5 relative z-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
               <div>
                 <div className="flex items-center gap-2 text-[#D4D4D8] text-xs uppercase font-bold tracking-[0.3em] mb-2">
                   <Sparkles className="w-4 h-4" />
-                  <span>Most Requested Custom Work</span>
+                  <span>Fresh From the Studio</span>
                 </div>
                 <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white font-heading">
-                  Best Sellers Amongst Past Work
+                  Recent Work
                 </h2>
                 <p className="text-xs sm:text-sm text-zinc-400 max-w-xl mt-2 font-light">
-                  Our top client favorites crafted since 2023. Tap a piece to see it on Instagram, or book a session for a style like it.
+                  The latest custom pieces we've finished for clients. Tap a piece to see it on Instagram, or book a session for a style like it.
                 </p>
               </div>
 
@@ -444,10 +608,10 @@ export default function App() {
               </div>
             </div>
 
-            {/* Best Sellers Grid Cards */}
+            {/* Recent Work Grid Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {bestSellers.map((post, idx) => (
-                <InstagramPostCard key={post.id} post={post} rank={idx + 1} onBook={handleBookInstagramPost} />
+              {recentWork.map(post => (
+                <InstagramPostCard key={post.id} post={post} onBook={handleBookInstagramPost} />
               ))}
             </div>
 
@@ -512,10 +676,10 @@ export default function App() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-20 items-center">
               <figure className="w-full max-w-md mx-auto border border-[#D4D4D8]/30 rounded-sm overflow-hidden">
                 <img
-                  src={ownerHelpingClient}
-                  alt="Jeremy King, owner of Jawz Custom Jewelry, helping a client try on a necklace in the studio"
+                  src={ownerPortrait}
+                  alt="Jeremy King, owner of Jawz Custom Jewelry, smiling in the studio wearing a custom pendant"
                   width={816}
-                  height={1278}
+                  height={1088}
                   loading="lazy"
                   decoding="async"
                   className="w-full h-auto block"
@@ -617,13 +781,12 @@ export default function App() {
           </div>
         </section>
 
-        {/* SECTION: PRICING LIST */}
-        <main id="pricing" className="flex-1 bg-[#050505] py-20 relative z-20">
+        {/* SECTION: PRICING PREVIEW */}
+        <section aria-labelledby="pricing-preview-heading" className="py-20 bg-[#050505] relative z-20">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            
-            <div className="text-center mb-16">
-              <h2 className="text-4xl sm:text-5xl font-black text-white uppercase tracking-tighter drop-shadow-lg font-heading">
-                New Price List
+            <div className="text-center mb-12">
+              <h2 id="pricing-preview-heading" className="text-4xl sm:text-5xl font-black text-white uppercase tracking-tighter drop-shadow-lg font-heading">
+                Pricing
               </h2>
               <div className="w-16 h-1 bg-[#D4D4D8] mx-auto mt-6 mb-4"></div>
               <p className="text-xs text-zinc-400 uppercase tracking-widest font-light">
@@ -631,117 +794,36 @@ export default function App() {
               </p>
             </div>
 
-            {/* Diamond Tier */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div className="bg-[#111] border border-white/10 rounded-sm p-8 hover:border-[#D4D4D8]/50 transition-colors">
-                <h3 className="text-2xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Silver Moissanite Grillz</h3>
-                <div className="relative mb-6 aspect-[1170/896] overflow-hidden rounded-sm bg-black">
-                  <img src={priceSilverMoissanite} alt="Silver Moissanite grillz, Honeycomb style" width={800} height={613} loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                  <span className="absolute bottom-2 left-2 px-2.5 py-1 bg-black/75 backdrop-blur-sm border border-white/15 rounded-sm text-[10px] font-bold uppercase tracking-[0.2em] text-white">Honeycomb Style</span>
-                </div>
-                <div className="flex flex-col">
-                   <PricingRow label="6 on 6" price="$1,175" />
-                   <PricingRow label="8 on 8" price="$1,550" />
-                   <PricingRow label="10 on 10" price="$1,900" />
-                </div>
-              </div>
-
-              <div className="bg-[#111] border border-white/10 rounded-sm p-8 hover:border-[#D4D4D8]/50 transition-colors">
-                <h3 className="text-2xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Silver Lab Diamond Grillz</h3>
-                <div className="relative mb-6 aspect-[1170/896] overflow-hidden rounded-sm bg-black">
-                  <img src={priceSilverLabDiamond} alt="Silver Lab Diamond grillz, Honeymoon style" width={800} height={613} loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                  <span className="absolute bottom-2 left-2 px-2.5 py-1 bg-black/75 backdrop-blur-sm border border-white/15 rounded-sm text-[10px] font-bold uppercase tracking-[0.2em] text-white">Honeymoon Style</span>
-                </div>
-                <div className="flex flex-col">
-                   <PricingRow label="6 on 6" price="$1,900" />
-                   <PricingRow label="8 on 8" price="$2,550" />
-                   <PricingRow label="10 on 10" price="$3,180" />
-                </div>
-              </div>
-            </div>
-
-            <p className="text-center text-xs text-zinc-400 -mt-2 mb-10">
-              Honeycomb, Honeymoon, Jumbo, Galaxy and Emerald settings are all the same price. Only the metal and stones change it.
-            </p>
-
-            {/* Plain Metal Tier */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              
-              <div className="bg-[#111] border border-white/10 rounded-sm p-6 hover:border-[#D4D4D8]/50 transition-colors">
-                <h3 className="text-xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Silver Plain Grillz</h3>
-                <div className="relative mb-6 aspect-[1170/896] overflow-hidden rounded-sm bg-black">
-                  <img src={priceSilverPlain} alt="Silver Plain grillz, Mosaic style" width={800} height={613} loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                  <span className="absolute bottom-2 left-2 px-2.5 py-1 bg-black/75 backdrop-blur-sm border border-white/15 rounded-sm text-[10px] font-bold uppercase tracking-[0.2em] text-white">Mosaic Style</span>
-                </div>
-                <div className="flex flex-col">
-                   <PricingRow label="2 Teeth" price="$225" />
-                   <PricingRow label="4 Teeth" price="$45 / Tooth" />
-                   <PricingRow label="6-10 Teeth" price="$40 / Tooth" />
-                </div>
-              </div>
-
-              <div className="bg-[#111] border border-[#D4D4D8]/30 rounded-sm p-6 hover:border-[#D4D4D8] transition-colors relative">
-                <div className="absolute top-0 right-0 py-1 px-3 bg-[#D4D4D8] text-black text-[9px] font-bold uppercase tracking-widest">Popular</div>
-                <h3 className="text-xl font-bold text-[#D4D4D8] uppercase tracking-wider mb-6 text-center border-b border-[#D4D4D8]/10 pb-4">10K Gold Plain Grillz</h3>
-                <div className="relative mb-6 aspect-[1170/896] overflow-hidden rounded-sm bg-black">
-                  <img src={priceGold10k} alt="10K Gold Plain grillz, Galaxy style" width={800} height={613} loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                  <span className="absolute bottom-2 left-2 px-2.5 py-1 bg-black/75 backdrop-blur-sm border border-white/15 rounded-sm text-[10px] font-bold uppercase tracking-[0.2em] text-white">Galaxy Style</span>
-                </div>
-                <div className="flex flex-col">
-                   <PricingRow label="2 Teeth" price="$275" />
-                   <PricingRow label="4 Teeth" price="$420" />
-                   <PricingRow label="6-10 Teeth" price="$95 / Tooth" />
-                </div>
-              </div>
-
-              <div className="bg-[#111] border border-[#D4D4D8]/30 border-opacity-50 rounded-sm p-6 hover:border-[#D4D4D8] transition-colors">
-                <h3 className="text-xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">14K Gold Plain Grillz</h3>
-                <div className="relative mb-6 aspect-[1170/896] overflow-hidden rounded-sm bg-black">
-                  <img src={priceGold14k} alt="14K Gold Plain grillz, Emerald style" width={800} height={613} loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                  <span className="absolute bottom-2 left-2 px-2.5 py-1 bg-black/75 backdrop-blur-sm border border-white/15 rounded-sm text-[10px] font-bold uppercase tracking-[0.2em] text-white">Emerald Style</span>
-                </div>
-                <div className="flex flex-col">
-                   <PricingRow label="2 Teeth" price="$350" />
-                   <PricingRow label="4 Teeth" price="$520" />
-                   <PricingRow label="6-10 Teeth" price="$115 / Tooth" />
-                </div>
-              </div>
-              
-            </div>
-
-            {/* Not on the price list */}
-            <div className="mt-12 max-w-3xl mx-auto bg-[#111] border border-[#D4D4D8]/30 rounded-sm p-6 sm:p-8 text-center">
-              <h3 className="text-lg sm:text-xl font-bold text-white uppercase tracking-wider font-heading">Don't See Your Price?</h3>
-              <p className="text-sm text-zinc-400 mt-3 font-light leading-relaxed">
-                18K gold, natural diamonds, gold with stones or a one-of-a-kind piece? Book a consultation, text or email Jeremy and get a quote.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {[
+                { name: 'Plain Grillz', detail: 'Silver, 10K & 14K Gold', price: 'From $225' },
+                { name: 'Diamond Grillz', detail: 'Moissanite, Lab & Natural Diamond', price: 'From $1,175' },
+                { name: 'Script Grillz', detail: '8 on 8', price: '$690' },
+              ].map(tier => (
                 <button
-                  onClick={() => openBookingWithPreset({ notes: "Pricing inquiry (not on the price list): " })}
-                  className="px-6 py-3.5 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-white transition-all rounded-sm inline-flex items-center justify-center gap-2"
+                  key={tier.name}
+                  type="button"
+                  onClick={() => goTo('pricing')}
+                  className="bg-[#111] border border-white/10 rounded-sm p-6 text-center hover:border-[#D4D4D8]/50 transition-colors"
                 >
-                  <Calendar className="w-4 h-4" aria-hidden="true" />
-                  <span>Book a Consultation</span>
+                  <span className="block text-lg font-bold text-white uppercase tracking-wider">{tier.name}</span>
+                  <span className="block text-[11px] text-zinc-400 uppercase tracking-widest mt-1">{tier.detail}</span>
+                  <span className="block text-2xl font-black text-[#D4D4D8] mt-4">{tier.price}</span>
                 </button>
-                <a
-                  href={`sms:+14697511734?body=${encodeURIComponent("Hi Jeremy! I didn't see pricing on your site for something I'm looking for: ")}`}
-                  className="px-6 py-3.5 border border-white/20 text-white text-xs font-bold uppercase tracking-widest hover:border-[#D4D4D8] transition-colors rounded-sm inline-flex items-center justify-center gap-2"
-                >
-                  <MessageSquare className="w-4 h-4" aria-hidden="true" />
-                  <span>Text to Inquire</span>
-                </a>
-                <a
-                  href={`mailto:${STUDIO_EMAIL}?subject=${encodeURIComponent('Pricing inquiry')}`}
-                  className="px-6 py-3.5 border border-white/20 text-white text-xs font-bold uppercase tracking-widest hover:border-[#D4D4D8] transition-colors rounded-sm inline-flex items-center justify-center gap-2"
-                >
-                  <Mail className="w-4 h-4" aria-hidden="true" />
-                  <span>Email Us</span>
-                </a>
-              </div>
+              ))}
             </div>
 
+            <div className="mt-10 text-center">
+              <button
+                onClick={() => goTo('pricing')}
+                className="inline-flex items-center justify-center gap-2 px-10 py-4 bg-[#D4D4D8] text-black font-black uppercase tracking-widest text-xs hover:bg-[#ffffff] transition-colors rounded-sm shadow-[0_0_15px_rgba(212,212,216,0.3)]"
+              >
+                <span>View Full Price List</span>
+                <ArrowRight className="w-4 h-4" aria-hidden="true" />
+              </button>
+            </div>
           </div>
-        </main>
+        </section>
 
         {/* FAQ Section */}
         <section id="faq" className="py-24 bg-[#050505] border-t border-white/5 relative">
@@ -875,20 +957,14 @@ export default function App() {
                 Design Studio
               </button>
 
-              <a 
-                href="#pricing" 
-                onClick={() => {
-                  if (currentPage !== 'home') {
-                    setCurrentPage('home');
-                    setTimeout(() => {
-                      document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
-                    }, 100);
-                  }
-                }} 
-                className="uppercase text-[11px] tracking-[0.2em] font-semibold text-zinc-300 hover:text-[#D4D4D8] transition-colors"
+              <button 
+                onClick={() => setCurrentPage('pricing')} 
+                className={`uppercase text-[11px] tracking-[0.2em] font-semibold transition-colors ${
+                  currentPage === 'pricing' ? 'text-white border-b-2 border-[#D4D4D8] pb-1 font-bold' : 'text-zinc-300 hover:text-[#D4D4D8]'
+                }`}
               >
                 Pricing
-              </a>
+              </button>
 
               <button 
                 onClick={() => setCurrentPage('reviews')} 
@@ -945,19 +1021,12 @@ export default function App() {
             <Star className="w-4 h-4 text-[#D4D4D8] fill-[#D4D4D8]" />
             <span>Google Reviews (4.9★ • 14 Reviews)</span>
           </button>
-          <a 
-            href="#pricing" 
-            className="p-4 border-b border-white/5 text-left font-semibold text-zinc-300" 
-            onClick={() => { 
-              setIsMobileMenuOpen(false); 
-              if (currentPage !== 'home') setCurrentPage('home'); 
-              setTimeout(() => {
-                document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
-              }, 100);
-            }}
+          <button 
+            onClick={() => { setIsMobileMenuOpen(false); setCurrentPage('pricing'); }} 
+            className="p-4 border-b border-white/5 text-left font-semibold text-zinc-300"
           >
             Price List
-          </a>
+          </button>
           <button 
             onClick={() => { setIsMobileMenuOpen(false); setCurrentPage('info'); }} 
             className="p-4 border-b border-white/5 text-left font-semibold text-zinc-300"
@@ -1049,6 +1118,12 @@ export default function App() {
               className="hover:text-[#D4D4D8] transition-colors"
             >
               Past Work
+            </button>
+            <button 
+              onClick={() => setCurrentPage('pricing')} 
+              className="hover:text-[#D4D4D8] transition-colors"
+            >
+              Price List
             </button>
             <button 
               onClick={() => setCurrentPage('reviews')} 
