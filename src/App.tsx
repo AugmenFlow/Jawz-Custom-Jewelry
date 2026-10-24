@@ -674,7 +674,7 @@ export default function App() {
               <figure className="w-full max-w-md mx-auto border border-[#D4D4D8]/30 rounded-sm overflow-hidden">
                 <img
                   src={ownerPortrait}
-                  alt="Jeremy King, owner of Jawz Custom Jewelry, smiling in the studio wearing a custom pendant"
+                  alt="Jeremy King, owner of Jawz Custom Jewelry, smiling in the studio wearing a custom Jawz pendant and black track jacket"
                   width={816}
                   height={1088}
                   loading="lazy"
