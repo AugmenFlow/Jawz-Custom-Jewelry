@@ -25,7 +25,7 @@ import GoogleReviews from './GoogleReviews';
 import { InstagramPostCard, instagramPostUrl } from './InstagramGallery';
 import { RECENT_POSTS, InstagramPost } from './data/instagramPosts';
 import BookingModal, { BookingPreset, STUDIO_EMAIL } from './BookingModal';
-import { StudioDesign, loadSavedDesign, saveDesign, readSharedDesign } from './design/designModel';
+import { StudioDesign, loadSavedDesign, saveDesign, readSharedDesign, METALS, STONES, perToothRate } from './design/designModel';
 import { GOOGLE_REVIEWS_DATA } from './data/pastWorkData';
 
 const PricingRow = ({ label, price }: { label: string, price: string }) => (
@@ -267,11 +267,48 @@ export default function App() {
                 </div>
               </div>
 
+              {/* Every metal / karat with every stone */}
+              <div className="mt-12 max-w-4xl mx-auto bg-[#111] border border-white/10 rounded-sm p-5 sm:p-8">
+                <h3 className="text-lg sm:text-xl font-bold text-white uppercase tracking-wider font-heading text-center">Every Metal. Every Stone.</h3>
+                <p className="text-sm text-zinc-400 mt-2 font-light text-center">
+                  Mix any karat with any stone. 10K, 14K and 18K come in yellow, white or rose gold; 22K and 24K come in yellow.
+                </p>
+                <div className="mt-6 overflow-x-auto">
+                  <table className="w-full min-w-[520px] text-xs sm:text-sm">
+                    <thead>
+                      <tr className="text-[10px] uppercase tracking-widest text-zinc-500">
+                        <th scope="col" className="text-left font-semibold py-2 pr-3">Per tooth</th>
+                        <th scope="col" className="font-semibold py-2 px-2">No Stones</th>
+                        {STONES.map(st => <th key={st.id} scope="col" className="font-semibold py-2 px-2">{st.name}</th>)}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {METALS.map(m => (
+                        <tr key={m.id} className="border-t border-white/5">
+                          <th scope="row" className="text-left font-bold uppercase tracking-wider text-white py-2.5 pr-3 whitespace-nowrap">{m.name}</th>
+                          {[{ stones: false, stone: STONES[0].id }, ...STONES.map(st => ({ stones: true, stone: st.id }))].map(({ stones, stone }) => {
+                            const rate = perToothRate({ metal: m.id, color: 'yellow', stones, stone });
+                            return (
+                              <td key={stones ? stone : 'none'} className={`text-center py-2.5 px-2 ${rate === null ? 'text-zinc-500 text-[10px] uppercase tracking-wider' : 'text-[#D4D4D8] font-bold'}`}>
+                                {rate === null ? 'Quote' : `$${rate}`}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-[11px] text-zinc-500 mt-4 text-center">
+                  "Quote" combinations are priced by Jeremy at your consultation. Pick any of them in the Design Studio or the booking form.
+                </p>
+              </div>
+
               {/* Not on the price list */}
               <div className="mt-12 max-w-3xl mx-auto bg-[#111] border border-[#D4D4D8]/30 rounded-sm p-6 sm:p-8 text-center">
                 <h3 className="text-lg sm:text-xl font-bold text-white uppercase tracking-wider font-heading">Don't See Your Price?</h3>
                 <p className="text-sm text-zinc-400 mt-3 font-light leading-relaxed">
-                  18K gold, natural diamonds, gold with stones or a one-of-a-kind piece? Book a consultation, text or email Jeremy and get a quote.
+                  18K, 22K or 24K gold, gold with moissanite or diamonds, natural diamonds or a one-of-a-kind piece? Book a consultation, text or email Jeremy and get a quote.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
                   <button
@@ -481,7 +518,7 @@ export default function App() {
                 </div>
                 
                 <div className="text-center p-6 border border-[#D4D4D8]/30 bg-[#111] text-xs leading-relaxed uppercase tracking-widest text-[#D4D4D8]">
-                  For 18K Grillz, Natural Diamonds, and other custom inquiries<br/><span className="text-white font-bold inline-block mt-2">Book an appointment or DM us with your project details</span>
+                  For 18K, 22K & 24K Grillz, Gold with Moissanite or Diamonds, Natural Diamonds, and other custom inquiries<br/><span className="text-white font-bold inline-block mt-2">Book an appointment or DM us with your project details</span>
                 </div>
               </div>
 

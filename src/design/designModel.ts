@@ -5,7 +5,7 @@
 
 /** Price-list tiers. Every other combination is quoted by Jeremy. */
 export type Material = 'silver-moissanite' | 'silver-lab-diamond' | 'silver-plain' | '10k-gold' | '14k-gold' | '14k-white-gold' | 'script';
-export type Metal = 'silver' | '10k' | '14k' | '18k';
+export type Metal = 'silver' | '10k' | '14k' | '18k' | '22k' | '24k';
 export type GoldColor = 'yellow' | 'white' | 'rose';
 export type Stone = 'moissanite' | 'lab-diamond' | 'natural-diamond';
 export type StoneStyle = 'honeycomb' | 'honeymoon' | 'jumbo' | 'galaxy' | 'emerald' | 'mosaic' | 'hybrid' | 'other';
@@ -39,6 +39,8 @@ export const METALS: { id: Metal; name: string }[] = [
   { id: '10k', name: '10K Gold' },
   { id: '14k', name: '14K Gold' },
   { id: '18k', name: '18K Gold' },
+  { id: '22k', name: '22K Gold' },
+  { id: '24k', name: '24K Gold' },
 ];
 
 export const GOLD_COLORS: { id: GoldColor; name: string; metal: MetalShades }[] = [
@@ -46,6 +48,14 @@ export const GOLD_COLORS: { id: GoldColor; name: string; metal: MetalShades }[] 
   { id: 'white', name: 'White', metal: ['#ffffff', '#dcdfe4', '#969ea9'] },
   { id: 'rose', name: 'Rose', metal: ['#f9d4c4', '#d9947a', '#9a5a45'] },
 ];
+
+/** 22K and 24K are nearly pure gold, so they only come in yellow. */
+export const goldColorsFor = (metal: Metal) =>
+  metal === '22k' || metal === '24k' ? GOLD_COLORS.filter(c => c.id === 'yellow') : GOLD_COLORS;
+
+/** Switches metal, falling back to yellow when the current gold color isn't made in that karat. */
+export const withMetal = (g: Pick<GrillzDesign, 'color'>, metal: Metal): Pick<GrillzDesign, 'metal' | 'color'> =>
+  ({ metal, color: goldColorsFor(metal).some(c => c.id === g.color) ? g.color : 'yellow' });
 
 const SILVER_SHADES: MetalShades = ['#f5f6f8', '#c4c9d0', '#7b828c'];
 
@@ -174,6 +184,13 @@ export function grillzFromMaterial(material: string): Pick<GrillzDesign, 'metal'
   if (material === '14k-white-gold') return { ...base, metal: '14k', color: 'white' };
   if (material === '18k-natural') return { ...base, metal: '18k', stones: true, stone: 'natural-diamond' };
   return { ...base, metal: '14k' };
+}
+
+/** Price-list rate per tooth (for a full set) for this metal and stone, or null when it's quoted. */
+export function perToothRate(g: Pick<GrillzDesign, 'metal' | 'color' | 'stones' | 'stone'>): number | null {
+  const tier = priceTier({ ...DEFAULT_DESIGN.grillz, ...g, baseStyle: 'solid' });
+  const base = tier ? grillzBasePrice(tier, 8) : null;
+  return base === null ? null : base / 8;
 }
 
 export function grillzEstimate(g: GrillzDesign) {
