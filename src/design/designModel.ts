@@ -4,13 +4,13 @@
 // 1-2 molars, 3-4 premolars, 5 canine, 6 lateral, 7-8 centrals, 9 lateral, 10 canine, 11-12 premolars, 13-14 molars.
 
 /** Price-list tiers. Every other combination is quoted by Jeremy. */
-export type Material = 'silver-moissanite' | 'silver-lab-diamond' | 'silver-plain' | '10k-gold' | '14k-gold' | '14k-white-gold';
+export type Material = 'silver-moissanite' | 'silver-lab-diamond' | 'silver-plain' | '10k-gold' | '14k-gold' | '14k-white-gold' | 'script';
 export type Metal = 'silver' | '10k' | '14k' | '18k';
 export type GoldColor = 'yellow' | 'white' | 'rose';
 export type Stone = 'moissanite' | 'lab-diamond' | 'natural-diamond';
 export type StoneStyle = 'honeycomb' | 'honeymoon' | 'jumbo' | 'galaxy' | 'emerald' | 'mosaic' | 'hybrid' | 'other';
 export type AddOn = 'rose-cuts' | 'starburst-cuts' | 'speciality-cut' | 'laser-design' | 'diamond-dust' | '3d-design';
-export type FreeStyle = 'solid' | 'open-face' | 'perm-cut' | 'diamond-cuts' | 'nugget-cut';
+export type FreeStyle = 'solid' | 'open-face' | 'perm-cut' | 'diamond-cuts' | 'nugget-cut' | 'script';
 export type ToothKind = 'molar' | 'premolar' | 'canine' | 'lateral' | 'central';
 export type MetalShades = [string, string, string];
 
@@ -73,6 +73,8 @@ export const FREE_STYLES: { id: FreeStyle; name: string }[] = [
   { id: 'open-face', name: 'Open Face' },
   { id: 'diamond-cuts', name: 'Diamond Cuts' },
   { id: 'nugget-cut', name: 'Nugget Cut' },
+  // Not free: Script has its own price-list tier ($690 for 8 on 8 in silver)
+  { id: 'script', name: 'Script' },
 ];
 
 export const PREMIUM_ADDONS: { id: AddOn; name: string; price: number; suffix?: string }[] = [
@@ -126,6 +128,7 @@ export function grillzBasePrice(material: string, count: number): number | null 
     if (count === 20) return 3180;
     return count * 159;
   }
+  if (material === 'script') return count === 16 ? 690 : null;
   if (material === 'silver-plain') {
     if (count <= 2) return 225;
     if (count <= 4) return count * 45;
@@ -150,12 +153,12 @@ export const addonsPrice = (addons: string[], count: number) =>
 /** Which price-list tier a design falls in, or null when it's quoted at consultation. */
 export function priceTier(g: GrillzDesign): Material | null {
   if (g.metal === 'silver') {
-    if (!g.stones) return 'silver-plain';
+    if (!g.stones) return g.baseStyle === 'script' ? 'script' : 'silver-plain';
     if (g.stone === 'moissanite') return 'silver-moissanite';
     if (g.stone === 'lab-diamond') return 'silver-lab-diamond';
     return null;
   }
-  if (g.stones) return null;
+  if (g.stones || g.baseStyle === 'script') return null;
   if (g.metal === '10k') return '10k-gold';
   if (g.metal === '14k') return '14k-gold';
   return null;

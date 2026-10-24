@@ -5,8 +5,8 @@ import {
   Printer, Share2, Gem, Layers, HelpCircle
 } from 'lucide-react';
 import {
-  StudioDesign, GrillzDesign, FreeStyle, AddOn, FREE_STYLES,
-  presetTeeth, grillzBasePrice, addonsPrice, grillzEstimate, designSummary, designShareUrl,
+  StudioDesign, GrillzDesign, FreeStyle, AddOn, StoneStyle, FREE_STYLES, STONE_STYLES, stoneStyleName,
+  presetTeeth, grillzEstimate, designSummary, designShareUrl,
   styleName, addonName, grillzMetalName, grillzStoneName, grillzFromMaterial, toothNoteList, DEFAULT_DESIGN,
 } from './design/designModel';
 import { MouthPreview } from './design/DesignPreviews';
@@ -27,6 +27,8 @@ export interface BookingData {
   selectedBottomTeeth: number[];
   material: string;
   cuts: string[];
+  /** Diamond setting style (Honeycomb, Mosaic...) for iced-out grillz */
+  settingStyle?: string;
   customNotes: string;
   estimatedPrice: string;
   createdAt: string;
@@ -94,6 +96,7 @@ async function sendBookingToStudio(booking: BookingData) {
     'bottom-teeth': booking.selectedBottomTeeth.join(', '),
     material: booking.material,
     cuts: booking.cuts.join(', '),
+    'setting-style': booking.settingStyle || '',
     design: booking.designSummary || '',
     'design-link': booking.designLink || '',
     notes: booking.customNotes,
@@ -120,7 +123,7 @@ const formatBudget = (raw: string) => {
 /** What the customer wants made, for calendar and text-message drafts. */
 const lookingFor = (b: BookingData, sep = '\n') => b.jewelry
   ? [b.jewelry.consultation, `Pieces: ${b.jewelry.pieces.join(', ')}`, `Metal: ${b.jewelry.metal}`, `Stone: ${b.jewelry.stone}`, b.jewelry.size && `Size: ${b.jewelry.size}`, b.jewelry.budget && `Budget: ${b.jewelry.budget}`].filter(Boolean).join(sep)
-  : `${b.selectedTopTeeth.length} top / ${b.selectedBottomTeeth.length} bottom teeth in ${b.material}`;
+  : `${b.selectedTopTeeth.length} top / ${b.selectedBottomTeeth.length} bottom teeth in ${b.material}${b.settingStyle ? `, ${b.settingStyle} setting` : ''}`;
 
 export interface BookingPreset {
   teeth?: { top: number[]; bottom: number[] };
@@ -162,6 +165,7 @@ const CUT_OPTIONS = [
   { id: 'open-face', name: 'Open Face (Free)' },
   { id: 'diamond-cuts', name: 'Diamond Cuts (Free)' },
   { id: 'nugget-cut', name: 'Nugget Cut (Free)' },
+  { id: 'script', name: 'Script Style ($690 for 8 on 8 in silver)' },
   { id: 'diamond-dust', name: 'Diamond Dust (+$5/tooth)' },
   { id: 'rose-cuts', name: 'Rose Cuts (+$7/tooth)' },
   { id: 'starburst-cuts', name: 'Starburst Cuts (+$7/tooth)' },
@@ -189,6 +193,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
   const [selectedBottomTeeth, setSelectedBottomTeeth] = useState<Set<number>>(new Set());
   const [material, setMaterial] = useState<string>('10k-gold');
   const [selectedCuts, setSelectedCuts] = useState<string[]>(['perm-cut']);
+  const [settingStyle, setSettingStyle] = useState<StoneStyle>('honeycomb');
   const [customNotes, setCustomNotes] = useState<string>('');
   const [jewelryConsultation, setJewelryConsultation] = useState(JEWELRY_CONSULTATIONS[0]);
   const [jewelryPieces, setJewelryPieces] = useState<string[]>(['Chain']);
@@ -231,12 +236,14 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
       setSelectedBottomTeeth(new Set(g.bottom));
       setMaterial(`${grillzMetalName(g)}${g.stones ? ` with ${grillzStoneName(g)}` : ''}`);
       setSelectedCuts([g.baseStyle, ...g.addons]);
+      setSettingStyle(g.stoneStyle);
     } else {
       setServiceType(preset.serviceType || 'in-person');
       setSelectedTopTeeth(new Set(preset.teeth ? preset.teeth.top : presetTeeth(6)));
       setSelectedBottomTeeth(new Set(preset.teeth ? preset.teeth.bottom : []));
       setMaterial(preset.material || '10k-gold');
       setSelectedCuts(preset.cuts || ['perm-cut']);
+      setSettingStyle('honeycomb');
     }
     setCustomNotes(preset.notes || '');
     setJewelryConsultation(JEWELRY_CONSULTATIONS[0]);
@@ -293,7 +300,8 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
   const formGrillz: GrillzDesign = {
     ...DEFAULT_DESIGN.grillz,
     ...grillzFromMaterial(material),
-    baseStyle: (selectedCuts.find(c => FREE_STYLES.some(f => f.id === c)) || 'solid') as FreeStyle,
+    stoneStyle: settingStyle,
+    baseStyle: (selectedCuts.includes('script') ? 'script' : selectedCuts.find(c => FREE_STYLES.some(f => f.id === c)) || 'solid') as FreeStyle,
     addons: selectedCuts.filter(c => !FREE_STYLES.some(f => f.id === c)) as AddOn[],
     top: Array.from(selectedTopTeeth),
     bottom: Array.from(selectedBottomTeeth),
@@ -329,9 +337,8 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
     if (serviceType === 'jewelry') return jewelryBudget.trim() ? `Budget: ${formatBudget(jewelryBudget)}` : 'Custom Jewelry Quote upon Consultation';
     if (serviceType === 'adjustment') return '$50 - $120 (Fit depending)';
     if (totalTeethCount === 0) return 'Select teeth above';
-    const base = grillzBasePrice(material, totalTeethCount);
-    if (base === null) return 'Custom Quoted on Confirmation';
-    return `$${(base + addonsPrice(selectedCuts, totalTeethCount)).toLocaleString()}`;
+    const { total } = grillzEstimate(formGrillz);
+    return total === null ? 'Custom Quoted on Confirmation' : `$${total.toLocaleString()}`;
   };
 
   const designRows: [string, string][] = !design ? [] : [
@@ -373,6 +380,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
       selectedBottomTeeth: isJewelry ? [] : Array.from<number>(selectedBottomTeeth).sort((a, b) => a - b),
       material: isJewelry ? jewelryMetal : material,
       cuts: isJewelry ? [] : selectedCuts,
+      settingStyle: !isJewelry && !design && formGrillz.stones ? stoneStyleName(settingStyle) : undefined,
       jewelry: isJewelry ? { consultation: jewelryConsultation, pieces: JEWELRY_PIECES.filter(p => jewelryPieces.includes(p)), metal: jewelryMetal, stone: jewelryStone, size: jewelrySize.trim(), budget: formatBudget(jewelryBudget) } : undefined,
       customNotes,
       promoCode: promoCode.trim() || undefined,
@@ -813,6 +821,37 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
               </div>
               )}
 
+              {/* Diamond setting style, same styles as the price list */}
+              {serviceType !== 'jewelry' && formGrillz.stones && (
+                <div>
+                  <label className="block text-xs uppercase tracking-widest font-bold text-gray-300 mb-2">
+                    Diamond Setting Style <span className="text-[10px] text-[#D4D4D8] font-normal normal-case tracking-normal">Same price for every style</span>
+                  </label>
+                  <div className="flex flex-wrap gap-2" role="group" aria-label="Diamond setting style">
+                    {STONE_STYLES.map((st) => {
+                      const active = settingStyle === st.id;
+                      return (
+                        <button
+                          key={st.id}
+                          type="button"
+                          onClick={() => setSettingStyle(st.id)}
+                          aria-pressed={active}
+                          className={`px-3 py-1.5 text-xs font-semibold rounded-sm border transition-all ${
+                            active
+                              ? 'bg-[#D4D4D8] text-black border-[#D4D4D8] font-bold shadow-[0_0_10px_rgba(212,212,216,0.3)]'
+                              : 'bg-zinc-900 text-zinc-300 border-white/10 hover:border-zinc-500'
+                          }`}
+                        >
+                          {active && <Check className="w-3 h-3 inline mr-1" />}
+                          {st.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {settingStyle === 'other' && <p className="text-[11px] text-zinc-500 mt-2">Describe the setting you want in the notes below.</p>}
+                </div>
+              )}
+
               {/* Cuts & Design Add-ons */}
               {serviceType !== 'jewelry' && (
                 <div>
@@ -1177,6 +1216,12 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                   <span className="text-zinc-500 uppercase tracking-wider font-semibold">Metal / Material:</span>
                   <span className="text-white font-bold capitalize">{confirmedBooking.material.replace('-', ' ')}</span>
                 </div>
+                {confirmedBooking.settingStyle && (
+                  <div className="flex justify-between items-center border-b border-white/5 pb-2 text-xs">
+                    <span className="text-zinc-500 uppercase tracking-wider font-semibold">Setting Style:</span>
+                    <span className="text-white font-bold">{confirmedBooking.settingStyle}</span>
+                  </div>
+                )}
                 </>)}
                 <div className="flex justify-between items-center border-b border-white/5 pb-2 text-xs">
                   <span className="text-zinc-500 uppercase tracking-wider font-semibold">Estimated Total:</span>

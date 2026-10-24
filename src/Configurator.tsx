@@ -281,7 +281,7 @@ export default function Configurator({
 
             {!grillz.stones && (
               <div>
-                <h3 className="text-sm font-heading font-black tracking-widest uppercase mb-3">{stepNumber()}. Style <span className="text-[#D4D4D8] text-[10px]">Included free</span></h3>
+                <h3 className="text-sm font-heading font-black tracking-widest uppercase mb-3">{stepNumber()}. Style <span className="text-[#D4D4D8] text-[10px]">Included free • Script is $690 for 8 on 8</span></h3>
                 <div className="flex flex-wrap gap-2">
                   {FREE_STYLES.map(s => (
                     <button key={s.id} onClick={() => setGrillz({ baseStyle: s.id })} aria-pressed={grillz.baseStyle === s.id} className={pillClass(grillz.baseStyle === s.id)}>{s.name}</button>
@@ -327,7 +327,7 @@ export default function Configurator({
               <h3 className="text-xs font-bold tracking-widest uppercase mb-4 text-zinc-400">Your Grill</h3>
               <div className="space-y-2 mb-5 text-sm">
                 <div className="flex justify-between gap-3"><span>{grillzMetalName(grillz)} × {estimate.count} teeth</span><span className="shrink-0">{estimate.base === null ? 'Quoted' : `$${estimate.base.toLocaleString()}`}</span></div>
-                <div className="flex justify-between text-zinc-400"><span>{grillz.stones ? grillzStoneName(grillz) : `Style: ${FREE_STYLES.find(s => s.id === grillz.baseStyle)?.name}`}</span>{!grillz.stones && <span className="text-[#D4D4D8]">Free</span>}</div>
+                <div className="flex justify-between text-zinc-400"><span>{grillz.stones ? grillzStoneName(grillz) : `Style: ${FREE_STYLES.find(s => s.id === grillz.baseStyle)?.name}`}</span>{!grillz.stones && grillz.baseStyle !== 'script' && <span className="text-[#D4D4D8]">Free</span>}</div>
                 {grillz.addons.map(id => {
                   const a = PREMIUM_ADDONS.find(x => x.id === id)!;
                   return <div key={id} className="flex justify-between text-zinc-300"><span>+ {a.name}</span><span>${(a.price * estimate.count).toLocaleString()}</span></div>;
