@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, Check, ChevronRight, Calendar, Share2, RotateCcw, X } from 'lucide-react';
 import {
   StudioDesign, GrillzDesign, AddOn,
-  METALS, GOLD_COLORS, STONES, STONE_STYLES, FREE_STYLES, PREMIUM_ADDONS, DEFAULT_DESIGN,
+  METALS, goldColorsFor, withMetal, STONES, STONE_STYLES, FREE_STYLES, PREMIUM_ADDONS, DEFAULT_DESIGN,
   presetTeeth, grillzEstimate, grillzMetalName, grillzStoneName, metalShades, designShareUrl,
   toothKey, toothLabel, toothNoteList,
 } from './design/designModel';
@@ -227,7 +227,7 @@ export default function Configurator({
               <h3 className="text-sm font-heading font-black tracking-widest uppercase mb-3">{stepNumber()}. Metal</h3>
               <div className="grid grid-cols-2 gap-2">
                 {METALS.map(m => (
-                  <button key={m.id} onClick={() => setGrillz({ metal: m.id })} aria-pressed={grillz.metal === m.id} className={optionCardClass(grillz.metal === m.id)}>
+                  <button key={m.id} onClick={() => setGrillz(withMetal(grillz, m.id))} aria-pressed={grillz.metal === m.id} className={optionCardClass(grillz.metal === m.id)}>
                     <span className="w-5 h-5 rounded-full shrink-0 border border-white/20" style={{ background: swatch(metalShades({ ...grillz, metal: m.id })) }} />
                     <span className="text-xs font-bold flex-1">{m.name}</span>
                     {grillz.metal === m.id && <Check className="w-4 h-4 text-[#D4D4D8]" />}
@@ -240,7 +240,7 @@ export default function Configurator({
               <div>
                 <h3 className="text-sm font-heading font-black tracking-widest uppercase mb-3">{stepNumber()}. Gold Color</h3>
                 <div className="grid grid-cols-3 gap-2">
-                  {GOLD_COLORS.map(c => (
+                  {goldColorsFor(grillz.metal).map(c => (
                     <button key={c.id} onClick={() => setGrillz({ color: c.id })} aria-pressed={grillz.color === c.id} className={optionCardClass(grillz.color === c.id)}>
                       <span className="w-5 h-5 rounded-full shrink-0 border border-white/20" style={{ background: swatch(c.metal) }} />
                       <span className="text-xs font-bold">{c.name}</span>

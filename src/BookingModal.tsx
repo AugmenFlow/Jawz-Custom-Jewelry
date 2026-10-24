@@ -8,6 +8,7 @@ import {
   StudioDesign, GrillzDesign, FreeStyle, AddOn, StoneStyle, FREE_STYLES, STONE_STYLES, stoneStyleName,
   presetTeeth, grillzEstimate, designSummary, designShareUrl,
   styleName, addonName, grillzMetalName, grillzStoneName, grillzFromMaterial, toothNoteList, DEFAULT_DESIGN,
+  Stone, METALS, goldColorsFor, withMetal, metalShades, perToothRate, stoneName,
 } from './design/designModel';
 import { MouthPreview } from './design/DesignPreviews';
 import FlowSteps from './design/FlowSteps';
@@ -143,20 +144,24 @@ interface BookingModalProps {
   onEditDesign?: () => void;
 }
 
-const MATERIAL_OPTIONS = [
-  { id: '10k-gold', name: '10K Solid Yellow Gold', priceInfo: '$95/tooth (Most Popular)', color: '#e5b840' },
-  { id: '14k-gold', name: '14K Solid Yellow Gold', priceInfo: '$115/tooth', color: '#d4af37' },
-  { id: '14k-white-gold', name: '14K Solid White Gold', priceInfo: '$115/tooth', color: '#f1f5f9' },
-  { id: 'silver-moissanite', name: 'Silver Moissanite (VVS)', priceInfo: 'Passes Diamond Testers', color: '#f8fafc' },
-  { id: 'silver-lab-diamond', name: 'Silver Lab Diamond (VVS)', priceInfo: 'Colorless D-F Certified', color: '#ffffff' },
-  { id: 'silver-plain', name: '925 Dental Silver', priceInfo: '$40/tooth (Budget Classic)', color: '#cbd5e1' },
-  { id: '18k-natural', name: '18K Gold / Natural Diamonds', priceInfo: 'Bespoke Private Consultation', color: '#f59e0b' },
+type MetalChoice = Pick<GrillzDesign, 'metal' | 'color' | 'stones' | 'stone'>;
+
+const STONE_CHOICES: { id: 'none' | Stone; name: string; note: string }[] = [
+  { id: 'none', name: 'No Stones', note: 'Solid metal' },
+  { id: 'moissanite', name: 'Moissanite', note: 'VVS, passes diamond testers' },
+  { id: 'lab-diamond', name: 'Lab Diamond', note: 'VVS, colorless D-F' },
+  { id: 'natural-diamond', name: 'Natural Diamond', note: 'Earth-mined' },
 ];
+
+const rateLabel = (rate: number | null) => (rate === null ? 'Quoted at consultation' : `$${rate}/tooth`);
 
 // Custom jewelry & watches are quoted per piece, so no per-tooth prices here
 const JEWELRY_CONSULTATIONS = ['Jewelry Consultation', 'Watch Consultation', 'Ring Consultation'];
 const JEWELRY_PIECES = ['Pendant', 'Chain', 'Ring', 'Watch'];
-const JEWELRY_METALS = ['10K Gold', '14K Gold', '18K Gold', '925 Sterling Silver', 'Not Sure Yet'];
+const JEWELRY_METALS = ['10K Gold', '14K Gold', '18K Gold', '22K Gold', '24K Gold', '925 Sterling Silver', 'Not Sure Yet'];
+const JEWELRY_GOLD_COLORS = ['Yellow', 'White', 'Rose'];
+/** Gold colors made in a jewelry karat ("22K Gold" and "24K Gold" are yellow only). */
+const jewelryColorsFor = (metal: string) => (/^2[24]K/.test(metal) ? ['Yellow'] : metal.endsWith('Gold') ? JEWELRY_GOLD_COLORS : []);
 const JEWELRY_STONES = ['No Stones', 'Moissanite', 'Lab Diamond', 'Natural Diamond', 'Not Sure Yet'];
 
 const CUT_OPTIONS = [
@@ -191,13 +196,14 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
   const [serviceType, setServiceType] = useState<'in-person' | 'mail-order' | 'jewelry' | 'adjustment'>('in-person');
   const [selectedTopTeeth, setSelectedTopTeeth] = useState<Set<number>>(new Set(presetTeeth(6)));
   const [selectedBottomTeeth, setSelectedBottomTeeth] = useState<Set<number>>(new Set());
-  const [material, setMaterial] = useState<string>('10k-gold');
+  const [metalChoice, setMetalChoice] = useState<MetalChoice>(grillzFromMaterial('10k-gold'));
   const [selectedCuts, setSelectedCuts] = useState<string[]>(['perm-cut']);
   const [settingStyle, setSettingStyle] = useState<StoneStyle>('honeycomb');
   const [customNotes, setCustomNotes] = useState<string>('');
   const [jewelryConsultation, setJewelryConsultation] = useState(JEWELRY_CONSULTATIONS[0]);
   const [jewelryPieces, setJewelryPieces] = useState<string[]>(['Chain']);
   const [jewelryMetal, setJewelryMetal] = useState(JEWELRY_METALS[0]);
+  const [jewelryColor, setJewelryColor] = useState(JEWELRY_GOLD_COLORS[0]);
   const [jewelryStone, setJewelryStone] = useState(JEWELRY_STONES[0]);
   const [jewelrySize, setJewelrySize] = useState('');
   const [jewelryBudget, setJewelryBudget] = useState('');
@@ -234,14 +240,13 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
       setServiceType(preset.serviceType === 'mail-order' ? 'mail-order' : 'in-person');
       setSelectedTopTeeth(new Set(g.top));
       setSelectedBottomTeeth(new Set(g.bottom));
-      setMaterial(`${grillzMetalName(g)}${g.stones ? ` with ${grillzStoneName(g)}` : ''}`);
       setSelectedCuts([g.baseStyle, ...g.addons]);
       setSettingStyle(g.stoneStyle);
     } else {
       setServiceType(preset.serviceType || 'in-person');
       setSelectedTopTeeth(new Set(preset.teeth ? preset.teeth.top : presetTeeth(6)));
       setSelectedBottomTeeth(new Set(preset.teeth ? preset.teeth.bottom : []));
-      setMaterial(preset.material || '10k-gold');
+      setMetalChoice(grillzFromMaterial(preset.material || '10k-gold'));
       setSelectedCuts(preset.cuts || ['perm-cut']);
       setSettingStyle('honeycomb');
     }
@@ -249,6 +254,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
     setJewelryConsultation(JEWELRY_CONSULTATIONS[0]);
     setJewelryPieces(['Chain']);
     setJewelryMetal(JEWELRY_METALS[0]);
+    setJewelryColor(JEWELRY_GOLD_COLORS[0]);
     setJewelryStone(JEWELRY_STONES[0]);
     setJewelrySize('');
     setJewelryBudget('');
@@ -299,7 +305,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
   // The booking form's own choices, drawn with the same mouth as the Design Studio
   const formGrillz: GrillzDesign = {
     ...DEFAULT_DESIGN.grillz,
-    ...grillzFromMaterial(material),
+    ...metalChoice,
     stoneStyle: settingStyle,
     baseStyle: (selectedCuts.includes('script') ? 'script' : selectedCuts.find(c => FREE_STYLES.some(f => f.id === c)) || 'solid') as FreeStyle,
     addons: selectedCuts.filter(c => !FREE_STYLES.some(f => f.id === c)) as AddOn[],
@@ -307,6 +313,18 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
     bottom: Array.from(selectedBottomTeeth),
     notes: '',
   };
+
+  const updateMetalChoice = (patch: Partial<MetalChoice>) => setMetalChoice(prev => ({ ...prev, ...patch }));
+  const chooseStone = (id: 'none' | Stone) =>
+    updateMetalChoice(id === 'none' ? { stones: false } : { stones: true, stone: id });
+
+  // E.g. "14K White Gold with Moissanite, Honeycomb setting"
+  const materialName = (g: GrillzDesign) => `${grillzMetalName(g)}${g.stones ? ` with ${grillzStoneName(g)}` : ''}`;
+  // E.g. "18K Rose Gold with Lab Diamond" (the form sends its setting style separately)
+  const comboName = `${grillzMetalName(formGrillz)}${formGrillz.stones ? ` with ${stoneName(formGrillz.stone)}` : ''}`;
+  const jewelryMetalName = jewelryColorsFor(jewelryMetal).length
+    ? jewelryMetal.replace(' Gold', ` ${jewelryColorsFor(jewelryMetal).includes(jewelryColor) ? jewelryColor : 'Yellow'} Gold`)
+    : jewelryMetal;
 
   const handleFormToothClick = (n: number, isTop: boolean) => (isTop ? toggleTopTooth(n) : toggleBottomTooth(n));
 
@@ -378,10 +396,10 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
       appointmentTime: selectedTime,
       selectedTopTeeth: isJewelry ? [] : Array.from<number>(selectedTopTeeth).sort((a, b) => a - b),
       selectedBottomTeeth: isJewelry ? [] : Array.from<number>(selectedBottomTeeth).sort((a, b) => a - b),
-      material: isJewelry ? jewelryMetal : material,
+      material: isJewelry ? jewelryMetalName : design ? materialName(design.grillz) : comboName,
       cuts: isJewelry ? [] : selectedCuts,
       settingStyle: !isJewelry && !design && formGrillz.stones ? stoneStyleName(settingStyle) : undefined,
-      jewelry: isJewelry ? { consultation: jewelryConsultation, pieces: JEWELRY_PIECES.filter(p => jewelryPieces.includes(p)), metal: jewelryMetal, stone: jewelryStone, size: jewelrySize.trim(), budget: formatBudget(jewelryBudget) } : undefined,
+      jewelry: isJewelry ? { consultation: jewelryConsultation, pieces: JEWELRY_PIECES.filter(p => jewelryPieces.includes(p)), metal: jewelryMetalName, stone: jewelryStone, size: jewelrySize.trim(), budget: formatBudget(jewelryBudget) } : undefined,
       customNotes,
       promoCode: promoCode.trim() || undefined,
       estimatedPrice: calculateEstimate(),
@@ -737,7 +755,11 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                     </div>
                     {jewelryPieces.length === 0 && <p className="text-[11px] text-amber-300 mt-1.5">Pick at least one piece.</p>}
                   </div>
-                  {([['Metal', JEWELRY_METALS, jewelryMetal, setJewelryMetal], ['Stone', JEWELRY_STONES, jewelryStone, setJewelryStone]] as const).map(([label, options, value, set]) => (
+                  {([
+                    ['Metal', JEWELRY_METALS, jewelryMetal, setJewelryMetal],
+                    ...(jewelryColorsFor(jewelryMetal).length > 1 ? [['Gold Color', jewelryColorsFor(jewelryMetal), jewelryColor, setJewelryColor]] : []),
+                    ['Stone', JEWELRY_STONES, jewelryStone, setJewelryStone],
+                  ] as [string, string[], string, (v: string) => void][]).map(([label, options, value, set]) => (
                     <div key={label}>
                       <span className="block text-xs uppercase tracking-widest font-bold text-gray-300 mb-2">{label}:</span>
                       <div className="flex flex-wrap gap-2" role="group" aria-label={label}>
@@ -790,34 +812,97 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                 </div>
               )}
 
-              {/* Material & Metal Selection */}
+              {/* Metal, karat, gold color & stones: every combination can be booked */}
               {serviceType !== 'jewelry' && (
-              <div>
-                <label className="block text-xs uppercase tracking-widest font-bold text-gray-300 mb-2">
-                  Select Preferred Metal / Purity:
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
-                  {MATERIAL_OPTIONS.map((mat) => (
-                    <div
-                      key={mat.id}
-                      onClick={() => setMaterial(mat.id)}
-                      className={`cursor-pointer p-3 border rounded-sm transition-all flex items-start gap-2.5 ${
-                        material === mat.id
-                          ? 'border-[#D4D4D8] bg-[#D4D4D8]/10'
-                          : 'border-white/10 bg-[#121212] hover:border-zinc-700'
-                      }`}
-                    >
-                      <div 
-                        className="w-3.5 h-3.5 rounded-full mt-0.5 shrink-0 border border-black/50" 
-                        style={{ backgroundColor: mat.color }}
-                      />
-                      <div className="min-w-0">
-                        <div className="text-xs font-bold text-white uppercase tracking-wider truncate">{mat.name}</div>
-                        <div className="text-[10px] text-zinc-400 font-medium">{mat.priceInfo}</div>
-                      </div>
-                    </div>
-                  ))}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs uppercase tracking-widest font-bold text-gray-300 mb-2">
+                    Metal / Karat:
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5" role="group" aria-label="Metal and karat">
+                    {METALS.map((m) => {
+                      const active = metalChoice.metal === m.id;
+                      const option = { ...metalChoice, ...withMetal(metalChoice, m.id) };
+                      const [light, mid] = metalShades({ ...formGrillz, ...option });
+                      return (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => updateMetalChoice(withMetal(metalChoice, m.id))}
+                          aria-pressed={active}
+                          className={`text-left p-3 border rounded-sm transition-all flex items-start gap-2.5 ${
+                            active ? 'border-[#D4D4D8] bg-[#D4D4D8]/10' : 'border-white/10 bg-[#121212] hover:border-zinc-700'
+                          }`}
+                        >
+                          <span className="w-3.5 h-3.5 rounded-full mt-0.5 shrink-0 border border-black/50" style={{ background: `linear-gradient(135deg, ${light}, ${mid})` }} />
+                          <span className="min-w-0">
+                            <span className="block text-xs font-bold text-white uppercase tracking-wider">{m.name}</span>
+                            <span className="block text-[10px] text-zinc-400 font-medium">{rateLabel(perToothRate(option))}</span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
+
+                {metalChoice.metal !== 'silver' && (
+                  <div>
+                    <label className="block text-xs uppercase tracking-widest font-bold text-gray-300 mb-2">
+                      Gold Color:{goldColorsFor(metalChoice.metal).length === 1 && <span className="text-[10px] text-zinc-500 font-normal normal-case tracking-normal ml-1.5">{metalChoice.metal.toUpperCase()} comes in yellow only</span>}
+                    </label>
+                    <div className="flex flex-wrap gap-2" role="group" aria-label="Gold color">
+                      {goldColorsFor(metalChoice.metal).map((c) => {
+                        const active = metalChoice.color === c.id;
+                        return (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => updateMetalChoice({ color: c.id })}
+                            aria-pressed={active}
+                            className={`px-3 py-1.5 text-xs font-semibold rounded-sm border transition-all inline-flex items-center gap-1.5 ${
+                              active ? 'bg-[#D4D4D8] text-black border-[#D4D4D8] font-bold' : 'bg-zinc-900 text-zinc-300 border-white/10 hover:border-zinc-500'
+                            }`}
+                          >
+                            <span className="w-3 h-3 rounded-full border border-black/40" style={{ background: `linear-gradient(135deg, ${c.metal[0]}, ${c.metal[1]})` }} />
+                            {c.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs uppercase tracking-widest font-bold text-gray-300 mb-2">
+                    Stones:
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5" role="group" aria-label="Stones">
+                    {STONE_CHOICES.map((st) => {
+                      const active = st.id === 'none' ? !metalChoice.stones : metalChoice.stones && metalChoice.stone === st.id;
+                      const option = st.id === 'none' ? { ...metalChoice, stones: false } : { ...metalChoice, stones: true, stone: st.id };
+                      return (
+                        <button
+                          key={st.id}
+                          type="button"
+                          onClick={() => chooseStone(st.id)}
+                          aria-pressed={active}
+                          className={`text-left p-3 border rounded-sm transition-all ${
+                            active ? 'border-[#D4D4D8] bg-[#D4D4D8]/10' : 'border-white/10 bg-[#121212] hover:border-zinc-700'
+                          }`}
+                        >
+                          <span className="block text-xs font-bold text-white uppercase tracking-wider">{st.name}</span>
+                          <span className="block text-[10px] text-zinc-500">{st.note}</span>
+                          <span className="block text-[10px] text-zinc-400 font-medium mt-0.5">{rateLabel(perToothRate(option))}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-zinc-400">
+                  Your combination: <span className="text-white font-bold">{comboName}</span>
+                  {perToothRate(metalChoice) === null && <span className="text-zinc-500"> · priced by Jeremy at your consultation</span>}
+                </p>
               </div>
               )}
 
@@ -1214,7 +1299,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                 </div>
                 <div className="flex justify-between items-center border-b border-white/5 pb-2 text-xs">
                   <span className="text-zinc-500 uppercase tracking-wider font-semibold">Metal / Material:</span>
-                  <span className="text-white font-bold capitalize">{confirmedBooking.material.replace('-', ' ')}</span>
+                  <span className="text-white font-bold text-right">{confirmedBooking.material}</span>
                 </div>
                 {confirmedBooking.settingStyle && (
                   <div className="flex justify-between items-center border-b border-white/5 pb-2 text-xs">
