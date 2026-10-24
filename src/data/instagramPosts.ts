@@ -102,6 +102,9 @@ export const INSTAGRAM_POSTS: InstagramPost[] = [
 
 export const BEST_SELLER_POSTS = INSTAGRAM_POSTS.slice(0, 4);
 
+// INSTAGRAM_POSTS is listed newest first
+export const RECENT_POSTS = INSTAGRAM_POSTS.slice(0, 4);
+
 // Gallery order: deal posts out one category at a time so the grid mixes piece types,
 // with the best sellers placed last so the gallery doesn't open with the same four pieces.
 const byCategory = INSTAGRAM_CATEGORIES.map(({ id }) => [

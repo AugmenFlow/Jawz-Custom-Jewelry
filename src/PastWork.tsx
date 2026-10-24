@@ -112,7 +112,7 @@ export default function PastWork({ onBookPost, onOpenBooking, onBackToHome }: Pa
           
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white font-heading">
-              Complete Past Work Gallery
+              Complete Gallery
             </h2>
             <div className="w-16 h-1 bg-[#D4D4D8] mx-auto mt-4 mb-4"></div>
             <p className="text-xs sm:text-sm text-zinc-400 max-w-2xl mx-auto font-light">
