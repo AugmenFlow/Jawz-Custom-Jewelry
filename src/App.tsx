@@ -216,9 +216,8 @@ export default function App() {
                 
                 <div className="bg-[#111] border border-white/10 rounded-sm p-6 hover:border-[#D4D4D8]/50 transition-colors">
                   <h3 className="text-xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">Silver Plain Grillz</h3>
-                  <div className="relative mb-6 h-28 flex items-center justify-center rounded-sm bg-[radial-gradient(circle_at_center,_rgba(212,212,216,0.12)_0%,_transparent_70%)]">
-                    <img src={silverPlain} alt="Silver Plain grillz" loading="lazy" decoding="async" className="h-full object-contain mix-blend-screen" />
-                    <img src={jawzLogo} alt="" aria-hidden="true" className="absolute bottom-0 right-0 w-9 h-9 object-contain opacity-80" />
+                  <div className="relative mb-6 aspect-[600/327] flex items-center justify-center rounded-sm bg-[radial-gradient(circle_at_center,_rgba(212,212,216,0.12)_0%,_transparent_70%)]">
+                    <img src={silverPlain} alt="Silver Plain grillz" width={600} height={327} loading="lazy" decoding="async" className="w-full h-full object-contain mix-blend-screen" />
                   </div>
                   <div className="flex flex-col">
                      <PricingRow label="2 Teeth" price="$225" />
@@ -230,9 +229,8 @@ export default function App() {
                 <div className="bg-[#111] border border-[#D4D4D8]/30 rounded-sm p-6 hover:border-[#D4D4D8] transition-colors relative">
                   <div className="absolute top-0 right-0 py-1 px-3 bg-[#D4D4D8] text-black text-[9px] font-bold uppercase tracking-widest">Popular</div>
                   <h3 className="text-xl font-bold text-[#D4D4D8] uppercase tracking-wider mb-6 text-center border-b border-[#D4D4D8]/10 pb-4">10K Gold Plain Grillz</h3>
-                  <div className="relative mb-6 h-28 flex items-center justify-center rounded-sm bg-[radial-gradient(circle_at_center,_rgba(212,212,216,0.12)_0%,_transparent_70%)]">
-                    <img src={goldPlain} alt="10K Gold Plain grillz" loading="lazy" decoding="async" className="h-full object-contain mix-blend-screen" />
-                    <img src={jawzLogo} alt="" aria-hidden="true" className="absolute bottom-0 right-0 w-9 h-9 object-contain opacity-80" />
+                  <div className="relative mb-6 aspect-[600/327] flex items-center justify-center rounded-sm bg-[radial-gradient(circle_at_center,_rgba(212,212,216,0.12)_0%,_transparent_70%)]">
+                    <img src={goldPlain} alt="10K Gold Plain grillz" width={600} height={327} loading="lazy" decoding="async" className="w-full h-full object-contain mix-blend-screen" />
                   </div>
                   <div className="flex flex-col">
                      <PricingRow label="2 Teeth" price="$275" />
@@ -243,9 +241,8 @@ export default function App() {
 
                 <div className="bg-[#111] border border-[#D4D4D8]/30 border-opacity-50 rounded-sm p-6 hover:border-[#D4D4D8] transition-colors">
                   <h3 className="text-xl font-bold text-white uppercase tracking-wider mb-6 text-center border-b border-white/10 pb-4">14K Gold Plain Grillz</h3>
-                  <div className="relative mb-6 h-28 flex items-center justify-center rounded-sm bg-[radial-gradient(circle_at_center,_rgba(212,212,216,0.12)_0%,_transparent_70%)]">
-                    <img src={goldPlain} alt="14K Gold Plain grillz" loading="lazy" decoding="async" className="h-full object-contain mix-blend-screen brightness-110" />
-                    <img src={jawzLogo} alt="" aria-hidden="true" className="absolute bottom-0 right-0 w-9 h-9 object-contain opacity-80" />
+                  <div className="relative mb-6 aspect-[600/327] flex items-center justify-center rounded-sm bg-[radial-gradient(circle_at_center,_rgba(212,212,216,0.12)_0%,_transparent_70%)]">
+                    <img src={goldPlain} alt="14K Gold Plain grillz" width={600} height={327} loading="lazy" decoding="async" className="w-full h-full object-contain mix-blend-screen brightness-110" />
                   </div>
                   <div className="flex flex-col">
                      <PricingRow label="2 Teeth" price="$350" />
