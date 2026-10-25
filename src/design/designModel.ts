@@ -49,13 +49,12 @@ export const GOLD_COLORS: { id: GoldColor; name: string; metal: MetalShades }[] 
   { id: 'rose', name: 'Rose', metal: ['#f9d4c4', '#d9947a', '#9a5a45'] },
 ];
 
-/** 22K and 24K are nearly pure gold, so they only come in yellow. */
-export const goldColorsFor = (metal: Metal) =>
-  metal === '22k' || metal === '24k' ? GOLD_COLORS.filter(c => c.id === 'yellow') : GOLD_COLORS;
+/** Every metal can be finished in any color. */
+export const goldColorsFor = (_metal: Metal) => GOLD_COLORS;
 
-/** Switches metal, falling back to yellow when the current gold color isn't made in that karat. */
+/** Switches metal, keeping the chosen color. */
 export const withMetal = (g: Pick<GrillzDesign, 'color'>, metal: Metal): Pick<GrillzDesign, 'metal' | 'color'> =>
-  ({ metal, color: goldColorsFor(metal).some(c => c.id === g.color) ? g.color : 'yellow' });
+  ({ metal, color: g.color });
 
 const SILVER_SHADES: MetalShades = ['#f5f6f8', '#c4c9d0', '#7b828c'];
 
@@ -177,9 +176,9 @@ export function priceTier(g: GrillzDesign): Material | null {
 /** Metal, colour and stones matching one of the booking form's metal choices. */
 export function grillzFromMaterial(material: string): Pick<GrillzDesign, 'metal' | 'color' | 'stones' | 'stone'> {
   const base = { color: 'yellow' as GoldColor, stones: false, stone: 'moissanite' as Stone };
-  if (material === 'silver-plain') return { ...base, metal: 'silver' };
-  if (material === 'silver-moissanite') return { ...base, metal: 'silver', stones: true };
-  if (material === 'silver-lab-diamond') return { ...base, metal: 'silver', stones: true, stone: 'lab-diamond' };
+  if (material === 'silver-plain') return { ...base, metal: 'silver', color: 'white' };
+  if (material === 'silver-moissanite') return { ...base, metal: 'silver', color: 'white', stones: true };
+  if (material === 'silver-lab-diamond') return { ...base, metal: 'silver', color: 'white', stones: true, stone: 'lab-diamond' };
   if (material === '10k-gold') return { ...base, metal: '10k' };
   if (material === '14k-white-gold') return { ...base, metal: '14k', color: 'white' };
   if (material === '18k-natural') return { ...base, metal: '18k', stones: true, stone: 'natural-diamond' };
@@ -202,12 +201,12 @@ export function grillzEstimate(g: GrillzDesign) {
 }
 
 export const metalShades = (g: GrillzDesign): MetalShades =>
-  g.metal === 'silver' ? SILVER_SHADES : (GOLD_COLORS.find(c => c.id === g.color) || GOLD_COLORS[0]).metal;
+  g.metal === 'silver' && g.color === 'white' ? SILVER_SHADES : (GOLD_COLORS.find(c => c.id === g.color) || GOLD_COLORS[0]).metal;
 
-/** E.g. "14K Rose Gold" or "925 Silver". */
-export function grillzMetalName(g: GrillzDesign) {
-  if (g.metal === 'silver') return '925 Silver';
+/** E.g. "14K Rose Gold", "925 Silver" or "925 Silver (Yellow)". */
+export function grillzMetalName(g: Pick<GrillzDesign, 'metal' | 'color'>) {
   const color = GOLD_COLORS.find(c => c.id === g.color)?.name || '';
+  if (g.metal === 'silver') return g.color === 'white' ? '925 Silver' : `925 Silver (${color})`;
   return `${g.metal.toUpperCase()} ${color} Gold`;
 }
 

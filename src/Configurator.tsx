@@ -40,7 +40,6 @@ export default function Configurator({
   const setGrillz = (patch: Partial<GrillzDesign>) => onChange({ ...design, grillz: { ...grillz, ...patch } });
 
   const estimate = grillzEstimate(grillz);
-  const isGold = grillz.metal !== 'silver';
   const stepNumber = (() => { let n = 0; return () => ++n; })();
 
   const toggleTooth = (n: number, isTop: boolean) => {
@@ -228,7 +227,7 @@ export default function Configurator({
               <div className="grid grid-cols-2 gap-2">
                 {METALS.map(m => (
                   <button key={m.id} onClick={() => setGrillz(withMetal(grillz, m.id))} aria-pressed={grillz.metal === m.id} className={optionCardClass(grillz.metal === m.id)}>
-                    <span className="w-5 h-5 rounded-full shrink-0 border border-white/20" style={{ background: swatch(metalShades({ ...grillz, metal: m.id })) }} />
+                    <span className="w-5 h-5 rounded-full shrink-0 border border-white/20" style={{ background: swatch(metalShades({ ...grillz, metal: m.id, color: m.id === 'silver' ? 'white' : grillz.color })) }} />
                     <span className="text-xs font-bold flex-1">{m.name}</span>
                     {grillz.metal === m.id && <Check className="w-4 h-4 text-[#D4D4D8]" />}
                   </button>
@@ -236,19 +235,17 @@ export default function Configurator({
               </div>
             </div>
 
-            {isGold && (
-              <div>
-                <h3 className="text-sm font-heading font-black tracking-widest uppercase mb-3">{stepNumber()}. Gold Color</h3>
-                <div className="grid grid-cols-3 gap-2">
-                  {goldColorsFor(grillz.metal).map(c => (
-                    <button key={c.id} onClick={() => setGrillz({ color: c.id })} aria-pressed={grillz.color === c.id} className={optionCardClass(grillz.color === c.id)}>
-                      <span className="w-5 h-5 rounded-full shrink-0 border border-white/20" style={{ background: swatch(c.metal) }} />
-                      <span className="text-xs font-bold">{c.name}</span>
-                    </button>
-                  ))}
-                </div>
+            <div>
+              <h3 className="text-sm font-heading font-black tracking-widest uppercase mb-3">{stepNumber()}. Color</h3>
+              <div className="grid grid-cols-3 gap-2">
+                {goldColorsFor(grillz.metal).map(c => (
+                  <button key={c.id} onClick={() => setGrillz({ color: c.id })} aria-pressed={grillz.color === c.id} className={optionCardClass(grillz.color === c.id)}>
+                    <span className="w-5 h-5 rounded-full shrink-0 border border-white/20" style={{ background: swatch(c.metal) }} />
+                    <span className="text-xs font-bold">{c.name}</span>
+                  </button>
+                ))}
               </div>
-            )}
+            </div>
 
             <div>
               <h3 className="text-sm font-heading font-black tracking-widest uppercase mb-3">{stepNumber()}. Stones</h3>
