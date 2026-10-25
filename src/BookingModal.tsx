@@ -160,8 +160,8 @@ const JEWELRY_CONSULTATIONS = ['Jewelry Consultation', 'Watch Consultation', 'Ri
 const JEWELRY_PIECES = ['Pendant', 'Chain', 'Ring', 'Watch'];
 const JEWELRY_METALS = ['10K Gold', '14K Gold', '18K Gold', '22K Gold', '24K Gold', '925 Sterling Silver', 'Not Sure Yet'];
 const JEWELRY_GOLD_COLORS = ['Yellow', 'White', 'Rose'];
-/** Gold colors made in a jewelry karat ("22K Gold" and "24K Gold" are yellow only). */
-const jewelryColorsFor = (metal: string) => (/^2[24]K/.test(metal) ? ['Yellow'] : metal.endsWith('Gold') ? JEWELRY_GOLD_COLORS : []);
+/** Every jewelry metal can be finished in any color (until the customer has picked a metal). */
+const jewelryColorsFor = (metal: string) => (metal === 'Not Sure Yet' ? [] : JEWELRY_GOLD_COLORS);
 const JEWELRY_STONES = ['No Stones', 'Moissanite', 'Lab Diamond', 'Natural Diamond', 'Not Sure Yet'];
 
 const CUT_OPTIONS = [
@@ -322,9 +322,12 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
   const materialName = (g: GrillzDesign) => `${grillzMetalName(g)}${g.stones ? ` with ${grillzStoneName(g)}` : ''}`;
   // E.g. "18K Rose Gold with Lab Diamond" (the form sends its setting style separately)
   const comboName = `${grillzMetalName(formGrillz)}${formGrillz.stones ? ` with ${stoneName(formGrillz.stone)}` : ''}`;
-  const jewelryMetalName = jewelryColorsFor(jewelryMetal).length
-    ? jewelryMetal.replace(' Gold', ` ${jewelryColorsFor(jewelryMetal).includes(jewelryColor) ? jewelryColor : 'Yellow'} Gold`)
-    : jewelryMetal;
+  // E.g. "18K Rose Gold" or "925 Sterling Silver (Yellow)"
+  const jewelryMetalName = !jewelryColorsFor(jewelryMetal).length
+    ? jewelryMetal
+    : jewelryMetal.endsWith(' Gold')
+      ? jewelryMetal.replace(' Gold', ` ${jewelryColor} Gold`)
+      : `${jewelryMetal} (${jewelryColor})`;
 
   const handleFormToothClick = (n: number, isTop: boolean) => (isTop ? toggleTopTooth(n) : toggleBottomTooth(n));
 
@@ -699,7 +702,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                   <MouthPreview design={formGrillz} onToothClick={handleFormToothClick} />
                   <p className="text-[11px] text-zinc-500">
                     Tap teeth to add or remove them.{onEditDesign && (
-                      <> Want stones, gold colors or setting styles?{' '}
+                      <> Want stones, colors or setting styles?{' '}
                         <button type="button" onClick={onEditDesign} className="text-[#D4D4D8] underline underline-offset-2 hover:text-white">Open the Design Studio</button>
                       </>
                     )}
@@ -757,7 +760,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                   </div>
                   {([
                     ['Metal', JEWELRY_METALS, jewelryMetal, setJewelryMetal],
-                    ...(jewelryColorsFor(jewelryMetal).length > 1 ? [['Gold Color', jewelryColorsFor(jewelryMetal), jewelryColor, setJewelryColor]] : []),
+                    ...(jewelryColorsFor(jewelryMetal).length > 1 ? [['Color', jewelryColorsFor(jewelryMetal), jewelryColor, setJewelryColor]] : []),
                     ['Stone', JEWELRY_STONES, jewelryStone, setJewelryStone],
                   ] as [string, string[], string, (v: string) => void][]).map(([label, options, value, set]) => (
                     <div key={label}>
@@ -812,7 +815,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                 </div>
               )}
 
-              {/* Metal, karat, gold color & stones: every combination can be booked */}
+              {/* Metal, karat, color & stones: every combination can be booked */}
               {serviceType !== 'jewelry' && (
               <div className="space-y-4">
                 <div>
@@ -823,7 +826,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                     {METALS.map((m) => {
                       const active = metalChoice.metal === m.id;
                       const option = { ...metalChoice, ...withMetal(metalChoice, m.id) };
-                      const [light, mid] = metalShades({ ...formGrillz, ...option });
+                      const [light, mid] = metalShades({ ...formGrillz, ...option, color: m.id === 'silver' ? 'white' : option.color });
                       return (
                         <button
                           key={m.id}
@@ -845,32 +848,30 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                   </div>
                 </div>
 
-                {metalChoice.metal !== 'silver' && (
-                  <div>
-                    <label className="block text-xs uppercase tracking-widest font-bold text-gray-300 mb-2">
-                      Gold Color:{goldColorsFor(metalChoice.metal).length === 1 && <span className="text-[10px] text-zinc-500 font-normal normal-case tracking-normal ml-1.5">{metalChoice.metal.toUpperCase()} comes in yellow only</span>}
-                    </label>
-                    <div className="flex flex-wrap gap-2" role="group" aria-label="Gold color">
-                      {goldColorsFor(metalChoice.metal).map((c) => {
-                        const active = metalChoice.color === c.id;
-                        return (
-                          <button
-                            key={c.id}
-                            type="button"
-                            onClick={() => updateMetalChoice({ color: c.id })}
-                            aria-pressed={active}
-                            className={`px-3 py-1.5 text-xs font-semibold rounded-sm border transition-all inline-flex items-center gap-1.5 ${
-                              active ? 'bg-[#D4D4D8] text-black border-[#D4D4D8] font-bold' : 'bg-zinc-900 text-zinc-300 border-white/10 hover:border-zinc-500'
-                            }`}
-                          >
-                            <span className="w-3 h-3 rounded-full border border-black/40" style={{ background: `linear-gradient(135deg, ${c.metal[0]}, ${c.metal[1]})` }} />
-                            {c.name}
-                          </button>
-                        );
-                      })}
-                    </div>
+                <div>
+                  <label className="block text-xs uppercase tracking-widest font-bold text-gray-300 mb-2">
+                    Color:
+                  </label>
+                  <div className="flex flex-wrap gap-2" role="group" aria-label="Color">
+                    {goldColorsFor(metalChoice.metal).map((c) => {
+                      const active = metalChoice.color === c.id;
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => updateMetalChoice({ color: c.id })}
+                          aria-pressed={active}
+                          className={`px-3 py-1.5 text-xs font-semibold rounded-sm border transition-all inline-flex items-center gap-1.5 ${
+                            active ? 'bg-[#D4D4D8] text-black border-[#D4D4D8] font-bold' : 'bg-zinc-900 text-zinc-300 border-white/10 hover:border-zinc-500'
+                          }`}
+                        >
+                          <span className="w-3 h-3 rounded-full border border-black/40" style={{ background: `linear-gradient(135deg, ${c.metal[0]}, ${c.metal[1]})` }} />
+                          {c.name}
+                        </button>
+                      );
+                    })}
                   </div>
-                )}
+                </div>
 
                 <div>
                   <label className="block text-xs uppercase tracking-widest font-bold text-gray-300 mb-2">

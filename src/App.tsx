@@ -664,7 +664,7 @@ export default function App() {
                 Design Yours in Minutes
               </h2>
               <p className="text-sm text-zinc-400 mt-4 max-w-lg font-light leading-relaxed">
-                Tap the teeth you want covered, pick your metal and gold color, choose your stones and setting style, and watch your grill come to life with a live price. When you book, your design goes straight to Jeremy.
+                Pick your teeth, metal, color and stones, see a live price, and send your design straight to Jeremy.
               </p>
               <div className="flex flex-wrap gap-3 mt-8">
                 <button
