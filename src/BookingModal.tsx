@@ -46,7 +46,7 @@ export interface BookingData {
 
 export const STUDIO_EMAIL = 'jawzjewelry@gmail.com';
 
-export const BOOKING_STEPS = ['Design', 'Date & Contact', 'Confirmed'];
+export const BOOKING_STEPS = ['Design', 'Date & Contact', 'Request Sent'];
 
 const FORM_ENDPOINT = '/__forms.html';
 const SLOTS_ENDPOINT = '/api/slots';
@@ -83,8 +83,9 @@ async function sendBookingToStudio(booking: BookingData) {
   const body = new FormData();
   const fields: Record<string, string> = {
     'form-name': 'booking',
-    subject: `New appointment: ${booking.clientName} on ${booking.appointmentDate} at ${booking.appointmentTime}`,
+    subject: `NEW PENDING BOOKING REQUEST (deposit needed): ${booking.clientName} on ${booking.appointmentDate} at ${booking.appointmentTime}`,
     'booking-id': booking.id,
+    status: 'PENDING - DEPOSIT NOT PAID. Review the request, send a Square Invoice for the deposit, then confirm the appointment once it is paid.',
     service: booking.serviceType,
     name: booking.clientName,
     phone: booking.phone,
@@ -187,7 +188,7 @@ const TIME_SLOTS = [
 ];
 
 export default function BookingModal({ isOpen, onClose, initialPreset, onEditDesign }: BookingModalProps) {
-  const [step, setStep] = useState<1 | 2 | 3>(1); // 1: Design, 2: Date & Contact, 3: Confirmed
+  const [step, setStep] = useState<1 | 2 | 3>(1); // 1: Design, 2: Date & Contact, 3: Request sent
   const [design, setDesign] = useState<StudioDesign | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [takenSlots, setTakenSlots] = useState<string[]>([]);
@@ -407,7 +408,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
       promoCode: promoCode.trim() || undefined,
       estimatedPrice: calculateEstimate(),
       createdAt: new Date().toISOString(),
-      status: 'confirmed',
+      status: 'pending',
       designSummary: design ? designSummary(design) : undefined,
       designLink: design ? designShareUrl(design) : undefined,
     };
@@ -450,10 +451,10 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
 
   // Google Calendar link builder
   const getGoogleCalendarUrl = (booking: BookingData) => {
-    const title = encodeURIComponent(`Jawz Jewelry Appointment - ${booking.clientName}`);
+    const title = encodeURIComponent(`Jawz Jewelry Appointment Request (Pending Deposit) - ${booking.clientName}`);
     const location = encodeURIComponent('1201 N Watson Rd, Arlington, TX 76006, United States');
     const details = encodeURIComponent(
-      `Appointment with Jawz Jewelry\nRef: ${booking.id}\nService: ${booking.serviceType}\n${lookingFor(booking)}\nNotes: ${booking.customNotes || 'None'}\nStudio Phone: (469) 751-1734\nStudio Email: ${STUDIO_EMAIL}\nStrictly by appointment only.`
+      `Appointment request with Jawz Jewelry (pending deposit)\nRef: ${booking.id}\nService: ${booking.serviceType}\n${lookingFor(booking)}\nNotes: ${booking.customNotes || 'None'}\nYour appointment is confirmed after your deposit is received.\nStudio Phone: (469) 751-1734\nStudio Email: ${STUDIO_EMAIL}\nStrictly by appointment only.`
     );
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&location=${location}&details=${details}`;
   };
@@ -461,7 +462,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
   // SMS draft for quick texting owner
   const getSmsDraft = (booking: BookingData) => {
     const text = encodeURIComponent(
-      `Hi Jeremy! I just booked an appointment on your site (Ref ${booking.id}). Name: ${booking.clientName}, Date: ${booking.appointmentDate} at ${booking.appointmentTime}. Looking for: ${lookingFor(booking, ', ')}. Notes: ${booking.customNotes || 'None'}.${booking.promoCode ? ` Promo code: ${booking.promoCode}.` : ''}${booking.designLink ? ` My design: ${booking.designLink}` : ''}`
+      `Hi Jeremy! I just requested an appointment on your site (Ref ${booking.id}). Name: ${booking.clientName}, Date: ${booking.appointmentDate} at ${booking.appointmentTime}. Looking for: ${lookingFor(booking, ', ')}. Notes: ${booking.customNotes || 'None'}.${booking.promoCode ? ` Promo code: ${booking.promoCode}.` : ''}${booking.designLink ? ` My design: ${booking.designLink}` : ''}`
     );
     return `sms:+14697511734?body=${text}`;
   };
@@ -479,7 +480,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-xl font-black uppercase tracking-wider text-white font-heading">
-                  Book Custom Appointment
+                  Request Appointment
                 </h2>
                 <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 bg-red-950/80 text-red-400 border border-red-800/50 rounded">
                   By Appt Only
@@ -1126,7 +1127,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
 
                   <div>
                     <label className="block text-xs uppercase tracking-wider font-semibold text-gray-300 mb-1">
-                      Email Address (Optional)
+                      Email Address (Optional, for your request summary)
                     </label>
                     <input
                       type="email"
@@ -1206,6 +1207,9 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                   <p className="text-zinc-400 font-light leading-relaxed">
                     60% deposit is required upon taking your mold impression or dispatching your custom mold kit. Deposits are strictly non-refundable once materials are cast. Balance is due within 21 days of completion.
                   </p>
+                  <p className="text-zinc-300 font-semibold leading-relaxed">
+                    Submitting this form sends an appointment request. A deposit is required to secure your appointment, and Jawz Jewelry will send you payment instructions. Your appointment is confirmed after your deposit is received.
+                  </p>
                 </div>
               </div>
 
@@ -1233,14 +1237,14 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                   className="px-8 py-3 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffffff] transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(212,212,216,0.4)] rounded-sm disabled:opacity-60 disabled:cursor-wait"
                 >
                   <Check className="w-4 h-4" />
-                  <span>{isSending ? 'Sending to the Studio...' : 'Confirm & Lock Appointment'}</span>
+                  <span>{isSending ? 'Sending to the Studio...' : 'Request Appointment'}</span>
                 </button>
               </div>
 
             </form>
           )}
 
-          {/* STEP 3: Booking Confirmed Screen */}
+          {/* STEP 3: Appointment Request Received Screen */}
           {step === 3 && confirmedBooking && (
             <div className="py-6 px-4 text-center space-y-6">
               
@@ -1250,25 +1254,35 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
 
               <div>
                 <span className="text-xs uppercase font-mono tracking-widest text-[#D4D4D8] font-bold">
-                  Appointment Reference: #{confirmedBooking.id}
+                  Request Reference: #{confirmedBooking.id}
                 </span>
                 <h3 className="text-3xl font-black text-white uppercase tracking-tight font-heading mt-1">
-                  You're Booked with Jawz Jewelry!
+                  Appointment Request Received
                 </h3>
+                <span className="inline-block mt-2 text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 bg-amber-950/60 text-amber-300 border border-amber-500/40 rounded">
+                  Pending Deposit
+                </span>
                 <p className="text-sm text-zinc-400 max-w-lg mx-auto mt-2 font-light">
-                  Thank you, <strong className="text-white">{confirmedBooking.clientName}</strong>. We look forward to fitting you on{' '}
+                  Thank you, <strong className="text-white">{confirmedBooking.clientName}</strong>. Your appointment request for{' '}
                   <strong className="text-[#D4D4D8]">{confirmedBooking.appointmentDate}</strong> at{' '}
-                  <strong className="text-[#D4D4D8]">{confirmedBooking.appointmentTime}</strong>.
+                  <strong className="text-[#D4D4D8]">{confirmedBooking.appointmentTime}</strong> has been received.
+                </p>
+              </div>
+
+              <div className="max-w-xl mx-auto bg-black border border-amber-500/40 rounded-sm p-4 text-left text-xs text-zinc-300 leading-relaxed space-y-1">
+                <p className="font-bold uppercase tracking-wider text-amber-300">Your appointment is not yet confirmed</p>
+                <p>
+                  A deposit is required to secure your appointment. Jawz Jewelry will contact you with payment instructions. Once your deposit is received, your appointment will be confirmed.
                 </p>
               </div>
 
               {confirmedBooking.deliveredToStudio ? (
                 <p role="status" className="max-w-xl mx-auto text-xs text-emerald-300 bg-emerald-950/40 border border-emerald-500/30 rounded-sm p-3">
-                  Your booking{design ? ' and design were' : ' was'} sent to Jeremy. He'll reach out by your preferred contact method to confirm.
+                  Your request{design ? ' and design were' : ' was'} sent to Jeremy. He'll reach out by your preferred contact method with deposit instructions{confirmedBooking.email ? ', and a copy of your request is on its way to your email' : ''}.
                 </p>
               ) : (
                 <p role="alert" className="max-w-xl mx-auto text-xs text-amber-200 bg-amber-950/40 border border-amber-500/40 rounded-sm p-3">
-                  We couldn't reach the studio automatically. Please tap "Text Details to Owner" below so Jeremy gets your booking.
+                  We couldn't reach the studio automatically. Please tap "Text Details to Owner" below so Jeremy gets your request.
                 </p>
               )}
 
@@ -1346,7 +1360,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                   className="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold uppercase tracking-wider rounded-sm flex items-center gap-2 border border-white/10"
                 >
                   <Calendar className="w-4 h-4 text-[#D4D4D8]" />
-                  <span>Add to Google Calendar</span>
+                  <span>Save Requested Time to Calendar</span>
                 </a>
 
                 <a
@@ -1366,7 +1380,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                 </a>
 
                 <a
-                  href={`mailto:${STUDIO_EMAIL}?subject=${encodeURIComponent(`Appointment ${confirmedBooking.id}`)}`}
+                  href={`mailto:${STUDIO_EMAIL}?subject=${encodeURIComponent(`Appointment request ${confirmedBooking.id}`)}`}
                   className="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold uppercase tracking-wider rounded-sm flex items-center gap-2 border border-white/10"
                 >
                   <Mail className="w-4 h-4 text-[#D4D4D8]" />
