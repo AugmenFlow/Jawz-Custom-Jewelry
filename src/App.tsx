@@ -728,16 +728,13 @@ export default function App() {
                 <p className="text-sm text-zinc-300 uppercase tracking-widest mb-6">Arlington, TX &bull; Serving all of DFW</p>
                 <div className="w-12 h-1 bg-[#D4D4D8] mb-8"></div>
                 <p className="text-base text-zinc-300 font-light leading-relaxed mb-5">
-                  Our Arlington studio is a private space built for one client at a time. No crowded counters and no rush, just a comfortable room where you can sit down, see the work up close and talk through exactly what you want.
+                  Our Arlington studio is private and by appointment only, set aside for one client at a time. No crowded counters and no rush, just a comfortable room to see the work up close and talk through exactly what you want, from your dental mold and fitting to your final pickup.
                 </p>
                 <p className="text-sm text-zinc-400 font-light leading-relaxed mb-5">
                   We serve the Dallas–Fort Worth community: first-timers getting their first set of grillz, couples shopping for engagement and wedding rings, and collectors adding a chain, pendant or iced-out piece to their rotation. Every piece is custom made and fitted to you.
                 </p>
-                <p className="text-base text-white font-medium leading-relaxed mb-5 border-l-2 border-[#D4D4D8] pl-4">
+                <p className="text-base text-white font-medium leading-relaxed border-l-2 border-[#D4D4D8] pl-4">
                   We are committed to providing quality custom jewelry that exceeds our clients’ expectations, with every piece held to the same standard from first sketch to final polish.
-                </p>
-                <p className="text-sm text-zinc-400 font-light leading-relaxed">
-                  Visits are by appointment only, so the studio is set aside for you when you arrive, from your dental mold and fitting to your final pickup.
                 </p>
               </div>
             </div>
