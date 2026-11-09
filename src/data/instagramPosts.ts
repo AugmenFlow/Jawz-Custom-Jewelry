@@ -38,6 +38,7 @@ import ig36 from '../assets/images/instagram/DGgy_6qPslW.jpg';
 import ig37 from '../assets/images/instagram/DYYNH4PtZtw.jpg';
 import ig38 from '../assets/images/instagram/DACBbkMx6AT.jpg';
 import ig39 from '../assets/images/instagram/C2tjHK5tnO0.jpg';
+import ig40 from '../assets/images/instagram/Dfdw9OgtZHn.jpg';
 
 export type InstagramCategory = 'grillz' | 'rings' | 'chains-pendants' | 'earrings-bracelets' | 'watches';
 
@@ -58,6 +59,7 @@ export interface InstagramPost {
 }
 
 export const INSTAGRAM_POSTS: InstagramPost[] = [
+  { id: 'Dfdw9OgtZHn', title: "Rose Gold Grillz Masterpiece", image: ig40, type: 'reel', category: 'grillz' },
   { id: 'DeCln0dBT2M', title: "Custom Script Grillz", image: ig0, type: 'reel', category: 'grillz' },
   { id: 'DeAxLT6NbjN', title: "Emerald Hybrid Set", image: ig1, type: 'reel', category: 'grillz' },
   { id: 'DdPijcrMj9q', title: "10-on-10 Honeycomb Grillz", image: ig2, type: 'reel', category: 'grillz' },
@@ -100,17 +102,12 @@ export const INSTAGRAM_POSTS: InstagramPost[] = [
   { id: 'C2tjHK5tnO0', title: "1.53ct Oval VVS2 Diamond", image: ig39, type: 'reel', category: 'rings' },
 ];
 
-export const BEST_SELLER_POSTS = INSTAGRAM_POSTS.slice(0, 4);
+const postsById = (ids: string[]) => ids.map(id => INSTAGRAM_POSTS.find(post => post.id === id)!);
 
-// INSTAGRAM_POSTS is listed newest first
-export const RECENT_POSTS = INSTAGRAM_POSTS.slice(0, 4);
+export const RECENT_POSTS = postsById(['DeCln0dBT2M', 'DeAxLT6NbjN', 'DdPijcrMj9q', 'Dfdw9OgtZHn']);
 
-// Gallery order: deal posts out one category at a time so the grid mixes piece types,
-// with the best sellers placed last so the gallery doesn't open with the same four pieces.
-const byCategory = INSTAGRAM_CATEGORIES.map(({ id }) => [
-  ...INSTAGRAM_POSTS.filter(post => post.category === id && !BEST_SELLER_POSTS.includes(post)),
-  ...INSTAGRAM_POSTS.filter(post => post.category === id && BEST_SELLER_POSTS.includes(post)),
-]);
+// Gallery order: deal posts out one category at a time so the grid mixes piece types.
+const byCategory = INSTAGRAM_CATEGORIES.map(({ id }) => INSTAGRAM_POSTS.filter(post => post.category === id));
 export const GALLERY_POSTS: InstagramPost[] = [];
 for (let i = 0; byCategory.some(list => i < list.length); i++) {
   byCategory.forEach(list => { if (list[i]) GALLERY_POSTS.push(list[i]); });
