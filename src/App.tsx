@@ -1206,6 +1206,19 @@ export default function App() {
           </div>
 
         </div>
+        <div className="max-w-7xl mx-auto mt-6 flex justify-center md:justify-end text-[10px] uppercase tracking-[0.2em] font-bold text-gray-600">
+          <span>
+            Website by{' '}
+            <a
+              href="https://augmenflow.ai/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-zinc-400 hover:text-white transition-colors"
+            >
+              AugmenFlow
+            </a>
+          </span>
+        </div>
       </footer>
 
     </div>
