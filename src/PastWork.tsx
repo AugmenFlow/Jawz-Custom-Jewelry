@@ -4,18 +4,16 @@ import {
   Check, Filter, ZoomIn, Calendar, Heart, Award, ChevronRight, X
 } from 'lucide-react';
 import { InstagramPostCard } from './InstagramGallery';
-import { BEST_SELLER_POSTS, GALLERY_POSTS, INSTAGRAM_CATEGORIES, InstagramCategory, InstagramPost } from './data/instagramPosts';
+import { GALLERY_POSTS, INSTAGRAM_CATEGORIES, InstagramCategory } from './data/instagramPosts';
 
 interface PastWorkProps {
-  onBookPost: (post: InstagramPost) => void;
   onOpenBooking: () => void;
   onBackToHome?: () => void;
 }
 
-export default function PastWork({ onBookPost, onOpenBooking, onBackToHome }: PastWorkProps) {
+export default function PastWork({ onOpenBooking, onBackToHome }: PastWorkProps) {
   const [selectedCategory, setSelectedCategory] = useState<InstagramCategory | 'all'>('all');
 
-  const bestSellers = BEST_SELLER_POSTS;
   const galleryPosts = selectedCategory === 'all'
     ? GALLERY_POSTS
     : GALLERY_POSTS.filter(post => post.category === selectedCategory);
@@ -61,53 +59,17 @@ export default function PastWork({ onBookPost, onOpenBooking, onBackToHome }: Pa
               <span>Book An Appointment</span>
             </button>
             <a
-              href="#best-sellers"
+              href="#gallery"
               className="px-8 py-4 border border-white/20 hover:border-[#D4D4D8] text-white text-xs font-bold uppercase tracking-widest transition-colors rounded-sm"
             >
-              View Best Sellers
+              View the Gallery
             </a>
           </div>
         </div>
       </section>
 
-      {/* SECTION: BEST SELLERS AMONGST PAST WORK */}
-      <section id="best-sellers" className="py-20 border-b border-white/5 bg-[#080808] relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
-            <div>
-              <div className="flex items-center gap-2 text-[#D4D4D8] text-xs uppercase font-bold tracking-[0.3em] mb-2">
-                <Sparkles className="w-4 h-4" />
-                <span>Client Favorites</span>
-              </div>
-              <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white font-heading">
-                Best Sellers Amongst Past Work
-              </h2>
-              <p className="text-xs sm:text-sm text-zinc-400 max-w-xl mt-2 font-light">
-                Our most requested designs since 2023. Tap a piece to see it on Instagram, or book a session for a style like it.
-              </p>
-            </div>
-
-            <button
-              onClick={onOpenBooking}
-              className="px-6 py-3 border border-[#D4D4D8] text-[#D4D4D8] text-xs font-bold uppercase tracking-widest hover:bg-[#D4D4D8] hover:text-black transition-all shrink-0 rounded-sm"
-            >
-              Custom Appointment
-            </button>
-          </div>
-
-          {/* Best Sellers Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {bestSellers.map((post, idx) => (
-              <InstagramPostCard key={post.id} post={post} rank={idx + 1} onBook={onBookPost} />
-            ))}
-          </div>
-
-        </div>
-      </section>
-
       {/* SECTION: FULL PORTFOLIO GALLERY */}
-      <section className="py-20 relative">
+      <section id="gallery" className="py-20 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="text-center mb-12">

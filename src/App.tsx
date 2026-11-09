@@ -11,7 +11,7 @@ import priceNaturalDiamond from './assets/images/pricing/natural-diamond.jpg';
 import DiamondStyleGallery from './DiamondStyleGallery';
 import goldPlain from './assets/images/gold_plain_1779848593610.png';
 import silverPlain from './assets/images/silver_plain_1779848608539.png';
-import grillzHero from './assets/images/grillz-hero.jpg';
+import grillzHero from './assets/images/grillz-hero-masterpiece.jpg';
 import jawzLogo from './assets/images/jawz-custom-jewelry-logo.png';
 import studioInterior from './assets/images/studio-interior.jpg';
 import stripPendant from './assets/images/instagram/DZQBwGTOi3U.jpg';
@@ -120,7 +120,6 @@ export default function App() {
     if (currentPage === 'pastwork') {
       return (
         <PastWork 
-          onBookPost={handleBookInstagramPost} 
           onOpenBooking={() => openBookingWithPreset()}
           onBackToHome={() => setCurrentPage('home')}
         />
@@ -570,9 +569,9 @@ export default function App() {
           <div className="relative md:absolute md:top-0 md:right-0 md:h-full z-0">
             <img 
               src={grillzHero} 
-              alt="Client wearing iced-out custom diamond grillz and a Jawz Cuban link chain with pendant"
-              width={704}
-              height={1524}
+              alt="Close-up of a client wearing custom rose gold grillz fully iced with diamonds"
+              width={652}
+              height={842}
               fetchPriority="high"
               className="block w-full h-auto md:h-full md:w-auto"
             />
