@@ -579,16 +579,12 @@ export default function App() {
             <div className="hidden md:block absolute inset-y-0 left-0 w-2/3 bg-gradient-to-r from-black to-transparent"></div>
           </div>
           
-          <div className="relative -mt-[85vw] pb-14 md:absolute md:inset-x-0 md:top-0 md:mt-0 md:pb-0 md:h-full z-20 w-full max-w-7xl mx-auto px-6 sm:px-8 flex flex-col md:justify-center">
-            <p className="text-zinc-300 uppercase tracking-[0.35em] text-xs sm:text-sm font-medium leading-relaxed mb-5">
+          <div className="relative -mt-[62vw] pb-14 md:absolute md:inset-x-0 md:top-0 md:mt-0 md:pb-0 md:h-full z-20 w-full max-w-7xl mx-auto px-6 sm:px-8 flex flex-col md:justify-center">
+            <h1 className="text-zinc-300 uppercase tracking-[0.35em] text-xs sm:text-sm font-medium leading-relaxed mb-5">
               Custom Grillz<br />& Fine Jewelry
-            </p>
-
-            <h1 className="font-heading font-black uppercase text-white text-[13vw] md:text-7xl lg:text-9xl leading-[0.88] tracking-tight drop-shadow-2xl">
-              Wear<br />Your <span className="text-zinc-300">Shine</span>
             </h1>
-            
-            <p className="text-zinc-300 uppercase tracking-[0.3em] text-xs sm:text-sm font-medium leading-relaxed mt-6 mb-10">
+
+            <p className="text-zinc-300 uppercase tracking-[0.3em] text-xs sm:text-sm font-medium leading-relaxed mb-10">
               Private Studio • Arlington, TX<br />By Appointment Only
             </p>
 
