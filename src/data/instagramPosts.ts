@@ -104,7 +104,7 @@ export const INSTAGRAM_POSTS: InstagramPost[] = [
 
 const postsById = (ids: string[]) => ids.map(id => INSTAGRAM_POSTS.find(post => post.id === id)!);
 
-export const RECENT_POSTS = postsById(['DeCln0dBT2M', 'DeAxLT6NbjN', 'DdPijcrMj9q', 'Dfdw9OgtZHn']);
+export const RECENT_POSTS = postsById(['Dfdw9OgtZHn', 'DeAxLT6NbjN', 'DdPijcrMj9q', 'DeCln0dBT2M']);
 
 // Gallery order: deal posts out one category at a time so the grid mixes piece types.
 const byCategory = INSTAGRAM_CATEGORIES.map(({ id }) => INSTAGRAM_POSTS.filter(post => post.category === id));
