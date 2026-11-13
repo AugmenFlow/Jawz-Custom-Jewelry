@@ -565,18 +565,24 @@ export default function App() {
 
         {/* Hero Section */}
         <section className="relative overflow-hidden bg-black md:h-[max(820px,calc(100vh-5rem))]">
-          {/* The whole photo stays visible: full width on phones, full height on larger screens */}
-          <div className="relative md:absolute md:top-0 md:right-0 md:h-full z-0">
-            <img 
-              src={grillzHero} 
-              alt="Close-up of a client wearing custom rose gold grillz fully iced with diamonds"
-              width={652}
-              height={842}
-              fetchPriority="high"
-              className="block w-full h-auto md:h-full md:w-auto"
-            />
-            <div className="md:hidden absolute inset-0 bg-[linear-gradient(to_bottom,transparent_28%,rgba(0,0,0,0.6)_40%,rgba(0,0,0,0.6)_68%,#000_100%)]"></div>
-            <div className="hidden md:block absolute inset-y-0 left-0 w-2/3 bg-gradient-to-r from-black to-transparent"></div>
+          {/* Phones: the whole photo shows at full width. Larger screens: the whole photo is centered at full height, with shadows fading in from both sides */}
+          <div className="relative md:absolute md:inset-0 z-0 md:flex md:justify-center">
+            <div className="relative md:h-full">
+              <img 
+                src={grillzHero} 
+                alt="Close-up of a client wearing custom rose gold grillz fully iced with diamonds"
+                width={652}
+                height={842}
+                fetchPriority="high"
+                className="block w-full h-auto md:h-full md:w-auto"
+              />
+              <div className="md:hidden absolute inset-0 bg-[linear-gradient(to_bottom,transparent_28%,rgba(0,0,0,0.6)_40%,rgba(0,0,0,0.6)_68%,#000_100%)]"></div>
+              {/* Side shadows blend the photo's edges into the black background */}
+              <div className="hidden md:block absolute inset-0 bg-[linear-gradient(to_right,#000_0%,rgba(0,0,0,0.55)_18%,transparent_38%,transparent_62%,rgba(0,0,0,0.55)_82%,#000_100%)]"></div>
+              <div className="hidden md:block absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black to-transparent"></div>
+            </div>
+            {/* Extra shade on the left so the hero text stays readable where it overlaps the photo */}
+            <div className="hidden md:block absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-black/70 to-transparent"></div>
           </div>
           
           <div className="relative -mt-[62vw] pb-14 md:absolute md:inset-x-0 md:top-0 md:mt-0 md:pb-0 md:h-full z-20 w-full max-w-7xl mx-auto px-6 sm:px-8 flex flex-col md:justify-center">
