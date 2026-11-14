@@ -565,8 +565,8 @@ export default function App() {
       <div className="flex-1 w-full flex flex-col">
 
         {/* Hero Section */}
-        <section className="relative overflow-hidden bg-black flex flex-col justify-end min-h-[calc(100svh-10rem)] md:block md:min-h-0 md:h-[max(820px,calc(100vh-5rem))]">
-          {/* Phones: the portrait photo fills the screen below the header (sides trimmed slightly, not zoomed). Tablets and desktops: a wide, high-resolution photo fills the whole hero edge to edge */}
+        <section className="relative overflow-hidden bg-black flex flex-col justify-end min-h-[calc(100svh-5rem)] md:block md:min-h-0 md:h-[max(820px,calc(100vh-5rem))]">
+          {/* Phones: the portrait photo fills the whole screen below the header, all the way down behind the bottom booking bar (sides trimmed slightly, not zoomed). Tablets and desktops: a wide, high-resolution photo fills the whole hero edge to edge */}
           <div className="absolute inset-0 z-0">
             <picture>
               <source media="(min-width: 768px)" srcSet={grillzHeroDesktop} width={1672} height={941} />
@@ -579,13 +579,13 @@ export default function App() {
                 className="block w-full h-full object-cover object-[45%_center] md:object-[65%_center]"
               />
             </picture>
-            <div className="md:hidden absolute inset-0 bg-[linear-gradient(to_bottom,transparent_45%,rgba(0,0,0,0.55)_62%,rgba(0,0,0,0.75)_80%,#000_100%)]"></div>
+            <div className="md:hidden absolute inset-0 bg-[linear-gradient(to_bottom,transparent_45%,rgba(0,0,0,0.45)_62%,rgba(0,0,0,0.65)_100%)]"></div>
             {/* Light shade on the left so the hero text stays readable, plus a fade at the bottom into the next section */}
             <div className="hidden md:block absolute inset-y-0 left-0 w-3/5 bg-gradient-to-r from-black/60 via-black/25 to-transparent"></div>
             <div className="hidden md:block absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black to-transparent"></div>
           </div>
           
-          <div className="relative pt-10 pb-10 md:pt-0 md:absolute md:inset-x-0 md:top-0 md:mt-0 md:pb-0 md:h-full z-20 w-full max-w-7xl mx-auto px-6 sm:px-8 flex flex-col md:justify-center">
+          <div className="relative pt-10 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pt-0 md:absolute md:inset-x-0 md:top-0 md:mt-0 md:pb-0 md:h-full z-20 w-full max-w-7xl mx-auto px-6 sm:px-8 flex flex-col md:justify-center">
             <h1 className="text-zinc-300 uppercase tracking-[0.35em] text-xs sm:text-sm font-medium leading-relaxed mb-5">
               Custom Grillz<br />& Fine Jewelry
             </h1>
