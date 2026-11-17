@@ -5,6 +5,7 @@ import styleHoneymoon from './assets/images/pricing/silver-lab-diamond.jpg';
 import styleMosaic from './assets/images/pricing/silver.jpg';
 import styleGalaxy from './assets/images/pricing/gold-10k.jpg';
 import styleEmerald from './assets/images/pricing/gold-14k.jpg';
+import styleGallery from './assets/images/pricing/gallery.jpg';
 
 const DIAMOND_STYLES = [
   { name: 'Honeycomb', image: styleHoneycomb },
@@ -12,6 +13,7 @@ const DIAMOND_STYLES = [
   { name: 'Mosaic', image: styleMosaic },
   { name: 'Galaxy', image: styleGalaxy },
   { name: 'Emerald', image: styleEmerald },
+  { name: 'Gallery', image: styleGallery },
 ];
 
 export default function DiamondStyleGallery() {

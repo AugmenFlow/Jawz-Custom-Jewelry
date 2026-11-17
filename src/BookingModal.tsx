@@ -8,7 +8,7 @@ import {
   StudioDesign, GrillzDesign, FreeStyle, AddOn, StoneStyle, FREE_STYLES, STONE_STYLES, stoneStyleName,
   presetTeeth, grillzEstimate, designSummary, designShareUrl,
   styleName, addonName, grillzMetalName, grillzStoneName, grillzFromMaterial, toothNoteList, DEFAULT_DESIGN,
-  Stone, METALS, goldColorsFor, withMetal, metalShades, perToothRate, stoneName,
+  Stone, METALS, goldColorsFor, withMetal, metalShades, startingPrice, settingNote, stoneName,
 } from './design/designModel';
 import { MouthPreview } from './design/DesignPreviews';
 import FlowSteps from './design/FlowSteps';
@@ -151,10 +151,11 @@ const STONE_CHOICES: { id: 'none' | Stone; name: string; note: string }[] = [
   { id: 'none', name: 'No Stones', note: 'Solid metal' },
   { id: 'moissanite', name: 'Moissanite', note: 'VVS, passes diamond testers' },
   { id: 'lab-diamond', name: 'Lab Diamond', note: 'VVS, colorless D-F' },
-  { id: 'natural-diamond', name: 'Natural Diamond', note: 'Earth-mined' },
+  { id: 'natural-diamond', name: 'Natural Diamond (SI)', note: 'Earth-mined, SI clarity' },
+  { id: 'natural-vs', name: 'Natural Diamond (VS)', note: 'Earth-mined, VS clarity' },
 ];
 
-const rateLabel = (rate: number | null) => (rate === null ? 'Quoted at consultation' : `$${rate}/tooth`);
+const rateLabel = (price: number | null) => (price === null ? 'Quoted at consultation' : `Sets from $${price.toLocaleString()}`);
 
 // Custom jewelry & watches are quoted per piece, so no per-tooth prices here
 const JEWELRY_CONSULTATIONS = ['Jewelry Consultation', 'Watch Consultation', 'Ring Consultation'];
@@ -226,6 +227,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
   // Confirmed booking ref
   const [confirmedBooking, setConfirmedBooking] = useState<BookingData | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [feeAcknowledged, setFeeAcknowledged] = useState(false);
 
   // Start each visit from the preset (or a blank form)
   useEffect(() => {
@@ -234,6 +236,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
     const fromStudio = preset.design || null;
     setStep(1);
     setFormError(null);
+    setFeeAcknowledged(false);
     setDesign(fromStudio);
 
     if (fromStudio) {
@@ -353,14 +356,14 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
   // Estimate calculation (same prices as the Design Studio)
   const calculateEstimate = () => {
     if (design) {
-      const { total } = grillzEstimate(design.grillz);
-      return total === null ? 'Custom Quoted on Confirmation' : `$${total.toLocaleString()}`;
+      const { total, note } = grillzEstimate(design.grillz);
+      return total === null ? 'Custom Quoted on Confirmation' : `$${total.toLocaleString()}${note ? ' + setting extras' : ''}`;
     }
     if (serviceType === 'jewelry') return jewelryBudget.trim() ? `Budget: ${formatBudget(jewelryBudget)}` : 'Custom Jewelry Quote upon Consultation';
     if (serviceType === 'adjustment') return '$50 - $120 (Fit depending)';
     if (totalTeethCount === 0) return 'Select teeth above';
-    const { total } = grillzEstimate(formGrillz);
-    return total === null ? 'Custom Quoted on Confirmation' : `$${total.toLocaleString()}`;
+    const { total, note } = grillzEstimate(formGrillz);
+    return total === null ? 'Custom Quoted on Confirmation' : `$${total.toLocaleString()}${note ? ' + setting extras' : ''}`;
   };
 
   const designRows: [string, string][] = !design ? [] : [
@@ -382,6 +385,10 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
     }
     if (serviceType === 'jewelry' && jewelryPieces.length === 0) {
       setFormError('Please pick at least one piece (pendant, chain, ring or watch) for your consultation.');
+      return;
+    }
+    if (!feeAcknowledged) {
+      setFormError('Please check the box to confirm you understand the $50 booking fee.');
       return;
     }
     setFormError(null);
@@ -841,7 +848,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                           <span className="w-3.5 h-3.5 rounded-full mt-0.5 shrink-0 border border-black/50" style={{ background: `linear-gradient(135deg, ${light}, ${mid})` }} />
                           <span className="min-w-0">
                             <span className="block text-xs font-bold text-white uppercase tracking-wider">{m.name}</span>
-                            <span className="block text-[10px] text-zinc-400 font-medium">{rateLabel(perToothRate(option))}</span>
+                            <span className="block text-[10px] text-zinc-400 font-medium">{rateLabel(startingPrice({ ...option, stoneStyle: settingStyle }))}</span>
                           </span>
                         </button>
                       );
@@ -878,7 +885,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                   <label className="block text-xs uppercase tracking-widest font-bold text-gray-300 mb-2">
                     Stones:
                   </label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5" role="group" aria-label="Stones">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5" role="group" aria-label="Stones">
                     {STONE_CHOICES.map((st) => {
                       const active = st.id === 'none' ? !metalChoice.stones : metalChoice.stones && metalChoice.stone === st.id;
                       const option = st.id === 'none' ? { ...metalChoice, stones: false } : { ...metalChoice, stones: true, stone: st.id };
@@ -894,7 +901,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                         >
                           <span className="block text-xs font-bold text-white uppercase tracking-wider">{st.name}</span>
                           <span className="block text-[10px] text-zinc-500">{st.note}</span>
-                          <span className="block text-[10px] text-zinc-400 font-medium mt-0.5">{rateLabel(perToothRate(option))}</span>
+                          <span className="block text-[10px] text-zinc-400 font-medium mt-0.5">{rateLabel(startingPrice({ ...option, stoneStyle: settingStyle }))}</span>
                         </button>
                       );
                     })}
@@ -903,7 +910,8 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
 
                 <p className="text-[11px] text-zinc-400">
                   Your combination: <span className="text-white font-bold">{comboName}</span>
-                  {perToothRate(metalChoice) === null && <span className="text-zinc-500"> · priced by Jeremy at your consultation</span>}
+                  {startingPrice({ ...metalChoice, stoneStyle: settingStyle }) === null && <span className="text-zinc-500"> · priced by Jeremy at your consultation</span>}
+                  {settingNote(formGrillz) && <span className="text-amber-300"> · {settingNote(formGrillz)}</span>}
                 </p>
               </div>
               )}
@@ -912,7 +920,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
               {serviceType !== 'jewelry' && formGrillz.stones && (
                 <div>
                   <label className="block text-xs uppercase tracking-widest font-bold text-gray-300 mb-2">
-                    Diamond Setting Style <span className="text-[10px] text-[#D4D4D8] font-normal normal-case tracking-normal">Same price for every style</span>
+                    Diamond Setting Style <span className="text-[10px] text-[#D4D4D8] font-normal normal-case tracking-normal">Standard: Honeymoon, Honeycomb, Jumbo, Galaxy &amp; Mosaic</span>
                   </label>
                   <div className="flex flex-wrap gap-2" role="group" aria-label="Diamond setting style">
                     {STONE_STYLES.map((st) => {
@@ -1197,6 +1205,33 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
                 />
               </div>
 
+              {/* $50 Booking Fee Notice */}
+              <div role="note" className="bg-red-950/60 border-2 border-red-500 p-4 rounded-sm flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-sm font-black uppercase tracking-wider text-red-500">
+                    $50 fee required to book your appointment
+                  </p>
+                  <p className="text-xs font-semibold text-red-300 leading-relaxed">
+                    Please have your $50 booking fee ready before you request an appointment. Your appointment is not confirmed until the fee is paid.
+                  </p>
+                  <label className="flex items-start gap-2.5 pt-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={feeAcknowledged}
+                      onChange={(e) => {
+                        setFeeAcknowledged(e.target.checked);
+                        if (e.target.checked) setFormError(null);
+                      }}
+                      className="mt-0.5 w-5 h-5 shrink-0 accent-red-500 cursor-pointer"
+                    />
+                    <span className="text-xs font-bold text-white leading-relaxed">
+                      I understand there is a $50 fee to book my appointment and I will have it ready.
+                    </span>
+                  </label>
+                </div>
+              </div>
+
               {/* Policy & Deposit Notice */}
               <div className="bg-black border border-[#D4D4D8]/30 p-4 rounded-sm flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-[#D4D4D8] shrink-0 mt-0.5" />
@@ -1233,8 +1268,9 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
 
                 <button
                   type="submit"
-                  disabled={isSending}
-                  className="px-8 py-3 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffffff] transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(212,212,216,0.4)] rounded-sm disabled:opacity-60 disabled:cursor-wait"
+                  disabled={isSending || !feeAcknowledged}
+                  title={feeAcknowledged ? undefined : 'Check the $50 booking fee box to continue'}
+                  className={`px-8 py-3 bg-[#D4D4D8] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffffff] transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(212,212,216,0.4)] rounded-sm disabled:opacity-40 disabled:hover:bg-[#D4D4D8] ${isSending ? 'disabled:cursor-wait' : 'disabled:cursor-not-allowed'}`}
                 >
                   <Check className="w-4 h-4" />
                   <span>{isSending ? 'Sending to the Studio...' : 'Request Appointment'}</span>
@@ -1271,6 +1307,7 @@ export default function BookingModal({ isOpen, onClose, initialPreset, onEditDes
 
               <div className="max-w-xl mx-auto bg-black border border-amber-500/40 rounded-sm p-4 text-left text-xs text-zinc-300 leading-relaxed space-y-1">
                 <p className="font-bold uppercase tracking-wider text-amber-300">Your appointment is not yet confirmed</p>
+                <p className="font-black uppercase tracking-wider text-red-500">$50 booking fee required. Please have it ready.</p>
                 <p>
                   A deposit is required to secure your appointment. Jawz Jewelry will contact you with payment instructions. Once your deposit is received, your appointment will be confirmed.
                 </p>

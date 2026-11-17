@@ -264,13 +264,14 @@ export default function Configurator({
                     </div>
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase tracking-widest text-zinc-500 block mb-2">Setting Style <span className="text-[#D4D4D8]">Same price for every style</span></span>
+                    <span className="text-[10px] uppercase tracking-widest text-zinc-500 block mb-2">Setting Style <span className="text-[#D4D4D8]">Standard: Honeymoon, Honeycomb, Jumbo, Galaxy &amp; Mosaic</span></span>
                     <div className="flex flex-wrap gap-2">
                       {STONE_STYLES.map(st => (
                         <button key={st.id} onClick={() => setGrillz({ stoneStyle: st.id })} aria-pressed={grillz.stoneStyle === st.id} className={pillClass(grillz.stoneStyle === st.id)}>{st.name}</button>
                       ))}
                     </div>
                     {grillz.stoneStyle === 'other' && <p className="text-[11px] text-zinc-500 mt-2">Describe the setting you want in the Notes for Jeremy below.</p>}
+                    {estimate.note && <p className="text-[11px] text-amber-300 mt-2">{estimate.note}.</p>}
                   </div>
                 </div>
               )}
@@ -329,6 +330,7 @@ export default function Configurator({
                   const a = PREMIUM_ADDONS.find(x => x.id === id)!;
                   return <div key={id} className="flex justify-between text-zinc-300"><span>+ {a.name}</span><span>${(a.price * estimate.count).toLocaleString()}</span></div>;
                 })}
+                {estimate.note && <div className="flex justify-between gap-3 text-amber-300"><span>{estimate.note}</span></div>}
                 {toothNotes.length > 0 && <div className="flex justify-between text-zinc-300"><span>+ Tooth designs ({toothNotes.length})</span><span className="text-zinc-400">Quoted</span></div>}
               </div>
               <div className="flex justify-between items-end mb-5 pt-4 border-t border-white/10">
