@@ -5,10 +5,11 @@
 
 /** Price-list tiers. Every other combination is quoted by Jeremy. */
 export type Material = 'silver-moissanite' | 'silver-lab-diamond' | 'silver-plain' | '10k-gold' | '14k-gold' | '14k-white-gold' | 'script';
-export type Metal = 'silver' | '10k' | '14k' | '18k' | '22k' | '24k';
+export type Metal = 'silver' | 'npg' | '10k' | '14k' | '18k' | '22k' | '24k';
 export type GoldColor = 'yellow' | 'white' | 'rose';
-export type Stone = 'moissanite' | 'lab-diamond' | 'natural-diamond';
-export type StoneStyle = 'honeycomb' | 'honeymoon' | 'jumbo' | 'galaxy' | 'emerald' | 'mosaic' | 'hybrid' | 'other';
+/** 'natural-diamond' is SI clarity; 'natural-vs' is VS clarity. */
+export type Stone = 'moissanite' | 'lab-diamond' | 'natural-diamond' | 'natural-vs';
+export type StoneStyle = 'honeycomb' | 'honeymoon' | 'jumbo' | 'galaxy' | 'emerald' | 'mosaic' | 'hybrid' | 'gallery' | 'invisible' | 'other';
 export type AddOn = 'rose-cuts' | 'starburst-cuts' | 'speciality-cut' | 'laser-design' | 'diamond-dust' | '3d-design';
 export type FreeStyle = 'solid' | 'open-face' | 'perm-cut' | 'diamond-cuts' | 'nugget-cut' | 'script';
 export type ToothKind = 'molar' | 'premolar' | 'canine' | 'lateral' | 'central';
@@ -36,6 +37,7 @@ export interface StudioDesign {
 
 export const METALS: { id: Metal; name: string }[] = [
   { id: 'silver', name: '925 Silver' },
+  { id: 'npg', name: 'NPG (Dental Gold)' },
   { id: '10k', name: '10K Gold' },
   { id: '14k', name: '14K Gold' },
   { id: '18k', name: '18K Gold' },
@@ -61,10 +63,13 @@ const SILVER_SHADES: MetalShades = ['#f5f6f8', '#c4c9d0', '#7b828c'];
 export const STONES: { id: Stone; name: string }[] = [
   { id: 'moissanite', name: 'Moissanite' },
   { id: 'lab-diamond', name: 'Lab Diamond' },
-  { id: 'natural-diamond', name: 'Natural Diamond' },
+  { id: 'natural-diamond', name: 'Natural Diamond (SI)' },
+  { id: 'natural-vs', name: 'Natural Diamond (VS)' },
 ];
 
-/** Setting styles are all the same price; only the metal and stone change it. */
+/** Standard sets (the price list prices) come in these settings. */
+export const STANDARD_STYLES: StoneStyle[] = ['honeymoon', 'honeycomb', 'jumbo', 'galaxy', 'mosaic'];
+
 export const STONE_STYLES: { id: StoneStyle; name: string }[] = [
   { id: 'honeycomb', name: 'Honeycomb' },
   { id: 'honeymoon', name: 'Honeymoon' },
@@ -73,6 +78,8 @@ export const STONE_STYLES: { id: StoneStyle; name: string }[] = [
   { id: 'emerald', name: 'Emerald' },
   { id: 'mosaic', name: 'Mosaic' },
   { id: 'hybrid', name: 'Hybrid' },
+  { id: 'gallery', name: 'Gallery' },
+  { id: 'invisible', name: 'Invisible Set' },
   { id: 'other', name: 'Other' },
 ];
 
@@ -123,55 +130,135 @@ export const presetTeeth = (count: number) => {
   return Array.from({ length: count }, (_, i) => start + i);
 };
 
-export function grillzBasePrice(material: string, count: number): number | null {
+// ---------------------------------------------------------------- Price list
+// All prices are for complete sets. Every combination not listed is quoted by Jeremy.
+
+/** Plain grillz sizes are total teeth. */
+export const PLAIN_SIZES = [4, 6, 8, 10];
+export const PLAIN_PRICES: { metal: Metal; label: string; prices: number[] }[] = [
+  { metal: 'silver', label: 'Silver', prices: [240, 240, 320, 400] },
+  { metal: 'npg', label: 'NPG (Dental Gold)', prices: [220, 225, 300, 375] },
+  { metal: '10k', label: '10K Gold', prices: [420, 570, 760, 950] },
+  { metal: '14k', label: '14K Gold', prices: [520, 690, 920, 1150] },
+  { metal: '18k', label: '18K Gold', prices: [900, 1350, 1800, 2250] },
+  { metal: '22k', label: '22K Gold', prices: [1050, 1550, 2100, 2600] },
+];
+
+/** Iced grillz sizes: 6 on 6, 8 on 8 and 10 on 10 (total teeth). */
+export const ICED_SIZES = [12, 16, 20];
+export const ICED_SIZE_LABELS = ['6 on 6', '8 on 8', '10 on 10'];
+
+type IcedCategory = 'standard-moissanite' | 'standard-lab' | 'invisible-moissanite' | 'si' | 'vs' | 'invisible-lab' | 'invisible-si';
+export const ICED_PRICES: { id: IcedCategory; label: string; note?: string; rows: { metal: Metal; prices: number[] }[] }[] = [
+  { id: 'standard-moissanite', label: 'Standard Moissanite', rows: [{ metal: 'silver', prices: [1175, 1550, 1900] }] },
+  { id: 'standard-lab', label: 'Standard Lab Diamond', rows: [{ metal: 'silver', prices: [1900, 2550, 3180] }] },
+  { id: 'invisible-moissanite', label: 'Silver Invisible Set Moissanite', rows: [{ metal: 'silver', prices: [2400, 3150, 3900] }] },
+  {
+    id: 'si', label: 'SI', note: 'Natural', rows: [
+      { metal: 'silver', prices: [5300, 6500, 8200] },
+      { metal: '10k', prices: [6140, 8120, 9600] },
+      { metal: '14k', prices: [7240, 8920, 11100] },
+      { metal: '18k', prices: [7960, 9880, 12300] },
+      { metal: '22k', prices: [9520, 12460, 15400] },
+    ],
+  },
+  {
+    id: 'vs', label: 'VS', note: 'Natural', rows: [
+      { metal: 'silver', prices: [6500, 8600, 10200] },
+      { metal: '10k', prices: [7840, 9720, 12100] },
+      { metal: '14k', prices: [8560, 11180, 13300] },
+      { metal: '18k', prices: [9520, 12460, 15400] },
+      { metal: '22k', prices: [10740, 13420, 16600] },
+    ],
+  },
+  {
+    id: 'invisible-lab', label: 'Invisible Set CVD', note: 'Lab', rows: [
+      { metal: 'silver', prices: [3850, 5000, 6200] },
+      { metal: '10k', prices: [6200, 8600, 10200] },
+      { metal: '14k', prices: [7100, 9800, 12200] },
+      { metal: '18k', prices: [8000, 11500, 13700] },
+      { metal: '22k', prices: [8900, 12700, 15700] },
+    ],
+  },
+  {
+    id: 'invisible-si', label: 'Invisible Set SI', note: 'Natural', rows: [
+      { metal: 'silver', prices: [7600, 9400, 11700] },
+      { metal: '10k', prices: [9100, 11900, 14200] },
+      { metal: '14k', prices: [10000, 13100, 16200] },
+      { metal: '18k', prices: [11400, 14300, 17700] },
+      { metal: '22k', prices: [12300, 16000, 19200] },
+    ],
+  },
+];
+
+/** Script is its own tier: $690 for 8 on 8 in silver. */
+const SCRIPT_PRICE = 690;
+
+interface PriceList {
+  sizes: number[];
+  prices: number[];
+  /** Quote sets smaller than the smallest listed size. */
+  quoteBelow?: boolean;
+  /** Only the listed sizes have a price. */
+  exactOnly?: boolean;
+}
+
+const ICED_CATEGORY: Record<string, IcedCategory> = {
+  'moissanite': 'standard-moissanite',
+  'lab-diamond': 'standard-lab',
+  'natural-diamond': 'si',
+  'natural-vs': 'vs',
+  'invisible:moissanite': 'invisible-moissanite',
+  'invisible:lab-diamond': 'invisible-lab',
+  'invisible:natural-diamond': 'invisible-si',
+};
+
+/** The price-list row for this design, or null when it's quoted at consultation. */
+export function priceList(g: Pick<GrillzDesign, 'metal' | 'stones' | 'stone' | 'stoneStyle' | 'baseStyle'>): PriceList | null {
+  if (g.stones) {
+    const id = ICED_CATEGORY[g.stoneStyle === 'invisible' ? `invisible:${g.stone}` : g.stone];
+    const row = ICED_PRICES.find(c => c.id === id)?.rows.find(r => r.metal === g.metal);
+    return row ? { sizes: ICED_SIZES, prices: row.prices } : null;
+  }
+  if (g.baseStyle === 'script') return g.metal === 'silver' ? { sizes: [16], prices: [SCRIPT_PRICE], exactOnly: true } : null;
+  const row = PLAIN_PRICES.find(r => r.metal === g.metal);
+  return row ? { sizes: PLAIN_SIZES, prices: row.prices, quoteBelow: true } : null;
+}
+
+/**
+ * Set price for `count` teeth. Listed sizes use the listed price; in-between sizes use the
+ * smaller set's per-tooth rate (never more than the next set up); bigger or smaller sets use
+ * the nearest set's per-tooth rate.
+ */
+export function setPrice(list: PriceList, count: number): number | null {
   if (count === 0) return 0;
-  if (material === 'silver-moissanite') {
-    if (count === 12) return 1175;
-    if (count === 16) return 1550;
-    if (count === 20) return 1900;
-    return count * 98;
-  }
-  if (material === 'silver-lab-diamond') {
-    if (count === 12) return 1900;
-    if (count === 16) return 2550;
-    if (count === 20) return 3180;
-    return count * 159;
-  }
-  if (material === 'script') return count === 16 ? 690 : null;
-  if (material === 'silver-plain') {
-    if (count <= 2) return 225;
-    if (count <= 4) return count * 45;
-    return count * 40;
-  }
-  if (material === '10k-gold') {
-    if (count <= 2) return 275;
-    if (count <= 4) return 420;
-    return count * 95;
-  }
-  if (material === '14k-gold' || material === '14k-white-gold') {
-    if (count <= 2) return 350;
-    if (count <= 4) return 520;
-    return count * 115;
-  }
-  return null;
+  const { sizes, prices } = list;
+  const exact = sizes.indexOf(count);
+  if (exact >= 0) return prices[exact];
+  if (list.exactOnly || (list.quoteBelow && count < sizes[0])) return null;
+  const perTooth = (i: number) => Math.round(prices[i] / sizes[i]);
+  const lower = sizes.reduce((found, size, i) => (size < count ? i : found), 0);
+  const upper = sizes.findIndex(size => size > count);
+  const prorated = perTooth(lower) * count;
+  return upper > lower ? Math.min(prorated, prices[upper]) : prorated;
+}
+
+/** Smallest listed set price for this combination, or null when it's quoted. */
+export function startingPrice(g: Pick<GrillzDesign, 'metal' | 'stones' | 'stone'> & Partial<Pick<GrillzDesign, 'stoneStyle' | 'baseStyle'>>): number | null {
+  const list = priceList({ stoneStyle: 'honeycomb', baseStyle: 'solid', ...g });
+  return list ? list.prices[0] : null;
+}
+
+/** Note for settings outside the standard sets, e.g. Gallery. */
+export function settingNote(g: Pick<GrillzDesign, 'stones' | 'stoneStyle'>): string | null {
+  if (!g.stones || g.stoneStyle === 'invisible' || STANDARD_STYLES.includes(g.stoneStyle)) return null;
+  return g.stoneStyle === 'other'
+    ? 'Custom setting: additional charges may apply'
+    : `${stoneStyleName(g.stoneStyle)} setting: additional charges may apply`;
 }
 
 export const addonsPrice = (addons: string[], count: number) =>
   addons.reduce((sum, id) => sum + (PREMIUM_ADDONS.find(a => a.id === id)?.price || 0) * count, 0);
-
-/** Which price-list tier a design falls in, or null when it's quoted at consultation. */
-export function priceTier(g: GrillzDesign): Material | null {
-  if (g.metal === 'silver') {
-    if (!g.stones) return g.baseStyle === 'script' ? 'script' : 'silver-plain';
-    if (g.stone === 'moissanite') return 'silver-moissanite';
-    if (g.stone === 'lab-diamond') return 'silver-lab-diamond';
-    return null;
-  }
-  if (g.stones || g.baseStyle === 'script') return null;
-  if (g.metal === '10k') return '10k-gold';
-  if (g.metal === '14k') return '14k-gold';
-  return null;
-}
 
 /** Metal, colour and stones matching one of the booking form's metal choices. */
 export function grillzFromMaterial(material: string): Pick<GrillzDesign, 'metal' | 'color' | 'stones' | 'stone'> {
@@ -185,19 +272,12 @@ export function grillzFromMaterial(material: string): Pick<GrillzDesign, 'metal'
   return { ...base, metal: '14k' };
 }
 
-/** Price-list rate per tooth (for a full set) for this metal and stone, or null when it's quoted. */
-export function perToothRate(g: Pick<GrillzDesign, 'metal' | 'color' | 'stones' | 'stone'>): number | null {
-  const tier = priceTier({ ...DEFAULT_DESIGN.grillz, ...g, baseStyle: 'solid' });
-  const base = tier ? grillzBasePrice(tier, 8) : null;
-  return base === null ? null : base / 8;
-}
-
 export function grillzEstimate(g: GrillzDesign) {
   const count = g.top.length + g.bottom.length;
-  const tier = priceTier(g);
-  const base = tier ? grillzBasePrice(tier, count) : null;
+  const list = priceList(g);
+  const base = list ? setPrice(list, count) : null;
   const addons = addonsPrice(g.addons, count);
-  return { count, base, addons, total: base === null ? null : base + addons };
+  return { count, base, addons, total: base === null ? null : base + addons, note: settingNote(g) };
 }
 
 export const metalShades = (g: GrillzDesign): MetalShades =>
@@ -258,7 +338,7 @@ export function designSummary(design: StudioDesign) {
     addons && `Add-ons: ${addons}.`,
     ...toothNoteList(g).map(t => `${t.label}: ${t.note}`),
     g.notes && `Notes: ${g.notes}`,
-    est.total === null ? 'Estimate: quoted at consultation.' : `Estimate: $${est.total.toLocaleString()}.`,
+    est.total === null ? 'Estimate: quoted at consultation.' : `Estimate: $${est.total.toLocaleString()}${est.note ? ` (${est.note})` : ''}.`,
   ].filter(Boolean).join('\n');
 }
 

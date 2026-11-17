@@ -26,15 +26,20 @@ import GoogleReviews from './GoogleReviews';
 import { InstagramPostCard, instagramPostUrl } from './InstagramGallery';
 import { RECENT_POSTS, InstagramPost } from './data/instagramPosts';
 import BookingModal, { BookingPreset, STUDIO_EMAIL } from './BookingModal';
-import { StudioDesign, loadSavedDesign, saveDesign, readSharedDesign, METALS, STONES, perToothRate } from './design/designModel';
+import { StudioDesign, loadSavedDesign, saveDesign, readSharedDesign, METALS, PLAIN_SIZES, PLAIN_PRICES, ICED_SIZE_LABELS, ICED_PRICES } from './design/designModel';
 import { GOOGLE_REVIEWS_DATA } from './data/pastWorkData';
 
-const PricingRow = ({ label, price }: { label: string, price: string }) => (
+const PricingRow: React.FC<{ label: string; price: string }> = ({ label, price }) => (
   <div className="flex justify-between items-center py-3 border-b border-white/5 last:border-0 hover:bg-white/5 px-2 transition-colors">
     <span className="text-sm uppercase tracking-widest font-bold text-gray-300">{label}</span>
     <span className="text-sm font-bold text-[#D4D4D8]">{price}</span>
   </div>
 );
+
+const money = (n: number) => `$${n.toLocaleString()}`;
+const metalLabel = (id: string) => (id === 'silver' ? 'Silver' : METALS.find(m => m.id === id)?.name || id);
+const plainRow = (metal: string) => PLAIN_PRICES.find(r => r.metal === metal)!;
+const icedFrom = (id: string) => ICED_PRICES.find(c => c.id === id)!.rows[0].prices[0];
 
 type Page = 'home' | 'pastwork' | 'reviews' | 'configurator' | 'pricing' | 'info';
 
@@ -200,7 +205,9 @@ export default function App() {
                     <img src={priceNaturalDiamond} alt="Yellow gold grillz set with natural oval, pear and marquise diamonds" width={800} height={613} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   </div>
                   <div className="flex flex-col">
-                     <PricingRow label="All Sizes" price="Consultation Only" />
+                     <PricingRow label="SI Clarity" price={`From ${money(icedFrom('si'))}`} />
+                     <PricingRow label="VS Clarity" price={`From ${money(icedFrom('vs'))}`} />
+                     <PricingRow label="Invisible Set SI" price={`From ${money(icedFrom('invisible-si'))}`} />
                   </div>
                 </div>
               </div>
@@ -208,7 +215,7 @@ export default function App() {
               <DiamondStyleGallery />
 
               <p className="text-center text-xs text-zinc-400 -mt-2 mb-10">
-                Honeycomb, Honeymoon, Mosaic, Galaxy, Emerald, Jumbo and Hybrid settings are all the same price. Only the metal and stones change it.
+                Standard sets include Honeymoon, Honeycomb, Jumbo, Galaxy and Mosaic styles. <span className="text-[#D4D4D8] font-semibold">Gallery setting: additional charges may apply.</span>
               </p>
 
               {/* Plain Metal Tier */}
@@ -220,9 +227,7 @@ export default function App() {
                     <img src={silverPlain} alt="Silver Plain grillz" width={600} height={327} loading="lazy" decoding="async" className="w-full h-full object-contain mix-blend-screen" />
                   </div>
                   <div className="flex flex-col">
-                     <PricingRow label="2 Teeth" price="$225" />
-                     <PricingRow label="4 Teeth" price="$45 / Tooth" />
-                     <PricingRow label="6-10 Teeth" price="$40 / Tooth" />
+                     {PLAIN_SIZES.map((size, i) => <PricingRow key={size} label={`${size} Teeth`} price={money(plainRow('silver').prices[i])} />)}
                   </div>
                 </div>
 
@@ -233,9 +238,7 @@ export default function App() {
                     <img src={goldPlain} alt="10K Gold Plain grillz" width={600} height={327} loading="lazy" decoding="async" className="w-full h-full object-contain mix-blend-screen" />
                   </div>
                   <div className="flex flex-col">
-                     <PricingRow label="2 Teeth" price="$275" />
-                     <PricingRow label="4 Teeth" price="$420" />
-                     <PricingRow label="6-10 Teeth" price="$95 / Tooth" />
+                     {PLAIN_SIZES.map((size, i) => <PricingRow key={size} label={`${size} Teeth`} price={money(plainRow('10k').prices[i])} />)}
                   </div>
                 </div>
 
@@ -245,9 +248,7 @@ export default function App() {
                     <img src={goldPlain} alt="14K Gold Plain grillz" width={600} height={327} loading="lazy" decoding="async" className="w-full h-full object-contain mix-blend-screen brightness-110" />
                   </div>
                   <div className="flex flex-col">
-                     <PricingRow label="2 Teeth" price="$350" />
-                     <PricingRow label="4 Teeth" price="$520" />
-                     <PricingRow label="6-10 Teeth" price="$115 / Tooth" />
+                     {PLAIN_SIZES.map((size, i) => <PricingRow key={size} label={`${size} Teeth`} price={money(plainRow('14k').prices[i])} />)}
                   </div>
                 </div>
                 
@@ -267,40 +268,65 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Every metal / karat with every stone */}
+              {/* Full price lists, all prices for complete sets */}
               <div className="mt-12 max-w-4xl mx-auto bg-[#111] border border-white/10 rounded-sm p-5 sm:p-8">
-                <h3 className="text-lg sm:text-xl font-bold text-white uppercase tracking-wider font-heading text-center">Every Metal. Every Stone.</h3>
-                <p className="text-sm text-zinc-400 mt-2 font-light text-center">
-                  Mix any karat with any stone. 10K, 14K and 18K come in yellow, white or rose gold; 22K and 24K come in yellow.
-                </p>
+                <h3 className="text-lg sm:text-xl font-bold text-white uppercase tracking-wider font-heading text-center">Iced Grillz Price List</h3>
+                <p className="text-xs text-zinc-400 mt-2 font-light text-center uppercase tracking-widest">All prices are for complete sets</p>
                 <div className="mt-6 overflow-x-auto">
-                  <table className="w-full min-w-[520px] text-xs sm:text-sm">
+                  <table className="w-full min-w-[480px] text-xs sm:text-sm">
                     <thead>
                       <tr className="text-[10px] uppercase tracking-widest text-zinc-500">
-                        <th scope="col" className="text-left font-semibold py-2 pr-3">Per tooth</th>
-                        <th scope="col" className="font-semibold py-2 px-2">No Stones</th>
-                        {STONES.map(st => <th key={st.id} scope="col" className="font-semibold py-2 px-2">{st.name}</th>)}
+                        <th scope="col" className="text-left font-semibold py-2 pr-3">Category</th>
+                        <th scope="col" className="text-left font-semibold py-2 px-2">Metal</th>
+                        {ICED_SIZE_LABELS.map(size => <th key={size} scope="col" className="font-semibold py-2 px-2">{size}</th>)}
+                      </tr>
+                    </thead>
+                    {ICED_PRICES.map(cat => (
+                      <tbody key={cat.id} className="border-t border-white/15">
+                        {cat.rows.map((row, i) => (
+                          <tr key={row.metal} className={i > 0 ? 'border-t border-white/5' : ''}>
+                            {i === 0 && (
+                              <th scope="rowgroup" rowSpan={cat.rows.length} className="text-left align-top font-bold uppercase tracking-wider text-white py-2.5 pr-3">
+                                {cat.label}
+                                {cat.note && <span className="block text-[10px] font-medium text-zinc-500 normal-case tracking-normal">({cat.note})</span>}
+                              </th>
+                            )}
+                            <th scope="row" className="text-left font-semibold text-zinc-300 py-2 px-2 whitespace-nowrap">{metalLabel(row.metal)}</th>
+                            {row.prices.map((price, j) => <td key={j} className="text-center py-2 px-2 text-[#D4D4D8] font-bold">{money(price)}</td>)}
+                          </tr>
+                        ))}
+                      </tbody>
+                    ))}
+                  </table>
+                </div>
+                <p className="text-[11px] text-zinc-500 mt-4 text-center">
+                  Standard sets include Honeymoon, Honeycomb, Jumbo, Galaxy and Mosaic styles. Gallery setting: additional charges may apply.
+                </p>
+              </div>
+
+              <div className="mt-8 max-w-4xl mx-auto bg-[#111] border border-white/10 rounded-sm p-5 sm:p-8">
+                <h3 className="text-lg sm:text-xl font-bold text-white uppercase tracking-wider font-heading text-center">Plain Grillz Price List</h3>
+                <p className="text-xs text-zinc-400 mt-2 font-light text-center uppercase tracking-widest">All prices are for complete sets</p>
+                <div className="mt-6 overflow-x-auto">
+                  <table className="w-full min-w-[420px] text-xs sm:text-sm">
+                    <thead>
+                      <tr className="text-[10px] uppercase tracking-widest text-zinc-500">
+                        <th scope="col" className="text-left font-semibold py-2 pr-3">Material</th>
+                        {PLAIN_SIZES.map(size => <th key={size} scope="col" className="font-semibold py-2 px-2">{size} Teeth</th>)}
                       </tr>
                     </thead>
                     <tbody>
-                      {METALS.map(m => (
-                        <tr key={m.id} className="border-t border-white/5">
-                          <th scope="row" className="text-left font-bold uppercase tracking-wider text-white py-2.5 pr-3 whitespace-nowrap">{m.name}</th>
-                          {[{ stones: false, stone: STONES[0].id }, ...STONES.map(st => ({ stones: true, stone: st.id }))].map(({ stones, stone }) => {
-                            const rate = perToothRate({ metal: m.id, color: 'yellow', stones, stone });
-                            return (
-                              <td key={stones ? stone : 'none'} className={`text-center py-2.5 px-2 ${rate === null ? 'text-zinc-500 text-[10px] uppercase tracking-wider' : 'text-[#D4D4D8] font-bold'}`}>
-                                {rate === null ? 'Quote' : `$${rate}`}
-                              </td>
-                            );
-                          })}
+                      {PLAIN_PRICES.map(row => (
+                        <tr key={row.metal} className="border-t border-white/5">
+                          <th scope="row" className="text-left font-bold uppercase tracking-wider text-white py-2.5 pr-3 whitespace-nowrap">{row.label}</th>
+                          {row.prices.map((price, j) => <td key={j} className="text-center py-2.5 px-2 text-[#D4D4D8] font-bold">{money(price)}</td>)}
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
                 <p className="text-[11px] text-zinc-500 mt-4 text-center">
-                  "Quote" combinations are priced by Jeremy at your consultation. Pick any of them in the Design Studio or the booking form.
+                  Combinations not listed (like 24K gold or gold with moissanite) are priced by Jeremy at your consultation. Pick any of them in the Design Studio or the booking form.
                 </p>
               </div>
 
@@ -308,7 +334,7 @@ export default function App() {
               <div className="mt-12 max-w-3xl mx-auto bg-[#111] border border-[#D4D4D8]/30 rounded-sm p-6 sm:p-8 text-center">
                 <h3 className="text-lg sm:text-xl font-bold text-white uppercase tracking-wider font-heading">Don't See Your Price?</h3>
                 <p className="text-sm text-zinc-400 mt-3 font-light leading-relaxed">
-                  18K, 22K or 24K gold, gold with moissanite or diamonds, natural diamonds or a one-of-a-kind piece? Book a consultation, text or email Jeremy and get a quote.
+                  24K gold, gold with moissanite, a custom setting or a one-of-a-kind piece? Book a consultation, text or email Jeremy and get a quote.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
                   <button
@@ -518,7 +544,7 @@ export default function App() {
                 </div>
                 
                 <div className="text-center p-6 border border-[#D4D4D8]/30 bg-[#111] text-xs leading-relaxed uppercase tracking-widest text-[#D4D4D8]">
-                  For 18K, 22K & 24K Grillz, Gold with Moissanite or Diamonds, Natural Diamonds, and other custom inquiries<br/><span className="text-white font-bold inline-block mt-2">Book an appointment or DM us with your project details</span>
+                  For 24K Grillz, Gold with Moissanite, Custom Settings and other custom inquiries<br/><span className="text-white font-bold inline-block mt-2">Book an appointment or DM us with your project details</span>
                 </div>
               </div>
 
@@ -834,8 +860,8 @@ export default function App() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
-                { name: 'Plain Grillz', detail: 'Silver, 10K & 14K Gold', price: 'From $225' },
-                { name: 'Diamond Grillz', detail: 'Moissanite, Lab & Natural Diamond', price: 'From $1,175' },
+                { name: 'Plain Grillz', detail: 'Silver, NPG, 10K to 22K Gold', price: `From ${money(Math.min(...PLAIN_PRICES.map(r => r.prices[0])))}` },
+                { name: 'Diamond Grillz', detail: 'Moissanite, Lab & Natural Diamond', price: `From ${money(icedFrom('standard-moissanite'))}` },
                 { name: 'Script Grillz', detail: '8 on 8', price: '$690' },
               ].map(tier => (
                 <button
@@ -878,7 +904,7 @@ export default function App() {
                 { q: "How do in-person appointments work?", a: "Our Arlington, TX studio is strictly by appointment only. When you book a time slot, Jeremy reserves dedicated private time to take your dental impression, consult on engagement/wedding rings or custom cuts, and ensure your fit is natural." },
                 { q: "How long does the process take?", a: "Once we receive your completed mold impression or ring specs, turnaround time for standard pieces is typically 10-14 business days. Intricate custom designs with heavy diamond setting may take 3-4 weeks to perfect." },
                 { q: "Do you ship mold kits nationwide?", a: "Yes! Our direct mail-order mold kits are shipped directly to customers anywhere within the United States with full instructions and video support." },
-                { q: "What materials do you cast?", a: "We cast exclusively using dental-grade silver, 10k, 14k, and 18k solid gold. Our iced-out pieces feature hand-set lab diamonds, flawless moissanite, or natural conflict-free diamonds based on your preference." }
+                { q: "What materials do you cast?", a: "We cast using 925 silver, NPG dental gold, and 10K, 14K, 18K and 22K solid gold. Our iced-out pieces feature hand-set lab diamonds, flawless moissanite, or natural conflict-free diamonds based on your preference." }
               ].map((faq, idx) => (
                 <div key={idx} className="bg-[#111] border border-white/5 p-6 hover:border-[#D4D4D8]/30 transition-colors">
                   <h3 className="text-lg font-bold text-white uppercase tracking-wider mb-2 flex items-start gap-3">
